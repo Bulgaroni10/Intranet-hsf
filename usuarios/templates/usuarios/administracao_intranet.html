@@ -1,0 +1,364 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>Administração da Intranet</title>
+
+  <link rel="stylesheet" href="{% static 'core/css/home.css' %}">
+
+  <style>
+    .admin-page {
+      width: min(1180px, calc(100% - 32px));
+      margin: 0 auto;
+      padding: 28px 0 36px;
+      color: #ffffff;
+    }
+
+    .admin-hero {
+      background:
+        radial-gradient(circle at top left, rgba(45, 212, 191, 0.14), transparent 34%),
+        rgba(255, 255, 255, 0.04);
+      border: 1px solid rgba(255, 255, 255, 0.10);
+      border-radius: 24px;
+      padding: 24px;
+      box-shadow: 0 14px 34px rgba(0, 0, 0, 0.20);
+      margin-bottom: 18px;
+    }
+
+    .admin-hero-top {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+
+    .admin-eyebrow {
+      color: #2dd4bf;
+      font-size: 12px;
+      font-weight: 900;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      margin-bottom: 8px;
+    }
+
+    .admin-hero h1 {
+      margin: 0 0 8px 0;
+      color: #ffffff;
+      font-size: 32px;
+      line-height: 1.15;
+    }
+
+    .admin-hero p {
+      margin: 0;
+      color: rgba(255, 255, 255, 0.68);
+      font-size: 14px;
+      line-height: 1.55;
+      max-width: 780px;
+    }
+
+    .admin-actions {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .admin-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 999px;
+      padding: 10px 14px;
+      border: 1px solid rgba(45, 212, 191, 0.28);
+      background: rgba(45, 212, 191, 0.10);
+      color: #2dd4bf;
+      text-decoration: none;
+      font-size: 13px;
+      font-weight: 900;
+      cursor: pointer;
+      transition: 0.2s ease;
+      white-space: nowrap;
+    }
+
+    .admin-btn:hover {
+      background: rgba(45, 212, 191, 0.18);
+      border-color: rgba(45, 212, 191, 0.52);
+      transform: translateY(-1px);
+    }
+
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+      gap: 12px;
+      margin-top: 20px;
+    }
+
+    .stat-card {
+      background: rgba(0, 0, 0, 0.18);
+      border: 1px solid rgba(255, 255, 255, 0.09);
+      border-radius: 18px;
+      padding: 16px;
+    }
+
+    .stat-card span {
+      display: block;
+      color: rgba(255, 255, 255, 0.52);
+      font-size: 11px;
+      text-transform: uppercase;
+      font-weight: 900;
+      letter-spacing: 0.07em;
+      margin-bottom: 6px;
+    }
+
+    .stat-card strong {
+      color: #2dd4bf;
+      font-size: 28px;
+      line-height: 1;
+    }
+
+    .section-title {
+      margin: 24px 0 14px;
+    }
+
+    .section-title h2 {
+      color: #ffffff;
+      font-size: 20px;
+      margin: 0 0 5px;
+    }
+
+    .section-title p {
+      color: rgba(255, 255, 255, 0.58);
+      font-size: 13px;
+      margin: 0;
+      line-height: 1.5;
+    }
+
+    .admin-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 16px;
+    }
+
+    .admin-card {
+      display: block;
+      text-decoration: none;
+      color: inherit;
+      background:
+        radial-gradient(circle at top left, rgba(45, 212, 191, 0.10), transparent 30%),
+        rgba(255, 255, 255, 0.04);
+      border: 1px solid rgba(255, 255, 255, 0.10);
+      border-radius: 22px;
+      padding: 18px;
+      min-height: 175px;
+      box-shadow: 0 14px 34px rgba(0, 0, 0, 0.18);
+      transition: 0.2s ease;
+    }
+
+    .admin-card:hover {
+      transform: translateY(-2px);
+      border-color: rgba(45, 212, 191, 0.55);
+      background:
+        radial-gradient(circle at top left, rgba(45, 212, 191, 0.16), transparent 30%),
+        rgba(45, 212, 191, 0.08);
+    }
+
+    .admin-card-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 14px;
+    }
+
+    .admin-card-icon {
+      width: 46px;
+      height: 46px;
+      border-radius: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(45, 212, 191, 0.12);
+      border: 1px solid rgba(45, 212, 191, 0.22);
+      font-size: 22px;
+      flex: 0 0 auto;
+    }
+
+    .admin-card-tag {
+      color: #2dd4bf;
+      background: rgba(45, 212, 191, 0.10);
+      border: 1px solid rgba(45, 212, 191, 0.22);
+      border-radius: 999px;
+      padding: 6px 10px;
+      font-size: 11px;
+      font-weight: 900;
+      white-space: nowrap;
+    }
+
+    .admin-card h3 {
+      color: #ffffff;
+      font-size: 17px;
+      line-height: 1.3;
+      margin: 0 0 8px 0;
+    }
+
+    .admin-card p {
+      color: rgba(255, 255, 255, 0.68);
+      font-size: 13px;
+      line-height: 1.5;
+      margin: 0;
+    }
+
+    .admin-card-footer {
+      margin-top: 18px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      color: #2dd4bf;
+      font-size: 13px;
+      font-weight: 900;
+    }
+
+    .info-box {
+      margin-top: 18px;
+      background: rgba(249, 115, 22, 0.10);
+      border: 1px solid rgba(249, 115, 22, 0.28);
+      color: #fed7aa;
+      border-radius: 18px;
+      padding: 14px;
+      font-size: 13px;
+      line-height: 1.55;
+    }
+
+    @media (max-width: 700px) {
+      .admin-page {
+        width: calc(100% - 20px);
+        padding-top: 16px;
+      }
+
+      .admin-hero h1 {
+        font-size: 25px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
+
+  <div id="portal-screen" style="display: block;">
+    <header>
+      <div class="logo">
+        {% if request.user.unidade.sigla == "HSFVF" or request.user.unidade.sigla == "HSFMA" %}
+          <img src="{% static 'core/img/logo-sagrada-familia.png' %}" alt="Logo" class="header-unit-logo">
+        {% else %}
+          <img src="{% static 'core/img/logo-hsf.png' %}" alt="Logo" class="header-unit-logo">
+        {% endif %}
+
+        <div>
+          <span>Intranet Grupo São Francisco</span>
+          <span class="unit-tag">{{ request.user.unidade.nome }}</span>
+        </div>
+      </div>
+
+      <div class="header-right">
+        <a class="logout-btn" href="/portal/">Voltar ao portal</a>
+        <button class="logout-btn" onclick="doLogout()">Sair</button>
+      </div>
+    </header>
+
+    <main class="admin-page">
+
+      <section class="admin-hero">
+        <div class="admin-hero-top">
+          <div>
+            <div class="admin-eyebrow">Painel administrativo</div>
+            <h1>Administração da Intranet</h1>
+            <p>
+              Central de configuração da intranet. Use esta área para gerenciar usuários,
+              grupos, unidades, setores, permissões dos módulos e auditoria.
+            </p>
+          </div>
+
+          <div class="admin-actions">
+            <a class="admin-btn" href="/portal/">Voltar ao portal</a>
+          </div>
+        </div>
+
+        <div class="stats-grid">
+          <div class="stat-card">
+            <span>Usuários</span>
+            <strong>{{ total_usuarios }}</strong>
+          </div>
+
+          <div class="stat-card">
+            <span>Usuários ativos</span>
+            <strong>{{ total_usuarios_ativos }}</strong>
+          </div>
+
+          <div class="stat-card">
+            <span>Grupos</span>
+            <strong>{{ total_grupos }}</strong>
+          </div>
+
+          <div class="stat-card">
+            <span>Unidades</span>
+            <strong>{{ total_unidades }}</strong>
+          </div>
+
+          <div class="stat-card">
+            <span>Setores</span>
+            <strong>{{ total_setores }}</strong>
+          </div>
+
+          <div class="stat-card">
+            <span>Módulos ativos</span>
+            <strong>{{ total_modulos_ativos }}</strong>
+          </div>
+        </div>
+      </section>
+
+      <section class="section-title">
+        <h2>Configurações disponíveis</h2>
+        <p>Escolha uma área administrativa para continuar.</p>
+      </section>
+
+      <section class="admin-grid">
+        {% for card in cards_administracao %}
+          <a class="admin-card" href="{{ card.link }}">
+            <div class="admin-card-top">
+              <div class="admin-card-icon">
+                {{ card.icone }}
+              </div>
+
+              <span class="admin-card-tag">
+                {{ card.tag }}
+              </span>
+            </div>
+
+            <h3>{{ card.titulo }}</h3>
+            <p>{{ card.descricao }}</p>
+
+            <div class="admin-card-footer">
+              <span>Acessar</span>
+              <span>→</span>
+            </div>
+          </a>
+        {% endfor %}
+      </section>
+
+      <div class="info-box">
+        Recomendação: manter no portal principal apenas um botão de administração.
+        As opções internas devem ficar agrupadas aqui para não misturar operação comum com configuração da intranet.
+      </div>
+
+    </main>
+  </div>
+
+  <script src="{% static 'core/js/home.js' %}"></script>
+</body>
+</html>

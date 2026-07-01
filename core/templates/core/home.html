@@ -1,0 +1,103 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>Login | Intranet Grupo São Francisco</title>
+
+  <link rel="stylesheet" href="{% static 'core/css/home.css' %}">
+</head>
+
+<body>
+
+  <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
+
+  <!-- LOGIN -->
+  <div id="login-screen">
+    <div class="login-left">
+      <div class="login-content">
+        <div class="brand-icon">✚</div>
+
+        <h1>Grupo São Francisco</h1>
+
+        <p>
+          Intranet corporativa para acesso rápido aos sistemas, comunicados,
+          documentos e serviços internos.
+        </p>
+
+        <div class="brand-logos">
+          <img src="{% static 'core/img/logo-hsf.png' %}" alt="Hospital e Maternidade São Francisco">
+          <img src="{% static 'core/img/logo-sagrada-familia.png' %}" alt="Hospital Sagrada Família">
+        </div>
+
+        <div class="units-preview">
+          <div class="unit-chip">Hospital e Maternidade São Francisco</div>
+          <div class="unit-chip">Hospital Sagrada Família Vila Formosa</div>
+          <div class="unit-chip">Hospital Sagrada Família Mauá</div>
+          <div class="unit-chip">Hospital São Francisco São Roque</div>
+          <div class="unit-chip">Hospital São Francisco Osasco</div>
+          <div class="unit-chip">Hospital São Francisco Carapicuíba</div>
+          <div class="unit-chip">Operadora / Plano de Saúde</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="login-right">
+      <h2>Acessar a Intranet</h2>
+
+      <div class="login-logo-box">
+        <img
+          id="login-unit-logo"
+          src="{% static 'core/img/logo-hsf.png' %}"
+          alt="Logo da unidade"
+          class="login-unit-logo"
+        >
+      </div>
+
+      <p class="sub">
+        Selecione sua unidade e informe suas credenciais de acesso.
+      </p>
+
+      <div class="form-group">
+        <label>Unidade</label>
+
+        <select id="sel-unidade">
+          <option value="">— Selecione a unidade —</option>
+          <option value="HMSF">Hospital e Maternidade São Francisco</option>
+          <option value="HSFVF">Hospital Sagrada Família Vila Formosa</option>
+          <option value="HSFMA">Hospital Sagrada Família Mauá</option>
+          <option value="HSFSR">Hospital São Francisco São Roque</option>
+          <option value="HSFOS">Hospital São Francisco Osasco</option>
+          <option value="HSFCA">Hospital São Francisco Carapicuíba</option>
+          <option value="OPS">Operadora / Plano de Saúde</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label>Usuário</label>
+        <input id="inp-user" type="text" placeholder="nome.sobrenome">
+      </div>
+
+      <div class="form-group">
+        <label>Senha</label>
+        <input id="inp-pw" type="password" placeholder="••••••••">
+      </div>
+
+      <p class="error-msg" id="err-msg">
+        ⚠ Preencha todos os campos antes de continuar.
+      </p>
+
+      <button class="btn-login" onclick="doLogin()">Entrar</button>
+
+      <p class="forgot">
+        Esqueceu a senha? <a href="#">Fale com a Tecnologia da Informação</a>
+      </p>
+    </div>
+  </div>
+
+  <script src="{% static 'core/js/home.js' %}"></script>
+</body>
+</html>

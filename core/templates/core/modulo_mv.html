@@ -1,0 +1,581 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>MV / Sistema Hospitalar | Intranet</title>
+
+  <link rel="stylesheet" href="{% static 'core/css/home.css' %}">
+
+  <style>
+    body {
+      background: #111111;
+      color: #f8fafc;
+      margin: 0;
+      font-family: Arial, sans-serif;
+    }
+
+    .page {
+      max-width: 1180px;
+      margin: 0 auto;
+      padding: 28px 24px 50px;
+    }
+
+    .top-actions {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-bottom: 24px;
+    }
+
+    .btn-link,
+    .btn-success {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 10px 14px;
+      border-radius: 10px;
+      border: 1px solid rgba(148, 163, 184, 0.3);
+      background: rgba(15, 23, 42, 0.75);
+      color: #e5e7eb;
+      text-decoration: none;
+      font-size: 13px;
+      font-weight: 800;
+      cursor: pointer;
+    }
+
+    .btn-link:hover {
+      border-color: #2dd4bf;
+      color: #2dd4bf;
+    }
+
+    .btn-success {
+      background: #2dd4bf;
+      color: #06201d;
+      border-color: #2dd4bf;
+    }
+
+    .hero-box {
+      display: grid;
+      grid-template-columns: 1fr 320px;
+      gap: 18px;
+      margin-bottom: 26px;
+    }
+
+    .hero-main,
+    .hero-side,
+    .summary-card,
+    .panel-box,
+    .module-card,
+    .notice-card,
+    .empty-card,
+    .message-item {
+      background: rgba(31, 31, 31, 0.96);
+      border: 1px solid rgba(148, 163, 184, 0.2);
+      border-radius: 16px;
+      padding: 22px;
+    }
+
+    .eyebrow {
+      color: #2dd4bf;
+      font-size: 12px;
+      font-weight: 900;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      margin-bottom: 8px;
+    }
+
+    h1 {
+      margin: 0 0 10px;
+      font-size: 32px;
+      color: #ffffff;
+    }
+
+    h2 {
+      margin: 0 0 6px;
+      font-size: 20px;
+      color: #ffffff;
+    }
+
+    h3 {
+      margin: 0 0 6px;
+      color: #ffffff;
+    }
+
+    p {
+      color: #cbd5e1;
+      line-height: 1.5;
+    }
+
+    .messages-box {
+      display: grid;
+      gap: 10px;
+      margin-bottom: 18px;
+    }
+
+    .message-item {
+      padding: 12px 14px;
+      color: #e5e7eb;
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    .message-success {
+      border-color: rgba(34, 197, 94, 0.35);
+      background: rgba(22, 101, 52, 0.22);
+      color: #bbf7d0;
+    }
+
+    .message-error {
+      border-color: rgba(248, 113, 113, 0.35);
+      background: rgba(127, 29, 29, 0.22);
+      color: #fecaca;
+    }
+
+    .summary-grid {
+      display: grid;
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+      gap: 14px;
+      margin-bottom: 26px;
+    }
+
+    .summary-card span {
+      display: block;
+      color: #94a3b8;
+      font-size: 12px;
+      font-weight: 800;
+      text-transform: uppercase;
+      margin-bottom: 8px;
+    }
+
+    .summary-card strong {
+      display: block;
+      color: #ffffff;
+      font-size: 28px;
+    }
+
+    .section-header {
+      margin-bottom: 14px;
+    }
+
+    .modules-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 16px;
+      margin-bottom: 30px;
+    }
+
+    .module-card {
+      cursor: pointer;
+      transition: 0.2s;
+    }
+
+    .module-card:hover {
+      transform: translateY(-2px);
+      border-color: rgba(45, 212, 191, 0.45);
+    }
+
+    .module-icon {
+      width: 42px;
+      height: 42px;
+      border-radius: 14px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(45, 212, 191, 0.12);
+      border: 1px solid rgba(45, 212, 191, 0.22);
+      font-size: 22px;
+      margin-bottom: 12px;
+    }
+
+    .module-card small {
+      display: block;
+      margin-top: 8px;
+      color: #94a3b8;
+      font-weight: 700;
+    }
+
+    .panel-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 18px;
+      margin-bottom: 28px;
+    }
+
+    .notice-list {
+      display: grid;
+      gap: 12px;
+      margin-top: 14px;
+    }
+
+    .notice-card {
+      display: grid;
+      grid-template-columns: 46px 1fr;
+      gap: 14px;
+      padding: 16px;
+    }
+
+    .notice-icon {
+      width: 42px;
+      height: 42px;
+      border-radius: 14px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(45, 212, 191, 0.12);
+      border: 1px solid rgba(45, 212, 191, 0.22);
+      font-size: 20px;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      padding: 7px 10px;
+      border-radius: 999px;
+      font-size: 11px;
+      font-weight: 900;
+      text-transform: uppercase;
+      color: #2dd4bf;
+      background: rgba(45, 212, 191, 0.12);
+      border: 1px solid rgba(45, 212, 191, 0.25);
+      margin-right: 6px;
+      margin-top: 6px;
+      text-decoration: none;
+    }
+
+    .empty-card {
+      text-align: center;
+      color: #cbd5e1;
+      border-style: dashed;
+    }
+
+    .footer {
+      border-top: 1px solid rgba(148, 163, 184, 0.16);
+      margin-top: 26px;
+      padding-top: 14px;
+      display: flex;
+      justify-content: space-between;
+      color: #94a3b8;
+      font-size: 12px;
+    }
+
+    @media (max-width: 1000px) {
+      .hero-box,
+      .summary-grid,
+      .modules-grid,
+      .panel-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <header>
+    <div class="logo">
+      {% if request.user.unidade %}
+        {% if request.user.unidade.sigla == "HSFVF" or request.user.unidade.sigla == "HSFMA" %}
+          <img src="{% static 'core/img/logo-sagrada-familia.png' %}" alt="Logo" class="header-unit-logo">
+        {% else %}
+          <img src="{% static 'core/img/logo-hsf.png' %}" alt="Logo" class="header-unit-logo">
+        {% endif %}
+      {% else %}
+        <img src="{% static 'core/img/logo-hsf.png' %}" alt="Logo" class="header-unit-logo">
+      {% endif %}
+
+      <div>
+        <span>Intranet Grupo São Francisco</span>
+        <span class="unit-tag">
+          {% if request.user.unidade %}
+            {{ request.user.unidade.nome }}
+          {% else %}
+            Sem unidade vinculada
+          {% endif %}
+        </span>
+      </div>
+    </div>
+
+    <div class="header-right">
+      <a class="logout-btn" href="/portal/">Voltar ao portal</a>
+      <button class="logout-btn" onclick="doLogout()">Sair</button>
+    </div>
+  </header>
+
+  <main class="page">
+
+    <div class="top-actions">
+      <a class="btn-link" href="/portal/">← Voltar ao portal</a>
+      <a class="btn-link" href="/portal/modulos/mv/manuais/">Manuais MV</a>
+      <a class="btn-link" href="/portal/modulos/mv/convenios/">Convênios MV</a>
+      <a class="btn-link" href="/portal/modulos/mv/contingencia/">Contingência</a>
+      <a class="btn-link" href="/portal/modulos/mv/chamados/">Chamados MV</a>
+      <a class="btn-link" href="/portal/modulos/mv/links/">Links úteis</a>
+      <a class="btn-link" href="/portal/modulos/mv/observacoes/">Observações</a>
+
+      {% if pode_gerenciar_mv %}
+        <a class="btn-success" href="/portal/modulos/mv/convenios/novo/">+ Novo convênio</a>
+        <a class="btn-success" href="/portal/modulos/mv/regras/nova/">+ Nova regra</a>
+        <a class="btn-success" href="/portal/modulos/mv/importacoes/">Importações MV</a>
+      {% endif %}
+    </div>
+
+    {% if messages %}
+      <div class="messages-box">
+        {% for message in messages %}
+          <div class="message-item {% if message.tags == 'success' %}message-success{% elif message.tags == 'error' %}message-error{% endif %}">
+            {{ message }}
+          </div>
+        {% endfor %}
+      </div>
+    {% endif %}
+
+    <section class="hero-box">
+      <div class="hero-main">
+        <div class="eyebrow">Sistemas assistenciais</div>
+        <h1>{{ modulo.nome }}</h1>
+        <p>
+          Central de informações, manuais, convênios, regras operacionais, procedimentos proibidos,
+          orientações, chamados, links úteis, observações e plano de contingência relacionados ao sistema MV.
+        </p>
+      </div>
+
+      <aside class="hero-side">
+        <h3>Resumo do módulo</h3>
+        <p>
+          Conteúdos exibidos conforme unidade, grupo de acesso e permissões do usuário.
+        </p>
+
+        <p>
+          <strong>Unidade:</strong>
+          {% if request.user.unidade %}
+            {{ request.user.unidade.nome }}
+          {% else %}
+            Sem unidade
+          {% endif %}
+          <br>
+          <strong>Setor:</strong>
+          {% if request.user.setor %}
+            {{ request.user.setor.nome }}
+          {% else %}
+            Não informado
+          {% endif %}
+        </p>
+      </aside>
+    </section>
+
+    <section class="summary-grid">
+      <div class="summary-card">
+        <span>Convênios</span>
+        <strong>{{ total_convenios }}</strong>
+      </div>
+
+      <div class="summary-card">
+        <span>Convênios ativos</span>
+        <strong>{{ total_convenios_ativos }}</strong>
+      </div>
+
+      <div class="summary-card">
+        <span>Planos</span>
+        <strong>{{ total_planos }}</strong>
+      </div>
+
+      <div class="summary-card">
+        <span>Regras ativas</span>
+        <strong>{{ total_regras_ativas }}</strong>
+      </div>
+
+      <div class="summary-card">
+        <span>Proced. proibidos</span>
+        <strong>{{ total_procedimentos_proibidos }}</strong>
+      </div>
+    </section>
+
+    <section>
+      <div class="section-header">
+        <h2>Áreas do módulo</h2>
+        <p>Escolha uma área para visualizar ou administrar os conteúdos.</p>
+      </div>
+
+      <div class="modules-grid">
+
+        <div class="module-card" onclick="window.location.href='/portal/modulos/mv/manuais/'">
+          <div class="module-icon">📘</div>
+          <h3>Manuais MV</h3>
+          <p>Documentos operacionais, orientações, POPs e manuais do sistema.</p>
+          <small>{{ conteudos_por_tipo.manual|length }} item(ns) cadastrado(s)</small>
+        </div>
+
+        <div class="module-card" onclick="window.location.href='/portal/modulos/mv/convenios/'">
+          <div class="module-icon">🏥</div>
+          <h3>Convênios</h3>
+          <p>Consulta por convênio, plano, especialidade, regras e procedimentos proibidos.</p>
+          <small>{{ total_convenios_ativos }} convênio(s) ativo(s)</small>
+        </div>
+
+        <div class="module-card" onclick="window.location.href='/portal/modulos/mv/contingencia/'">
+          <div class="module-icon">🚨</div>
+          <h3>Contingência</h3>
+          <p>Orientações para indisponibilidade, lentidão ou falha do sistema MV.</p>
+          <small>{{ conteudos_por_tipo.contingencia|length }} item(ns) cadastrado(s)</small>
+        </div>
+
+        <div class="module-card" onclick="window.location.href='/portal/modulos/mv/chamados/'">
+          <div class="module-icon">🧾</div>
+          <h3>Chamados MV</h3>
+          <p>Links e instruções para abertura e acompanhamento de chamados.</p>
+          <small>{{ conteudos_por_tipo.chamado|length }} item(ns) cadastrado(s)</small>
+        </div>
+
+        <div class="module-card" onclick="window.location.href='/portal/modulos/mv/links/'">
+          <div class="module-icon">🔗</div>
+          <h3>Links úteis</h3>
+          <p>Acessos rápidos relacionados ao sistema MV e fornecedores.</p>
+          <small>{{ conteudos_por_tipo.link|length }} item(ns) cadastrado(s)</small>
+        </div>
+
+        <div class="module-card" onclick="window.location.href='/portal/modulos/mv/observacoes/'">
+          <div class="module-icon">📝</div>
+          <h3>Observações</h3>
+          <p>Orientações internas, alertas e observações operacionais.</p>
+          <small>{{ conteudos_por_tipo.observacao|length }} item(ns) cadastrado(s)</small>
+        </div>
+
+        {% if pode_gerenciar_mv %}
+          <div class="module-card" onclick="window.location.href='/portal/modulos/mv/importacoes/'">
+            <div class="module-icon">📥</div>
+            <h3>Importações MV</h3>
+            <p>Importe convênios, planos, procedimentos proibidos e regras de atendimento por CSV ou XLSX.</p>
+            <small>Processamento em massa</small>
+          </div>
+        {% endif %}
+
+      </div>
+    </section>
+
+    <section class="panel-grid">
+      <div class="panel-box">
+        <div class="section-header">
+          <h2>Manuais disponíveis</h2>
+          <p>Últimos manuais cadastrados para seu acesso.</p>
+        </div>
+
+        <div class="notice-list">
+          {% for item in conteudos_por_tipo.manual %}
+            <article class="notice-card">
+              <div class="notice-icon">📘</div>
+
+              <div>
+                <h3>{{ item.titulo }}</h3>
+
+                {% if item.descricao %}
+                  <p>{{ item.descricao }}</p>
+                {% endif %}
+
+                {% if item.unidade %}
+                  <span class="badge">{{ item.unidade.sigla }}</span>
+                {% else %}
+                  <span class="badge">Todas</span>
+                {% endif %}
+
+                {% if item.arquivo %}
+                  <a class="badge" href="{{ item.arquivo.url }}" target="_blank">Abrir arquivo</a>
+                {% endif %}
+
+                {% if item.link_externo %}
+                  <a class="badge" href="{{ item.link_externo }}" target="_blank">Abrir link</a>
+                {% endif %}
+              </div>
+            </article>
+          {% empty %}
+            <div class="empty-card">
+              Nenhum manual cadastrado.
+            </div>
+          {% endfor %}
+        </div>
+      </div>
+
+      <div class="panel-box">
+        <div class="section-header">
+          <h2>Links úteis</h2>
+          <p>Acessos rápidos do módulo MV.</p>
+        </div>
+
+        <div class="notice-list">
+          {% for item in conteudos_por_tipo.link %}
+            <article class="notice-card">
+              <div class="notice-icon">🔗</div>
+
+              <div>
+                <h3>{{ item.titulo }}</h3>
+
+                {% if item.descricao %}
+                  <p>{{ item.descricao }}</p>
+                {% endif %}
+
+                {% if item.link_externo %}
+                  <a class="badge" href="{{ item.link_externo }}" target="_blank">Abrir link</a>
+                {% elif item.arquivo %}
+                  <a class="badge" href="{{ item.arquivo.url }}" target="_blank">Abrir arquivo</a>
+                {% else %}
+                  <span class="badge">Sem link</span>
+                {% endif %}
+              </div>
+            </article>
+          {% empty %}
+            <div class="empty-card">
+              Nenhum link útil cadastrado.
+            </div>
+          {% endfor %}
+        </div>
+      </div>
+    </section>
+
+    <section class="panel-box">
+      <div class="section-header">
+        <h2>Contingência MV</h2>
+        <p>Orientações para indisponibilidade ou falha do sistema MV.</p>
+      </div>
+
+      <div class="notice-list">
+        {% for item in conteudos_por_tipo.contingencia %}
+          <article class="notice-card">
+            <div class="notice-icon">🚨</div>
+
+            <div>
+              <h3>{{ item.titulo }}</h3>
+
+              {% if item.descricao %}
+                <p>{{ item.descricao }}</p>
+              {% endif %}
+
+              {% if item.arquivo %}
+                <a class="badge" href="{{ item.arquivo.url }}" target="_blank">Abrir arquivo</a>
+              {% endif %}
+
+              {% if item.link_externo %}
+                <a class="badge" href="{{ item.link_externo }}" target="_blank">Abrir link</a>
+              {% endif %}
+            </div>
+          </article>
+        {% empty %}
+          <div class="empty-card">
+            Nenhuma contingência cadastrada.
+          </div>
+        {% endfor %}
+      </div>
+    </section>
+
+    <footer class="footer">
+      <span>MV / Sistema Hospitalar • Intranet Grupo São Francisco</span>
+      <span>Tecnologia da Informação • Ambiente interno</span>
+    </footer>
+
+  </main>
+
+  <script src="{% static 'core/js/home.js' %}"></script>
+</body>
+</html>

@@ -1,0 +1,530 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>Relatório de Leituras | Base de Conhecimento</title>
+
+  <link rel="stylesheet" href="{% static 'core/css/home.css' %}">
+
+  <style>
+    body {
+      background: #111111;
+      color: #f8fafc;
+      margin: 0;
+      font-family: Arial, sans-serif;
+    }
+
+    .page {
+      max-width: 1220px;
+      margin: 0 auto;
+      padding: 28px 24px 50px;
+    }
+
+    .top-actions {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-bottom: 24px;
+    }
+
+    .btn-link,
+    .btn-submit,
+    .btn-success {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 10px 14px;
+      border-radius: 10px;
+      border: 1px solid rgba(148, 163, 184, 0.3);
+      background: rgba(15, 23, 42, 0.75);
+      color: #e5e7eb;
+      text-decoration: none;
+      font-size: 13px;
+      font-weight: 800;
+      cursor: pointer;
+      font-family: Arial, sans-serif;
+    }
+
+    .btn-link:hover {
+      border-color: #2dd4bf;
+      color: #2dd4bf;
+    }
+
+    .btn-success,
+    .btn-submit {
+      background: #2dd4bf;
+      color: #06201d;
+      border-color: #2dd4bf;
+    }
+
+    .btn-submit {
+      width: 100%;
+    }
+
+    .hero-box {
+      display: grid;
+      grid-template-columns: 1fr 360px;
+      gap: 18px;
+      margin-bottom: 26px;
+    }
+
+    .hero-main,
+    .hero-side,
+    .summary-card,
+    .table-card,
+    .empty-card {
+      background: rgba(31, 31, 31, 0.96);
+      border: 1px solid rgba(148, 163, 184, 0.2);
+      border-radius: 16px;
+      padding: 22px;
+    }
+
+    .eyebrow {
+      color: #2dd4bf;
+      font-size: 12px;
+      font-weight: 900;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      margin-bottom: 8px;
+    }
+
+    h1 {
+      margin: 0 0 10px;
+      font-size: 32px;
+      color: #ffffff;
+    }
+
+    h2 {
+      margin: 0 0 8px;
+      color: #ffffff;
+      font-size: 20px;
+    }
+
+    h3 {
+      margin: 0 0 8px;
+      color: #ffffff;
+    }
+
+    p {
+      color: #cbd5e1;
+      line-height: 1.5;
+    }
+
+    .form-grid {
+      display: grid;
+      gap: 10px;
+    }
+
+    .form-group {
+      margin-bottom: 2px;
+    }
+
+    .form-group label {
+      display: block;
+      color: #cbd5e1;
+      font-size: 12px;
+      font-weight: 800;
+      text-transform: uppercase;
+      margin-bottom: 7px;
+    }
+
+    .form-group input,
+    .form-group select {
+      width: 100%;
+      box-sizing: border-box;
+      border: 1px solid rgba(148, 163, 184, 0.28);
+      background: #2a2a2a;
+      color: #ffffff;
+      border-radius: 10px;
+      padding: 12px;
+      outline: none;
+    }
+
+    .form-group input:focus,
+    .form-group select:focus {
+      border-color: #2dd4bf;
+      box-shadow: 0 0 0 2px rgba(45, 212, 191, 0.15);
+    }
+
+    .summary-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 14px;
+      margin-bottom: 26px;
+    }
+
+    .summary-card span {
+      display: block;
+      color: #94a3b8;
+      font-size: 12px;
+      font-weight: 800;
+      text-transform: uppercase;
+      margin-bottom: 8px;
+    }
+
+    .summary-card strong {
+      display: block;
+      color: #ffffff;
+      font-size: 30px;
+    }
+
+    .section-header {
+      margin-bottom: 14px;
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 14px;
+      flex-wrap: wrap;
+    }
+
+    .table-card {
+      overflow-x: auto;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      min-width: 980px;
+    }
+
+    th,
+    td {
+      padding: 13px 12px;
+      border-bottom: 1px solid rgba(148, 163, 184, 0.16);
+      text-align: left;
+      vertical-align: top;
+      font-size: 13px;
+    }
+
+    th {
+      color: #94a3b8;
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      font-weight: 900;
+      background: rgba(15, 23, 42, 0.45);
+    }
+
+    td {
+      color: #e5e7eb;
+    }
+
+    .muted {
+      color: #94a3b8;
+      font-size: 12px;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      padding: 7px 10px;
+      border-radius: 999px;
+      font-size: 11px;
+      font-weight: 900;
+      text-transform: uppercase;
+      color: #2dd4bf;
+      background: rgba(45, 212, 191, 0.12);
+      border: 1px solid rgba(45, 212, 191, 0.25);
+      text-decoration: none;
+      white-space: nowrap;
+    }
+
+    .badge-ok {
+      color: #bbf7d0;
+      background: rgba(22, 101, 52, 0.35);
+      border-color: rgba(34, 197, 94, 0.35);
+    }
+
+    .empty-card {
+      text-align: center;
+      color: #cbd5e1;
+      border-style: dashed;
+    }
+
+    .footer {
+      border-top: 1px solid rgba(148, 163, 184, 0.16);
+      margin-top: 26px;
+      padding-top: 14px;
+      display: flex;
+      justify-content: space-between;
+      color: #94a3b8;
+      font-size: 12px;
+    }
+
+    @media (max-width: 1000px) {
+      .hero-box,
+      .summary-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <header>
+    <div class="logo">
+      {% if request.user.unidade %}
+        {% if request.user.unidade.sigla == "HSFVF" or request.user.unidade.sigla == "HSFMA" %}
+          <img src="{% static 'core/img/logo-sagrada-familia.png' %}" alt="Logo" class="header-unit-logo">
+        {% else %}
+          <img src="{% static 'core/img/logo-hsf.png' %}" alt="Logo" class="header-unit-logo">
+        {% endif %}
+      {% else %}
+        <img src="{% static 'core/img/logo-hsf.png' %}" alt="Logo" class="header-unit-logo">
+      {% endif %}
+
+      <div>
+        <span>Intranet Grupo São Francisco</span>
+        <span class="unit-tag">
+          {% if request.user.unidade %}
+            {{ request.user.unidade.nome }}
+          {% else %}
+            Sem unidade vinculada
+          {% endif %}
+        </span>
+      </div>
+    </div>
+
+    <div class="header-right">
+      <a class="logout-btn" href="/portal/modulos/base-conhecimento/">Base</a>
+      <a class="logout-btn" href="/portal/">Portal</a>
+      <button class="logout-btn" onclick="doLogout()">Sair</button>
+    </div>
+  </header>
+
+  <main class="page">
+
+    <div class="top-actions">
+      <a class="btn-link" href="/portal/modulos/base-conhecimento/">← Voltar para Base de Conhecimento</a>
+      <a class="btn-link" href="/portal/">Portal</a>
+
+      <a
+        class="btn-success"
+        href="/portal/modulos/base-conhecimento/relatorio-leituras/exportar-csv/?documento={{ documento_id }}&unidade={{ unidade_id }}&setor={{ setor_id }}&usuario={{ usuario_busca }}&data_inicio={{ data_inicio }}&data_fim={{ data_fim }}"
+      >
+        Exportar CSV
+      </a>
+    </div>
+
+    <section class="hero-box">
+      <div class="hero-main">
+        <div class="eyebrow">Base de Conhecimento</div>
+        <h1>Relatório de Leituras</h1>
+        <p>
+          Acompanhe quais usuários confirmaram ciência dos documentos marcados como leitura obrigatória.
+        </p>
+
+        <p>
+          O relatório registra usuário, unidade, setor, versão do documento, data/hora e IP de origem.
+        </p>
+      </div>
+
+      <aside class="hero-side">
+        <h3>Filtros</h3>
+
+        <form method="get" class="form-grid">
+          <div class="form-group">
+            <label>Documento</label>
+            <select name="documento">
+              <option value="">Todos</option>
+
+              {% for documento in documentos %}
+                <option value="{{ documento.id }}" {% if documento_id == documento.id|stringformat:"s" %}selected{% endif %}>
+                  {{ documento.titulo }} - v{{ documento.versao }}
+                </option>
+              {% endfor %}
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label>Unidade do usuário</label>
+            <select name="unidade">
+              <option value="">Todas</option>
+
+              {% for unidade in unidades %}
+                <option value="{{ unidade.id }}" {% if unidade_id == unidade.id|stringformat:"s" %}selected{% endif %}>
+                  {{ unidade.nome }}
+                </option>
+              {% endfor %}
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label>Setor do usuário</label>
+            <select name="setor">
+              <option value="">Todos</option>
+
+              {% for setor in setores %}
+                <option value="{{ setor.id }}" {% if setor_id == setor.id|stringformat:"s" %}selected{% endif %}>
+                  {{ setor.nome }}
+                </option>
+              {% endfor %}
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label>Usuário</label>
+            <input
+              type="text"
+              name="usuario"
+              value="{{ usuario_busca }}"
+              placeholder="Nome, usuário ou e-mail..."
+            >
+          </div>
+
+          <div class="form-group">
+            <label>Data início</label>
+            <input
+              type="date"
+              name="data_inicio"
+              value="{{ data_inicio }}"
+            >
+          </div>
+
+          <div class="form-group">
+            <label>Data fim</label>
+            <input
+              type="date"
+              name="data_fim"
+              value="{{ data_fim }}"
+            >
+          </div>
+
+          <button type="submit" class="btn-submit">Filtrar</button>
+
+          <a href="/portal/modulos/base-conhecimento/relatorio-leituras/" class="btn-link">
+            Limpar filtros
+          </a>
+        </form>
+      </aside>
+    </section>
+
+    <section class="summary-grid">
+      <div class="summary-card">
+        <span>Confirmações encontradas</span>
+        <strong>{{ total_leituras }}</strong>
+      </div>
+
+      <div class="summary-card">
+        <span>Documentos obrigatórios ativos</span>
+        <strong>{{ total_documentos_obrigatorios }}</strong>
+      </div>
+    </section>
+
+    <section>
+      <div class="section-header">
+        <div>
+          <h2>Confirmações de leitura</h2>
+          <p>Lista de registros conforme os filtros aplicados.</p>
+        </div>
+
+        <a
+          class="btn-success"
+          href="/portal/modulos/base-conhecimento/relatorio-leituras/exportar-csv/?documento={{ documento_id }}&unidade={{ unidade_id }}&setor={{ setor_id }}&usuario={{ usuario_busca }}&data_inicio={{ data_inicio }}&data_fim={{ data_fim }}"
+        >
+          Exportar CSV
+        </a>
+      </div>
+
+      {% if leituras %}
+        <div class="table-card">
+          <table>
+            <thead>
+              <tr>
+                <th>Documento</th>
+                <th>Versão</th>
+                <th>Usuário</th>
+                <th>Unidade</th>
+                <th>Setor</th>
+                <th>Data/Hora</th>
+                <th>IP</th>
+              </tr>
+            </thead>
+
+            <tbody>
+              {% for leitura in leituras %}
+                <tr>
+                  <td>
+                    <strong>{{ leitura.documento.titulo }}</strong>
+                    <div class="muted">
+                      {% if leitura.documento.categoria %}
+                        {{ leitura.documento.categoria.nome }}
+                      {% else %}
+                        Sem categoria
+                      {% endif %}
+                    </div>
+                  </td>
+
+                  <td>
+                    <span class="badge">v{{ leitura.versao_documento }}</span>
+                  </td>
+
+                  <td>
+                    <strong>
+                      {{ leitura.usuario.get_full_name|default:leitura.usuario.username }}
+                    </strong>
+                    <div class="muted">
+                      {{ leitura.usuario.username }}
+                      {% if leitura.usuario.email %}
+                        • {{ leitura.usuario.email }}
+                      {% endif %}
+                    </div>
+                  </td>
+
+                  <td>
+                    {% if leitura.unidade_usuario %}
+                      {{ leitura.unidade_usuario.nome }}
+                    {% else %}
+                      <span class="muted">Não informada</span>
+                    {% endif %}
+                  </td>
+
+                  <td>
+                    {% if leitura.setor_usuario %}
+                      {{ leitura.setor_usuario.nome }}
+                    {% else %}
+                      <span class="muted">Não informado</span>
+                    {% endif %}
+                  </td>
+
+                  <td>
+                    <span class="badge badge-ok">Confirmado</span>
+                    <div class="muted">
+                      {{ leitura.confirmado_em|date:"d/m/Y H:i" }}
+                    </div>
+                  </td>
+
+                  <td>
+                    {% if leitura.ip_origem %}
+                      {{ leitura.ip_origem }}
+                    {% else %}
+                      <span class="muted">Não registrado</span>
+                    {% endif %}
+                  </td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      {% else %}
+        <div class="empty-card">
+          Nenhuma confirmação de leitura encontrada para os filtros informados.
+        </div>
+      {% endif %}
+    </section>
+
+    <footer class="footer">
+      <span>Base de Conhecimento • Relatório de Leituras</span>
+      <span>Tecnologia da Informação • Ambiente interno</span>
+    </footer>
+
+  </main>
+
+  <script src="{% static 'core/js/home.js' %}"></script>
+</body>
+</html>

@@ -1,0 +1,495 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>Auditoria | Intranet</title>
+
+  <link rel="stylesheet" href="{% static 'core/css/home.css' %}">
+
+  <style>
+    .audit-summary {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      color: #2dd4bf;
+      background: rgba(45, 212, 191, 0.10);
+      border: 1px solid rgba(45, 212, 191, 0.22);
+      border-radius: 999px;
+      padding: 8px 12px;
+      font-size: 12px;
+      font-weight: 800;
+      margin-top: 10px;
+    }
+
+    .audit-summary-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 14px;
+      margin-top: 18px;
+    }
+
+    .audit-summary-card {
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid rgba(255, 255, 255, 0.10);
+      border-radius: 18px;
+      padding: 16px;
+    }
+
+    .audit-summary-card h3 {
+      color: #ffffff;
+      font-size: 13px;
+      margin: 0 0 8px 0;
+    }
+
+    .audit-number {
+      color: #2dd4bf;
+      font-size: 28px;
+      font-weight: 900;
+      margin-bottom: 4px;
+    }
+
+    .audit-summary-card p {
+      color: rgba(255, 255, 255, 0.62);
+      font-size: 12px;
+      margin: 0;
+      line-height: 1.5;
+    }
+
+    .audit-list {
+      display: grid;
+      gap: 14px;
+    }
+
+    .audit-card {
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid rgba(255, 255, 255, 0.10);
+      border-radius: 18px;
+      padding: 18px;
+      transition: all 0.2s ease;
+    }
+
+    .audit-card:hover {
+      transform: translateY(-2px);
+      border-color: rgba(45, 212, 191, 0.55);
+      background: rgba(45, 212, 191, 0.08);
+      box-shadow: 0 14px 34px rgba(0, 0, 0, 0.25);
+    }
+
+    .audit-top {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-bottom: 10px;
+    }
+
+    .audit-title-line {
+      display: flex;
+      gap: 12px;
+      align-items: flex-start;
+    }
+
+    .audit-icon {
+      width: 42px;
+      height: 42px;
+      border-radius: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(45, 212, 191, 0.12);
+      border: 1px solid rgba(45, 212, 191, 0.22);
+      font-size: 22px;
+      flex: 0 0 auto;
+    }
+
+    .audit-card h3 {
+      color: #ffffff;
+      font-size: 17px;
+      line-height: 1.3;
+      margin: 0 0 5px 0;
+    }
+
+    .audit-meta {
+      color: rgba(255, 255, 255, 0.62);
+      font-size: 12px;
+      line-height: 1.5;
+    }
+
+    .audit-description {
+      color: rgba(255, 255, 255, 0.74);
+      font-size: 13px;
+      line-height: 1.6;
+      margin-top: 12px;
+      white-space: pre-line;
+    }
+
+    .audit-badges {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+    }
+
+    .audit-badge {
+      font-size: 11px;
+      font-weight: 800;
+      text-transform: uppercase;
+      color: #2dd4bf;
+      background: rgba(45, 212, 191, 0.10);
+      border: 1px solid rgba(45, 212, 191, 0.22);
+      border-radius: 999px;
+      padding: 6px 10px;
+      text-decoration: none;
+    }
+
+    .audit-badge.created {
+      color: #bbf7d0;
+      background: rgba(34, 197, 94, 0.14);
+      border-color: rgba(34, 197, 94, 0.30);
+    }
+
+    .audit-badge.changed {
+      color: #fed7aa;
+      background: rgba(249, 115, 22, 0.16);
+      border-color: rgba(249, 115, 22, 0.32);
+    }
+
+    .audit-badge.closed {
+      color: #c4b5fd;
+      background: rgba(139, 92, 246, 0.14);
+      border-color: rgba(139, 92, 246, 0.30);
+    }
+
+    .audit-badge.login {
+      color: #bfdbfe;
+      background: rgba(59, 130, 246, 0.14);
+      border-color: rgba(59, 130, 246, 0.30);
+    }
+  </style>
+</head>
+
+<body>
+
+  <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
+
+  <div id="portal-screen" style="display: block;">
+    <header>
+      <div class="logo">
+        {% if request.user.unidade %}
+          {% if request.user.unidade.sigla == "HSFVF" or request.user.unidade.sigla == "HSFMA" %}
+            <img src="{% static 'core/img/logo-sagrada-familia.png' %}" alt="Logo" class="header-unit-logo">
+          {% else %}
+            <img src="{% static 'core/img/logo-hsf.png' %}" alt="Logo" class="header-unit-logo">
+          {% endif %}
+        {% else %}
+          <img src="{% static 'core/img/logo-hsf.png' %}" alt="Logo" class="header-unit-logo">
+        {% endif %}
+
+        <div>
+          <span>Intranet Grupo São Francisco</span>
+          <span class="unit-tag">
+            {% if request.user.unidade %}
+              {{ request.user.unidade.nome }}
+            {% else %}
+              Sem unidade vinculada
+            {% endif %}
+          </span>
+        </div>
+      </div>
+
+      <div class="header-right">
+        <a class="logout-btn" href="/portal/">Voltar ao portal</a>
+        <button class="logout-btn" onclick="doLogout()">Sair</button>
+      </div>
+    </header>
+
+    <main class="portal-shell">
+
+      <section class="hero">
+        <div class="hero-main">
+          <div class="hero-eyebrow">Rastreabilidade</div>
+
+          <h1>Auditoria / Histórico de Ações</h1>
+
+          <p class="welcome-sub">
+            Consulte o histórico de publicações, alterações e ações realizadas nos principais módulos da intranet.
+          </p>
+
+          <div class="audit-summary">
+            {{ total_registros }} registro(s) encontrado(s)
+          </div>
+        </div>
+
+        <aside class="support-card">
+          <h3>Controle interno</h3>
+
+          <p>
+            Esta área é restrita à Tecnologia da Informação, administradores e Auditoria Interna autorizada.
+          </p>
+        </aside>
+      </section>
+
+      <section class="category-section">
+        <div class="category-header">
+          <h2>Resumo</h2>
+          <p>Visão rápida dos registros encontrados nos filtros atuais.</p>
+        </div>
+
+        <div class="audit-summary-grid">
+          <div class="audit-summary-card">
+            <h3>Total</h3>
+            <div class="audit-number">{{ total_registros }}</div>
+            <p>Registros encontrados.</p>
+          </div>
+
+          <div class="audit-summary-card">
+            <h3>Criados</h3>
+            <div class="audit-number">{{ total_criados }}</div>
+            <p>Ações de criação.</p>
+          </div>
+
+          <div class="audit-summary-card">
+            <h3>Alterados</h3>
+            <div class="audit-number">{{ total_alterados }}</div>
+            <p>Ações de alteração.</p>
+          </div>
+
+          <div class="audit-summary-card">
+            <h3>Encerrados</h3>
+            <div class="audit-number">{{ total_encerrados }}</div>
+            <p>Ações de encerramento.</p>
+          </div>
+
+          <div class="audit-summary-card">
+            <h3>Logins</h3>
+            <div class="audit-number">{{ total_login }}</div>
+            <p>Acessos registrados.</p>
+          </div>
+        </div>
+      </section>
+
+      <section class="category-section">
+        <div class="category-header">
+          <h2>Filtros</h2>
+          <p>Localize registros por módulo, ação, unidade, usuário, período ou palavra-chave.</p>
+        </div>
+
+        <div class="panel-box">
+          <form method="get">
+            <div class="grid-section">
+
+              <div class="form-group">
+                <label>Busca</label>
+                <input
+                  type="text"
+                  name="busca"
+                  value="{{ busca }}"
+                  placeholder="Ex: documento, aviso, usuário, título, IP..."
+                >
+              </div>
+
+              <div class="form-group">
+                <label>Módulo</label>
+                <select name="modulo">
+                  <option value="">Todos</option>
+
+                  {% for valor, nome in modulos %}
+                    <option value="{{ valor }}" {% if modulo == valor %}selected{% endif %}>
+                      {{ nome }}
+                    </option>
+                  {% endfor %}
+                </select>
+              </div>
+
+              <div class="form-group">
+                <label>Ação</label>
+                <select name="acao">
+                  <option value="">Todas</option>
+
+                  {% for valor, nome in acoes %}
+                    <option value="{{ valor }}" {% if acao == valor %}selected{% endif %}>
+                      {{ nome }}
+                    </option>
+                  {% endfor %}
+                </select>
+              </div>
+
+              <div class="form-group">
+                <label>Unidade</label>
+                <select name="unidade">
+                  <option value="">Todas</option>
+                  <option value="geral" {% if unidade_id == "geral" %}selected{% endif %}>
+                    Geral / Sem unidade
+                  </option>
+
+                  {% for unidade in unidades %}
+                    <option value="{{ unidade.id }}" {% if unidade_id == unidade.id|stringformat:"s" %}selected{% endif %}>
+                      {{ unidade.nome }}
+                    </option>
+                  {% endfor %}
+                </select>
+              </div>
+
+              <div class="form-group">
+                <label>Usuário</label>
+                <select name="usuario">
+                  <option value="">Todos</option>
+                  <option value="sistema" {% if usuario_id == "sistema" %}selected{% endif %}>
+                    Sistema / Sem usuário
+                  </option>
+
+                  {% for usuario_item in usuarios %}
+                    <option value="{{ usuario_item.id }}" {% if usuario_id == usuario_item.id|stringformat:"s" %}selected{% endif %}>
+                      {{ usuario_item.get_full_name|default:usuario_item.username }}
+                    </option>
+                  {% endfor %}
+                </select>
+              </div>
+
+              <div class="form-group">
+                <label>Data inicial</label>
+                <input
+                  type="date"
+                  name="data_inicio"
+                  value="{{ data_inicio }}"
+                >
+              </div>
+
+              <div class="form-group">
+                <label>Data final</label>
+                <input
+                  type="date"
+                  name="data_fim"
+                  value="{{ data_fim }}"
+                >
+              </div>
+
+            </div>
+
+            <div style="display:flex; gap:10px; flex-wrap:wrap; margin-top: 12px;">
+              <button type="submit" class="btn-login" style="max-width: 180px;">
+                Consultar
+              </button>
+
+              <a href="/portal/modulos/auditoria/" class="logout-btn" style="text-decoration:none; display:flex; align-items:center;">
+                Limpar filtros
+              </a>
+            </div>
+          </form>
+        </div>
+      </section>
+
+      <section class="category-section">
+        <div class="category-header">
+          <h2>Registros</h2>
+          <p>Exibindo até os 300 registros mais recentes encontrados nos filtros.</p>
+        </div>
+
+        <div class="audit-list">
+          {% for registro in registros %}
+            <div class="audit-card">
+              <div class="audit-top">
+                <div class="audit-title-line">
+                  <div class="audit-icon">
+                    {% if registro.modulo == "avisos" %}
+                      📢
+                    {% elif registro.modulo == "documentos" %}
+                      📑
+                    {% elif registro.modulo == "status_sistemas" %}
+                      📡
+                    {% elif registro.modulo == "usuarios" %}
+                      👤
+                    {% elif registro.modulo == "ramais" %}
+                      ☎️
+                    {% elif registro.modulo == "convenios" %}
+                      🏥
+                    {% elif registro.modulo == "conteudos" %}
+                      📚
+                    {% else %}
+                      🧾
+                    {% endif %}
+                  </div>
+
+                  <div>
+                    <h3>{{ registro.titulo }}</h3>
+
+                    <div class="audit-meta">
+                      {{ registro.criado_em|date:"d/m/Y H:i" }}
+
+                      {% if registro.usuario %}
+                        • {{ registro.usuario.get_full_name|default:registro.usuario.username }}
+                      {% else %}
+                        • Sistema
+                      {% endif %}
+
+                      {% if registro.unidade %}
+                        • {{ registro.unidade.sigla }}
+                      {% else %}
+                        • Geral / Sem unidade
+                      {% endif %}
+
+                      {% if registro.ip_origem %}
+                        • IP {{ registro.ip_origem }}
+                      {% endif %}
+                    </div>
+                  </div>
+                </div>
+
+                <div class="audit-badges">
+                  <span class="audit-badge">{{ registro.get_modulo_display }}</span>
+
+                  {% if registro.acao == "criado" %}
+                    <span class="audit-badge created">{{ registro.get_acao_display }}</span>
+                  {% elif registro.acao == "alterado" %}
+                    <span class="audit-badge changed">{{ registro.get_acao_display }}</span>
+                  {% elif registro.acao == "encerrado" %}
+                    <span class="audit-badge closed">{{ registro.get_acao_display }}</span>
+                  {% elif registro.acao == "login" %}
+                    <span class="audit-badge login">{{ registro.get_acao_display }}</span>
+                  {% else %}
+                    <span class="audit-badge">{{ registro.get_acao_display }}</span>
+                  {% endif %}
+                </div>
+              </div>
+
+              {% if registro.descricao %}
+                <div class="audit-description">{{ registro.descricao }}</div>
+              {% endif %}
+
+              <div class="audit-meta" style="margin-top: 12px;">
+                Modelo: {{ registro.modelo|default:"Não informado" }}
+                {% if registro.objeto_id %}
+                  • ID: {{ registro.objeto_id }}
+                {% endif %}
+              </div>
+            </div>
+          {% empty %}
+            <div class="notice">
+              <div class="notice-icon">🔎</div>
+
+              <div>
+                <h3>Nenhum registro encontrado</h3>
+                <p>
+                  Não há registros de auditoria para os filtros informados.
+                </p>
+              </div>
+            </div>
+          {% endfor %}
+        </div>
+      </section>
+
+      <footer class="footer">
+        <span>Auditoria / Histórico • Intranet Grupo São Francisco</span>
+        <span>Tecnologia da Informação • Ambiente interno</span>
+      </footer>
+
+    </main>
+  </div>
+
+  <script src="{% static 'core/js/home.js' %}"></script>
+</body>
+</html>

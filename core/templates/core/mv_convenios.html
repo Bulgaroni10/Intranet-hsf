@@ -1,0 +1,932 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>Convênios MV | Intranet</title>
+
+  <link rel="stylesheet" href="{% static 'core/css/home.css' %}">
+
+  <style>
+    body {
+      background: #111111;
+      color: #f8fafc;
+      margin: 0;
+      font-family: Arial, sans-serif;
+    }
+
+    .page {
+      max-width: 1240px;
+      margin: 0 auto;
+      padding: 28px 24px 50px;
+    }
+
+    .top-actions {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-bottom: 24px;
+    }
+
+    .btn-link,
+    .btn-success,
+    .btn-warning,
+    .btn-danger,
+    .btn-submit {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 10px 14px;
+      border-radius: 10px;
+      border: 1px solid rgba(148, 163, 184, 0.3);
+      background: rgba(15, 23, 42, 0.75);
+      color: #e5e7eb;
+      text-decoration: none;
+      font-size: 13px;
+      font-weight: 800;
+      cursor: pointer;
+    }
+
+    .btn-link:hover {
+      border-color: #2dd4bf;
+      color: #2dd4bf;
+    }
+
+    .btn-success {
+      background: #2dd4bf;
+      color: #06201d;
+      border-color: #2dd4bf;
+    }
+
+    .btn-warning {
+      background: rgba(120, 53, 15, 0.35);
+      color: #fde68a;
+      border-color: rgba(251, 191, 36, 0.35);
+    }
+
+    .btn-danger {
+      background: rgba(127, 29, 29, 0.35);
+      color: #fecaca;
+      border-color: rgba(248, 113, 113, 0.35);
+    }
+
+    .btn-submit {
+      background: #2dd4bf;
+      color: #06201d;
+      border-color: #2dd4bf;
+      width: 100%;
+    }
+
+    .hero-box {
+      display: grid;
+      grid-template-columns: 1fr 330px;
+      gap: 18px;
+      margin-bottom: 26px;
+    }
+
+    .hero-main,
+    .hero-side,
+    .summary-card,
+    .filter-card,
+    .result-card,
+    .management-card,
+    .empty-card,
+    .message-item {
+      background: rgba(31, 31, 31, 0.96);
+      border: 1px solid rgba(148, 163, 184, 0.2);
+      border-radius: 16px;
+      padding: 22px;
+    }
+
+    .eyebrow {
+      color: #2dd4bf;
+      font-size: 12px;
+      font-weight: 900;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      margin-bottom: 8px;
+    }
+
+    h1 {
+      margin: 0 0 10px;
+      font-size: 32px;
+      color: #ffffff;
+    }
+
+    h2 {
+      margin: 0 0 6px;
+      font-size: 20px;
+      color: #ffffff;
+    }
+
+    h3 {
+      margin: 0 0 6px;
+      color: #ffffff;
+    }
+
+    p {
+      color: #cbd5e1;
+      line-height: 1.5;
+    }
+
+    .messages-box {
+      display: grid;
+      gap: 10px;
+      margin-bottom: 18px;
+    }
+
+    .message-item {
+      padding: 12px 14px;
+      color: #e5e7eb;
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    .message-success {
+      border-color: rgba(34, 197, 94, 0.35);
+      background: rgba(22, 101, 52, 0.22);
+      color: #bbf7d0;
+    }
+
+    .message-error {
+      border-color: rgba(248, 113, 113, 0.35);
+      background: rgba(127, 29, 29, 0.22);
+      color: #fecaca;
+    }
+
+    .summary-grid {
+      display: grid;
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+      gap: 14px;
+      margin-bottom: 26px;
+    }
+
+    .summary-card span {
+      display: block;
+      color: #94a3b8;
+      font-size: 12px;
+      font-weight: 800;
+      text-transform: uppercase;
+      margin-bottom: 8px;
+    }
+
+    .summary-card strong {
+      display: block;
+      color: #ffffff;
+      font-size: 28px;
+    }
+
+    .filter-card {
+      margin-bottom: 26px;
+    }
+
+    .filter-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 14px;
+    }
+
+    .form-group label {
+      display: block;
+      color: #cbd5e1;
+      font-size: 12px;
+      font-weight: 800;
+      text-transform: uppercase;
+      margin-bottom: 7px;
+    }
+
+    .form-group input,
+    .form-group select {
+      width: 100%;
+      box-sizing: border-box;
+      border: 1px solid rgba(148, 163, 184, 0.28);
+      background: #2a2a2a;
+      color: #ffffff;
+      border-radius: 10px;
+      padding: 12px;
+      outline: none;
+    }
+
+    .section-header {
+      margin-bottom: 14px;
+    }
+
+    .result-list {
+      display: grid;
+      gap: 14px;
+      margin-bottom: 28px;
+    }
+
+    .result-card {
+      display: grid;
+      grid-template-columns: 50px 1fr;
+      gap: 16px;
+    }
+
+    .result-icon {
+      width: 44px;
+      height: 44px;
+      border-radius: 14px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(45, 212, 191, 0.12);
+      border: 1px solid rgba(45, 212, 191, 0.22);
+      font-size: 21px;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      padding: 7px 10px;
+      border-radius: 999px;
+      font-size: 11px;
+      font-weight: 900;
+      text-transform: uppercase;
+      color: #2dd4bf;
+      background: rgba(45, 212, 191, 0.12);
+      border: 1px solid rgba(45, 212, 191, 0.25);
+      margin-right: 6px;
+      margin-top: 8px;
+      text-decoration: none;
+    }
+
+    .badge-warn {
+      color: #fde68a;
+      background: rgba(120, 53, 15, 0.35);
+      border-color: rgba(251, 191, 36, 0.35);
+    }
+
+    .badge-danger {
+      color: #fecaca;
+      background: rgba(127, 29, 29, 0.35);
+      border-color: rgba(248, 113, 113, 0.35);
+    }
+
+    .badge-ok {
+      color: #bbf7d0;
+      background: rgba(22, 101, 52, 0.35);
+      border-color: rgba(34, 197, 94, 0.35);
+    }
+
+    .management-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 16px;
+      margin-bottom: 28px;
+    }
+
+    .table-wrap {
+      overflow-x: auto;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      min-width: 900px;
+    }
+
+    th,
+    td {
+      border-bottom: 1px solid rgba(148, 163, 184, 0.16);
+      padding: 12px 10px;
+      text-align: left;
+      vertical-align: top;
+      font-size: 13px;
+    }
+
+    th {
+      color: #94a3b8;
+      text-transform: uppercase;
+      font-size: 11px;
+      letter-spacing: 0.04em;
+    }
+
+    td {
+      color: #e5e7eb;
+    }
+
+    .row-actions {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .empty-card {
+      text-align: center;
+      color: #cbd5e1;
+      border-style: dashed;
+      margin-bottom: 18px;
+    }
+
+    .footer {
+      border-top: 1px solid rgba(148, 163, 184, 0.16);
+      margin-top: 26px;
+      padding-top: 14px;
+      display: flex;
+      justify-content: space-between;
+      color: #94a3b8;
+      font-size: 12px;
+    }
+
+    @media (max-width: 1000px) {
+      .hero-box,
+      .summary-grid,
+      .filter-grid,
+      .result-card {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <header>
+    <div class="logo">
+      {% if request.user.unidade %}
+        {% if request.user.unidade.sigla == "HSFVF" or request.user.unidade.sigla == "HSFMA" %}
+          <img src="{% static 'core/img/logo-sagrada-familia.png' %}" alt="Logo" class="header-unit-logo">
+        {% else %}
+          <img src="{% static 'core/img/logo-hsf.png' %}" alt="Logo" class="header-unit-logo">
+        {% endif %}
+      {% else %}
+        <img src="{% static 'core/img/logo-hsf.png' %}" alt="Logo" class="header-unit-logo">
+      {% endif %}
+
+      <div>
+        <span>Intranet Grupo São Francisco</span>
+        <span class="unit-tag">
+          {% if request.user.unidade %}
+            {{ request.user.unidade.nome }}
+          {% else %}
+            Sem unidade vinculada
+          {% endif %}
+        </span>
+      </div>
+    </div>
+
+    <div class="header-right">
+      <a class="logout-btn" href="/portal/modulos/mv/">Voltar ao MV</a>
+      <a class="logout-btn" href="/portal/">Portal</a>
+      <button class="logout-btn" onclick="doLogout()">Sair</button>
+    </div>
+  </header>
+
+  <main class="page">
+
+    <div class="top-actions">
+      <a class="btn-link" href="/portal/modulos/mv/">← Voltar ao MV</a>
+      <a class="btn-link" href="/portal/">Voltar ao portal</a>
+
+      {% if pode_gerenciar_mv %}
+        <a class="btn-success" href="/portal/modulos/mv/convenios/novo/">+ Convênio</a>
+        <a class="btn-success" href="/portal/modulos/mv/planos/novo/">+ Plano</a>
+        <a class="btn-success" href="/portal/modulos/mv/especialidades/nova/">+ Especialidade</a>
+        <a class="btn-success" href="/portal/modulos/mv/regras/nova/">+ Regra</a>
+        <a class="btn-success" href="/portal/modulos/mv/procedimentos-proibidos/novo/">+ Procedimento proibido</a>
+      {% endif %}
+    </div>
+
+    {% if messages %}
+      <div class="messages-box">
+        {% for message in messages %}
+          <div class="message-item {% if message.tags == 'success' %}message-success{% elif message.tags == 'error' %}message-error{% endif %}">
+            {{ message }}
+          </div>
+        {% endfor %}
+      </div>
+    {% endif %}
+
+    <section class="hero-box">
+      <div class="hero-main">
+        <div class="eyebrow">MV / Sistema Hospitalar</div>
+        <h1>Convênios, Planos e Procedimentos</h1>
+        <p>
+          Consulte regras de atendimento e verifique se um procedimento consta como proibido
+          para determinado convênio e plano.
+        </p>
+      </div>
+
+      <aside class="hero-side">
+        <h3>Como usar</h3>
+        <p>
+          Selecione convênio e plano. Depois pesquise pelo código ou descrição do procedimento.
+        </p>
+        <p>
+          Se aparecer como proibido, não liberar sem validação do setor responsável.
+        </p>
+      </aside>
+    </section>
+
+    {% if pode_gerenciar_mv %}
+      <section class="summary-grid">
+        <div class="summary-card">
+          <span>Convênios</span>
+          <strong>{{ total_convenios }}</strong>
+        </div>
+
+        <div class="summary-card">
+          <span>Planos</span>
+          <strong>{{ total_planos }}</strong>
+        </div>
+
+        <div class="summary-card">
+          <span>Especialidades</span>
+          <strong>{{ total_especialidades }}</strong>
+        </div>
+
+        <div class="summary-card">
+          <span>Regras</span>
+          <strong>{{ total_regras }}</strong>
+        </div>
+
+        <div class="summary-card">
+          <span>Procedimentos</span>
+          <strong>{{ total_procedimentos }}</strong>
+        </div>
+      </section>
+    {% endif %}
+
+    <section class="filter-card">
+      <div class="section-header">
+        <h2>Filtros de consulta</h2>
+        <p>Use os filtros abaixo para localizar a regra correta.</p>
+      </div>
+
+      <form method="get">
+        <div class="filter-grid">
+
+          <div class="form-group">
+            <label>Busca livre</label>
+            <input
+              type="text"
+              name="busca"
+              value="{{ busca }}"
+              placeholder="Ex: Bradesco, Prata, Ortopedia..."
+            >
+          </div>
+
+          <div class="form-group">
+            <label>Procedimento</label>
+            <input
+              type="text"
+              name="procedimento"
+              value="{{ procedimento }}"
+              placeholder="Ex: 40302784 ou Vitamina B1"
+            >
+          </div>
+
+          <div class="form-group">
+            <label>Unidade</label>
+            <select name="unidade">
+              <option value="">Todas</option>
+
+              {% for unidade in unidades %}
+                <option value="{{ unidade.id }}" {% if unidade_id == unidade.id|stringformat:"s" %}selected{% endif %}>
+                  {{ unidade.nome }}
+                </option>
+              {% endfor %}
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label>Convênio</label>
+            <select name="convenio" id="filtro-convenio">
+              <option value="">Todos</option>
+
+              {% for convenio in convenios %}
+                <option value="{{ convenio.id }}" {% if convenio_id == convenio.id|stringformat:"s" %}selected{% endif %}>
+                  {{ convenio.nome }}
+                </option>
+              {% endfor %}
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label>Plano</label>
+            <select name="plano" id="filtro-plano">
+              <option value="">Todos</option>
+
+              {% for plano in planos %}
+                <option
+                  value="{{ plano.id }}"
+                  data-convenio="{{ plano.convenio.id }}"
+                  {% if plano_id == plano.id|stringformat:"s" %}selected{% endif %}
+                >
+                  {{ plano.convenio.nome }} - {{ plano.nome }}
+                </option>
+              {% endfor %}
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label>Tipo de atendimento</label>
+            <select name="tipo_atendimento">
+              <option value="">Todos</option>
+
+              {% for valor, nome in tipos_atendimento %}
+                <option value="{{ valor }}" {% if tipo_atendimento == valor %}selected{% endif %}>
+                  {{ nome }}
+                </option>
+              {% endfor %}
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label>Especialidade</label>
+            <select name="especialidade">
+              <option value="">Todas / Geral</option>
+
+              {% for especialidade in especialidades %}
+                <option value="{{ especialidade.id }}" {% if especialidade_id == especialidade.id|stringformat:"s" %}selected{% endif %}>
+                  {{ especialidade.nome }}
+                </option>
+              {% endfor %}
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label>Status da regra</label>
+            <select name="status">
+              <option value="">Todos</option>
+
+              {% for valor, nome in status_choices %}
+                <option value="{{ valor }}" {% if status == valor %}selected{% endif %}>
+                  {{ nome }}
+                </option>
+              {% endfor %}
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label>&nbsp;</label>
+            <button type="submit" class="btn-submit">Consultar</button>
+          </div>
+
+        </div>
+
+        <div style="display:flex; gap:10px; flex-wrap:wrap; margin-top:14px;">
+          <a href="/portal/modulos/mv/convenios/" class="btn-link">Limpar filtros</a>
+        </div>
+      </form>
+    </section>
+
+    <section>
+      <div class="section-header">
+        <h2>Resultado de procedimento proibido</h2>
+        <p>Consulta baseada no relatório de proibições por plano importado ou cadastrado no MV.</p>
+      </div>
+
+      <div class="result-list">
+        {% if procedimento %}
+          {% for item in proibicoes %}
+            <article class="result-card">
+              <div class="result-icon">❌</div>
+
+              <div>
+                <h3>Procedimento proibido para este plano</h3>
+
+                <p>
+                  <strong>Convênio:</strong> {{ item.convenio.nome }}<br>
+                  <strong>Plano:</strong> {{ item.plano.nome }}<br>
+                  <strong>Procedimento:</strong> {{ item.codigo_procedimento }} - {{ item.descricao_procedimento }}
+                </p>
+
+                <span class="badge badge-danger">Não permitido / Proibido</span>
+
+                {% if pode_gerenciar_mv %}
+                  <div class="row-actions" style="margin-top:12px;">
+                    <a class="btn-link" href="/portal/modulos/mv/procedimentos-proibidos/editar/{{ item.id }}/">Editar</a>
+
+                    {% if item.ativo %}
+                      <a class="btn-warning" href="/portal/modulos/mv/procedimentos-proibidos/inativar/{{ item.id }}/">Inativar</a>
+                    {% else %}
+                      <a class="btn-success" href="/portal/modulos/mv/procedimentos-proibidos/reativar/{{ item.id }}/">Reativar</a>
+                    {% endif %}
+                  </div>
+                {% endif %}
+              </div>
+            </article>
+          {% empty %}
+            <article class="result-card">
+              <div class="result-icon">✅</div>
+
+              <div>
+                <h3>Não consta como proibido neste relatório</h3>
+
+                <p>
+                  Não encontramos o procedimento pesquisado como proibido para os filtros informados.
+                </p>
+
+                <span class="badge badge-ok">Sem proibição localizada</span>
+                <span class="badge badge-warn">Validar autorização/regra operacional</span>
+              </div>
+            </article>
+          {% endfor %}
+        {% else %}
+          <div class="empty-card">
+            Informe um procedimento para consultar proibições.
+          </div>
+        {% endif %}
+      </div>
+    </section>
+
+    <section>
+      <div class="section-header">
+        <h2>Regras manuais de atendimento</h2>
+        <p>Resultado conforme as regras cadastradas manualmente.</p>
+      </div>
+
+      <div class="result-list">
+        {% for regra in regras %}
+          <article class="result-card">
+            <div class="result-icon">
+              {% if regra.status == "aceito" %}
+                ✅
+              {% elif regra.status == "nao_aceito" %}
+                ❌
+              {% elif regra.status == "consultar_autorizacao" %}
+                ⚠️
+              {% else %}
+                ⛔
+              {% endif %}
+            </div>
+
+            <div>
+              <h3>{{ regra.convenio.nome }} - {{ regra.plano.nome }}</h3>
+
+              <p>
+                <strong>Unidade:</strong> {{ regra.unidade.nome }}<br>
+                <strong>Tipo:</strong> {{ regra.get_tipo_atendimento_display }}<br>
+
+                {% if regra.especialidade %}
+                  <strong>Especialidade:</strong> {{ regra.especialidade.nome }}<br>
+                {% else %}
+                  <strong>Especialidade:</strong> Geral / Não se aplica<br>
+                {% endif %}
+              </p>
+
+              {% if regra.status == "aceito" %}
+                <span class="badge badge-ok">Aceito</span>
+              {% elif regra.status == "nao_aceito" %}
+                <span class="badge badge-danger">Não aceito</span>
+              {% elif regra.status == "consultar_autorizacao" %}
+                <span class="badge badge-warn">Consultar autorização</span>
+              {% else %}
+                <span class="badge badge-warn">Suspenso</span>
+              {% endif %}
+
+              {% if regra.exige_autorizacao %}
+                <span class="badge badge-warn">Exige autorização</span>
+              {% endif %}
+
+              {% if not regra.ativo %}
+                <span class="badge badge-danger">Inativa</span>
+              {% endif %}
+
+              {% if regra.observacao %}
+                <p style="margin-top: 10px;">
+                  <strong>Observação:</strong> {{ regra.observacao }}
+                </p>
+              {% endif %}
+
+              {% if pode_gerenciar_mv %}
+                <div class="row-actions" style="margin-top:12px;">
+                  <a class="btn-link" href="/portal/modulos/mv/regras/editar/{{ regra.id }}/">Editar</a>
+
+                  {% if regra.ativo %}
+                    <a class="btn-warning" href="/portal/modulos/mv/regras/inativar/{{ regra.id }}/">Inativar</a>
+                  {% else %}
+                    <a class="btn-success" href="/portal/modulos/mv/regras/reativar/{{ regra.id }}/">Reativar</a>
+                  {% endif %}
+                </div>
+              {% endif %}
+            </div>
+          </article>
+        {% empty %}
+          <div class="empty-card">
+            Nenhuma regra manual encontrada para os filtros informados.
+          </div>
+        {% endfor %}
+      </div>
+    </section>
+
+    {% if pode_gerenciar_mv %}
+      <section class="management-grid">
+
+        <article class="management-card">
+          <div class="section-header">
+            <h2>Gestão de convênios</h2>
+            <p>Cadastro, edição, inativação e reativação de convênios.</p>
+          </div>
+
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Código MV</th>
+                  <th>Convênio</th>
+                  <th>Tipo</th>
+                  <th>Status</th>
+                  <th>Ações</th>
+                </tr>
+              </thead>
+
+              <tbody>
+                {% for convenio in todos_convenios %}
+                  <tr>
+                    <td>{{ convenio.codigo_mv|default:"-" }}</td>
+                    <td>{{ convenio.nome }}</td>
+                    <td>{{ convenio.tipo_mv|default:"-" }}</td>
+                    <td>
+                      {% if convenio.ativo %}
+                        <span class="badge badge-ok">Ativo</span>
+                      {% else %}
+                        <span class="badge badge-danger">Inativo</span>
+                      {% endif %}
+                    </td>
+                    <td>
+                      <div class="row-actions">
+                        <a class="btn-link" href="/portal/modulos/mv/convenios/editar/{{ convenio.id }}/">Editar</a>
+
+                        {% if convenio.ativo %}
+                          <a class="btn-warning" href="/portal/modulos/mv/convenios/inativar/{{ convenio.id }}/">Inativar</a>
+                        {% else %}
+                          <a class="btn-success" href="/portal/modulos/mv/convenios/reativar/{{ convenio.id }}/">Reativar</a>
+                        {% endif %}
+                      </div>
+                    </td>
+                  </tr>
+                {% empty %}
+                  <tr>
+                    <td colspan="5">Nenhum convênio cadastrado.</td>
+                  </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </article>
+
+        <article class="management-card">
+          <div class="section-header">
+            <h2>Gestão de planos</h2>
+            <p>Planos vinculados aos convênios.</p>
+          </div>
+
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Convênio</th>
+                  <th>Código MV</th>
+                  <th>Plano</th>
+                  <th>Regra MV</th>
+                  <th>Status</th>
+                  <th>Ações</th>
+                </tr>
+              </thead>
+
+              <tbody>
+                {% for plano in todos_planos %}
+                  <tr>
+                    <td>{{ plano.convenio.nome }}</td>
+                    <td>{{ plano.codigo_mv|default:"-" }}</td>
+                    <td>{{ plano.nome }}</td>
+                    <td>{{ plano.regra_nome_mv|default:"-" }}</td>
+                    <td>
+                      {% if plano.ativo %}
+                        <span class="badge badge-ok">Ativo</span>
+                      {% else %}
+                        <span class="badge badge-danger">Inativo</span>
+                      {% endif %}
+                    </td>
+                    <td>
+                      <div class="row-actions">
+                        <a class="btn-link" href="/portal/modulos/mv/planos/editar/{{ plano.id }}/">Editar</a>
+
+                        {% if plano.ativo %}
+                          <a class="btn-warning" href="/portal/modulos/mv/planos/inativar/{{ plano.id }}/">Inativar</a>
+                        {% else %}
+                          <a class="btn-success" href="/portal/modulos/mv/planos/reativar/{{ plano.id }}/">Reativar</a>
+                        {% endif %}
+                      </div>
+                    </td>
+                  </tr>
+                {% empty %}
+                  <tr>
+                    <td colspan="6">Nenhum plano cadastrado.</td>
+                  </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </article>
+
+        <article class="management-card">
+          <div class="section-header">
+            <h2>Gestão de especialidades</h2>
+            <p>Especialidades usadas nas regras de atendimento.</p>
+          </div>
+
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Especialidade</th>
+                  <th>Status</th>
+                  <th>Ações</th>
+                </tr>
+              </thead>
+
+              <tbody>
+                {% for especialidade in todas_especialidades %}
+                  <tr>
+                    <td>{{ especialidade.nome }}</td>
+                    <td>
+                      {% if especialidade.ativo %}
+                        <span class="badge badge-ok">Ativa</span>
+                      {% else %}
+                        <span class="badge badge-danger">Inativa</span>
+                      {% endif %}
+                    </td>
+                    <td>
+                      <div class="row-actions">
+                        <a class="btn-link" href="/portal/modulos/mv/especialidades/editar/{{ especialidade.id }}/">Editar</a>
+
+                        {% if especialidade.ativo %}
+                          <a class="btn-warning" href="/portal/modulos/mv/especialidades/inativar/{{ especialidade.id }}/">Inativar</a>
+                        {% else %}
+                          <a class="btn-success" href="/portal/modulos/mv/especialidades/reativar/{{ especialidade.id }}/">Reativar</a>
+                        {% endif %}
+                      </div>
+                    </td>
+                  </tr>
+                {% empty %}
+                  <tr>
+                    <td colspan="3">Nenhuma especialidade cadastrada.</td>
+                  </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </article>
+
+      </section>
+    {% endif %}
+
+    <footer class="footer">
+      <span>Convênios MV • Intranet Grupo São Francisco</span>
+      <span>Tecnologia da Informação • Ambiente interno</span>
+    </footer>
+
+  </main>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      const convenioSelect = document.getElementById('filtro-convenio');
+      const planoSelect = document.getElementById('filtro-plano');
+
+      if (!convenioSelect || !planoSelect) return;
+
+      function filtrarPlanosPorConvenio() {
+        const convenioSelecionado = convenioSelect.value;
+        const planoSelecionadoAtual = planoSelect.value;
+
+        let planoAtualContinuaVisivel = false;
+
+        Array.from(planoSelect.options).forEach(function (option) {
+          if (!option.value) {
+            option.hidden = false;
+            return;
+          }
+
+          const convenioDoPlano = option.getAttribute('data-convenio');
+
+          if (!convenioSelecionado || convenioDoPlano === convenioSelecionado) {
+            option.hidden = false;
+
+            if (option.value === planoSelecionadoAtual) {
+              planoAtualContinuaVisivel = true;
+            }
+          } else {
+            option.hidden = true;
+          }
+        });
+
+        if (planoSelecionadoAtual && !planoAtualContinuaVisivel) {
+          planoSelect.value = '';
+        }
+      }
+
+      convenioSelect.addEventListener('change', filtrarPlanosPorConvenio);
+      filtrarPlanosPorConvenio();
+    });
+  </script>
+
+  <script src="{% static 'core/js/home.js' %}"></script>
+</body>
+</html>

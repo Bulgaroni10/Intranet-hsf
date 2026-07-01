@@ -1,0 +1,377 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>{{ titulo }} | Intranet</title>
+
+  <link rel="stylesheet" href="{% static 'core/css/home.css' %}">
+
+  <style>
+    body {
+      background: #111111;
+      color: #f8fafc;
+      margin: 0;
+      font-family: Arial, sans-serif;
+    }
+
+    .page {
+      max-width: 980px;
+      margin: 0 auto;
+      padding: 28px 24px 50px;
+    }
+
+    .top-actions {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-bottom: 24px;
+    }
+
+    .btn-link,
+    .btn-submit {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 10px 14px;
+      border-radius: 10px;
+      border: 1px solid rgba(148, 163, 184, 0.3);
+      background: rgba(15, 23, 42, 0.75);
+      color: #e5e7eb;
+      text-decoration: none;
+      font-size: 13px;
+      font-weight: 800;
+      cursor: pointer;
+    }
+
+    .btn-link:hover {
+      border-color: #2dd4bf;
+      color: #2dd4bf;
+    }
+
+    .btn-submit {
+      background: #2dd4bf;
+      color: #06201d;
+      border-color: #2dd4bf;
+      width: 260px;
+    }
+
+    .hero-main,
+    .form-card,
+    .message-item {
+      background: rgba(31, 31, 31, 0.96);
+      border: 1px solid rgba(148, 163, 184, 0.2);
+      border-radius: 16px;
+      padding: 22px;
+    }
+
+    .hero-main {
+      margin-bottom: 22px;
+    }
+
+    .eyebrow {
+      color: #2dd4bf;
+      font-size: 12px;
+      font-weight: 900;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      margin-bottom: 8px;
+    }
+
+    h1 {
+      margin: 0 0 10px;
+      font-size: 32px;
+      color: #ffffff;
+    }
+
+    p {
+      color: #cbd5e1;
+      line-height: 1.5;
+    }
+
+    .messages-box {
+      display: grid;
+      gap: 10px;
+      margin-bottom: 18px;
+    }
+
+    .message-item {
+      padding: 12px 14px;
+      color: #e5e7eb;
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    .message-success {
+      border-color: rgba(34, 197, 94, 0.35);
+      background: rgba(22, 101, 52, 0.22);
+      color: #bbf7d0;
+    }
+
+    .message-error {
+      border-color: rgba(248, 113, 113, 0.35);
+      background: rgba(127, 29, 29, 0.22);
+      color: #fecaca;
+    }
+
+    .form-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 16px;
+    }
+
+    .form-group.full {
+      grid-column: 1 / -1;
+    }
+
+    .form-group label {
+      display: block;
+      color: #cbd5e1;
+      font-size: 12px;
+      font-weight: 800;
+      text-transform: uppercase;
+      margin-bottom: 7px;
+    }
+
+    .form-group input,
+    .form-group select,
+    .form-group textarea {
+      width: 100%;
+      box-sizing: border-box;
+      border: 1px solid rgba(148, 163, 184, 0.28);
+      background: #2a2a2a;
+      color: #ffffff;
+      border-radius: 10px;
+      padding: 12px;
+      outline: none;
+      font-family: Arial, sans-serif;
+    }
+
+    .form-group textarea {
+      resize: vertical;
+    }
+
+    .form-group input:focus,
+    .form-group select:focus,
+    .form-group textarea:focus {
+      border-color: #2dd4bf;
+      box-shadow: 0 0 0 2px rgba(45, 212, 191, 0.15);
+    }
+
+    .help-text {
+      margin-top: 6px;
+      color: #94a3b8;
+      font-size: 12px;
+    }
+
+    .checkbox-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 12px;
+      border-radius: 12px;
+      border: 1px solid rgba(148, 163, 184, 0.22);
+      background: rgba(15, 23, 42, 0.45);
+    }
+
+    .checkbox-row input {
+      width: auto;
+    }
+
+    .form-actions {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-top: 20px;
+    }
+
+    .footer {
+      border-top: 1px solid rgba(148, 163, 184, 0.16);
+      margin-top: 26px;
+      padding-top: 14px;
+      display: flex;
+      justify-content: space-between;
+      color: #94a3b8;
+      font-size: 12px;
+    }
+
+    @media (max-width: 800px) {
+      .form-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .btn-submit {
+        width: 100%;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <header>
+    <div class="logo">
+      {% if request.user.unidade %}
+        {% if request.user.unidade.sigla == "HSFVF" or request.user.unidade.sigla == "HSFMA" %}
+          <img src="{% static 'core/img/logo-sagrada-familia.png' %}" alt="Logo" class="header-unit-logo">
+        {% else %}
+          <img src="{% static 'core/img/logo-hsf.png' %}" alt="Logo" class="header-unit-logo">
+        {% endif %}
+      {% else %}
+        <img src="{% static 'core/img/logo-hsf.png' %}" alt="Logo" class="header-unit-logo">
+      {% endif %}
+
+      <div>
+        <span>Intranet Grupo São Francisco</span>
+        <span class="unit-tag">
+          {% if request.user.unidade %}
+            {{ request.user.unidade.nome }}
+          {% else %}
+            Sem unidade vinculada
+          {% endif %}
+        </span>
+      </div>
+    </div>
+
+    <div class="header-right">
+      <a class="logout-btn" href="/portal/modulos/status-sistemas/">Status</a>
+      <a class="logout-btn" href="/portal/">Portal</a>
+      <button class="logout-btn" onclick="doLogout()">Sair</button>
+    </div>
+  </header>
+
+  <main class="page">
+
+    <div class="top-actions">
+      <a class="btn-link" href="/portal/modulos/status-sistemas/">← Voltar ao status</a>
+      <a class="btn-link" href="/portal/">Voltar ao portal</a>
+    </div>
+
+    <section class="hero-main">
+      <div class="eyebrow">Status dos Sistemas</div>
+      <h1>{{ titulo }}</h1>
+      <p>{{ subtitulo }}</p>
+    </section>
+
+    {% if messages %}
+      <div class="messages-box">
+        {% for message in messages %}
+          <div class="message-item {% if message.tags == 'success' %}message-success{% elif message.tags == 'error' %}message-error{% endif %}">
+            {{ message }}
+          </div>
+        {% endfor %}
+      </div>
+    {% endif %}
+
+    <section class="form-card">
+      <form method="post" action="{{ url_salvar }}">
+        {% csrf_token %}
+
+        <div class="form-grid">
+
+          <div class="form-group full">
+            <label>Nome do sistema</label>
+            <input
+              type="text"
+              name="nome"
+              value="{{ form_data.nome }}"
+              placeholder="Ex: MV, PEP, IDCE, Link Cotia, Internet Vivo"
+              required
+            >
+          </div>
+
+          <div class="form-group full">
+            <label>Descrição</label>
+            <textarea
+              name="descricao"
+              rows="4"
+              placeholder="Ex: Sistema hospitalar principal, link de dados, portal externo, ambiente de fornecedor..."
+            >{{ form_data.descricao }}</textarea>
+          </div>
+
+          <div class="form-group">
+            <label>Categoria</label>
+            <select name="categoria" required>
+              {% for valor, nome in categorias %}
+                <option value="{{ valor }}" {% if form_data.categoria == valor %}selected{% endif %}>
+                  {{ nome }}
+                </option>
+              {% endfor %}
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label>Ícone</label>
+            <input
+              type="text"
+              name="icone"
+              value="{{ form_data.icone }}"
+              maxlength="10"
+              placeholder="Ex: 🖥️"
+            >
+
+            <div class="help-text">
+              Pode usar emoji: 🖥️ 🌐 🏥 🔌 📡 🗄️ 🔐
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label>Ordem</label>
+            <input
+              type="number"
+              name="ordem"
+              value="{{ form_data.ordem }}"
+              min="0"
+            >
+
+            <div class="help-text">
+              Quanto menor o número, mais acima aparece.
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label>Status</label>
+
+            <div class="checkbox-row">
+              <input
+                type="checkbox"
+                name="ativo"
+                id="ativo"
+                {% if form_data.ativo %}checked{% endif %}
+              >
+
+              <label for="ativo" style="margin:0; text-transform:none;">
+                Sistema ativo
+              </label>
+            </div>
+          </div>
+
+        </div>
+
+        <div class="form-actions">
+          <button type="submit" class="btn-submit">
+            {% if modo == "editar" %}
+              Salvar alterações
+            {% else %}
+              Cadastrar sistema
+            {% endif %}
+          </button>
+
+          <a class="btn-link" href="/portal/modulos/status-sistemas/">Cancelar</a>
+        </div>
+      </form>
+    </section>
+
+    <footer class="footer">
+      <span>Status dos Sistemas • Cadastro de sistemas</span>
+      <span>Tecnologia da Informação • Ambiente interno</span>
+    </footer>
+
+  </main>
+
+  <script src="{% static 'core/js/home.js' %}"></script>
+</body>
+</html>

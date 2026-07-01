@@ -1,0 +1,800 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>Base de Conhecimento | Intranet</title>
+
+  <link rel="stylesheet" href="{% static 'core/css/home.css' %}">
+
+  <style>
+    body {
+      background: #111111;
+      color: #f8fafc;
+      margin: 0;
+      font-family: Arial, sans-serif;
+    }
+
+    .page {
+      max-width: 1180px;
+      margin: 0 auto;
+      padding: 28px 24px 50px;
+    }
+
+    .top-actions {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-bottom: 24px;
+    }
+
+    .btn-link,
+    .btn-submit,
+    .btn-success,
+    .btn-danger,
+    .btn-warning,
+    .btn-read {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 10px 14px;
+      border-radius: 10px;
+      border: 1px solid rgba(148, 163, 184, 0.3);
+      background: rgba(15, 23, 42, 0.75);
+      color: #e5e7eb;
+      text-decoration: none;
+      font-size: 13px;
+      font-weight: 800;
+      cursor: pointer;
+      font-family: Arial, sans-serif;
+    }
+
+    .btn-link:hover {
+      border-color: #2dd4bf;
+      color: #2dd4bf;
+    }
+
+    .btn-success,
+    .btn-submit,
+    .btn-read {
+      background: #2dd4bf;
+      color: #06201d;
+      border-color: #2dd4bf;
+    }
+
+    .btn-submit {
+      width: 100%;
+    }
+
+    .btn-danger {
+      background: rgba(127, 29, 29, 0.45);
+      color: #fecaca;
+      border-color: rgba(248, 113, 113, 0.35);
+    }
+
+    .btn-warning {
+      background: rgba(120, 53, 15, 0.45);
+      color: #fde68a;
+      border-color: rgba(251, 191, 36, 0.35);
+    }
+
+    .hero-box {
+      display: grid;
+      grid-template-columns: 1fr 340px;
+      gap: 18px;
+      margin-bottom: 26px;
+    }
+
+    .hero-main,
+    .hero-side,
+    .summary-card,
+    .document-card,
+    .empty-card,
+    .message-item,
+    .pending-card {
+      background: rgba(31, 31, 31, 0.96);
+      border: 1px solid rgba(148, 163, 184, 0.2);
+      border-radius: 16px;
+      padding: 22px;
+    }
+
+    .pending-card {
+      margin-bottom: 22px;
+      border-color: rgba(251, 191, 36, 0.35);
+      background: rgba(120, 53, 15, 0.22);
+    }
+
+    .pending-card strong {
+      color: #fde68a;
+    }
+
+    .eyebrow {
+      color: #2dd4bf;
+      font-size: 12px;
+      font-weight: 900;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      margin-bottom: 8px;
+    }
+
+    h1 {
+      margin: 0 0 10px;
+      font-size: 32px;
+      color: #ffffff;
+    }
+
+    h2 {
+      margin: 0 0 6px;
+      font-size: 20px;
+      color: #ffffff;
+    }
+
+    h3 {
+      margin: 0 0 6px;
+      color: #ffffff;
+    }
+
+    p {
+      color: #cbd5e1;
+      line-height: 1.5;
+    }
+
+    .messages-box {
+      display: grid;
+      gap: 10px;
+      margin-bottom: 18px;
+    }
+
+    .message-item {
+      padding: 12px 14px;
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    .message-success {
+      border-color: rgba(34, 197, 94, 0.35);
+      background: rgba(22, 101, 52, 0.22);
+      color: #bbf7d0;
+    }
+
+    .message-error {
+      border-color: rgba(248, 113, 113, 0.35);
+      background: rgba(127, 29, 29, 0.22);
+      color: #fecaca;
+    }
+
+    .form-grid {
+      display: grid;
+      gap: 10px;
+    }
+
+    .form-group {
+      margin-bottom: 2px;
+    }
+
+    .form-group label {
+      display: block;
+      color: #cbd5e1;
+      font-size: 12px;
+      font-weight: 800;
+      text-transform: uppercase;
+      margin-bottom: 7px;
+    }
+
+    .form-group input,
+    .form-group select {
+      width: 100%;
+      box-sizing: border-box;
+      border: 1px solid rgba(148, 163, 184, 0.28);
+      background: #2a2a2a;
+      color: #ffffff;
+      border-radius: 10px;
+      padding: 12px;
+      outline: none;
+    }
+
+    .summary-grid {
+      display: grid;
+      grid-template-columns: repeat(6, minmax(0, 1fr));
+      gap: 14px;
+      margin-bottom: 26px;
+    }
+
+    .summary-card span {
+      display: block;
+      color: #94a3b8;
+      font-size: 12px;
+      font-weight: 800;
+      text-transform: uppercase;
+      margin-bottom: 8px;
+    }
+
+    .summary-card strong {
+      display: block;
+      color: #ffffff;
+      font-size: 28px;
+    }
+
+    .summary-card.pending strong {
+      color: #fde68a;
+    }
+
+    .section-header {
+      margin-bottom: 14px;
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 14px;
+      flex-wrap: wrap;
+    }
+
+    .document-list {
+      display: grid;
+      gap: 14px;
+    }
+
+    .document-card {
+      display: grid;
+      grid-template-columns: 54px 1fr;
+      gap: 16px;
+    }
+
+    .document-card.inactive {
+      opacity: 0.68;
+      border-color: rgba(251, 191, 36, 0.28);
+    }
+
+    .document-card.pending-read {
+      border-color: rgba(251, 191, 36, 0.42);
+      box-shadow: 0 0 0 1px rgba(251, 191, 36, 0.08);
+    }
+
+    .document-icon {
+      width: 48px;
+      height: 48px;
+      border-radius: 14px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(45, 212, 191, 0.12);
+      border: 1px solid rgba(45, 212, 191, 0.22);
+      font-size: 23px;
+    }
+
+    .document-title-line {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      padding: 7px 10px;
+      border-radius: 999px;
+      font-size: 11px;
+      font-weight: 900;
+      text-transform: uppercase;
+      color: #2dd4bf;
+      background: rgba(45, 212, 191, 0.12);
+      border: 1px solid rgba(45, 212, 191, 0.25);
+      margin-right: 6px;
+      margin-top: 8px;
+      text-decoration: none;
+    }
+
+    .badge-ok {
+      color: #bbf7d0;
+      background: rgba(22, 101, 52, 0.35);
+      border-color: rgba(34, 197, 94, 0.35);
+    }
+
+    .badge-warn {
+      color: #fde68a;
+      background: rgba(120, 53, 15, 0.35);
+      border-color: rgba(251, 191, 36, 0.35);
+    }
+
+    .badge-danger {
+      color: #fecaca;
+      background: rgba(127, 29, 29, 0.35);
+      border-color: rgba(248, 113, 113, 0.35);
+    }
+
+    .badge-info {
+      color: #bfdbfe;
+      background: rgba(30, 64, 175, 0.35);
+      border-color: rgba(96, 165, 250, 0.35);
+    }
+
+    .badge-read {
+      color: #bbf7d0;
+      background: rgba(22, 101, 52, 0.35);
+      border-color: rgba(34, 197, 94, 0.35);
+    }
+
+    .meta-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 8px;
+      margin-top: 12px;
+    }
+
+    .meta-item {
+      border: 1px solid rgba(148, 163, 184, 0.16);
+      background: rgba(15, 23, 42, 0.35);
+      border-radius: 12px;
+      padding: 10px;
+    }
+
+    .meta-item span {
+      display: block;
+      color: #94a3b8;
+      font-size: 11px;
+      font-weight: 900;
+      text-transform: uppercase;
+      margin-bottom: 4px;
+    }
+
+    .meta-item strong {
+      display: block;
+      color: #e5e7eb;
+      font-size: 13px;
+    }
+
+    .item-actions {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-top: 14px;
+    }
+
+    .read-form {
+      display: inline-flex;
+      margin: 0;
+    }
+
+    .empty-card {
+      text-align: center;
+      color: #cbd5e1;
+      border-style: dashed;
+    }
+
+    .footer {
+      border-top: 1px solid rgba(148, 163, 184, 0.16);
+      margin-top: 26px;
+      padding-top: 14px;
+      display: flex;
+      justify-content: space-between;
+      color: #94a3b8;
+      font-size: 12px;
+    }
+
+    @media (max-width: 1000px) {
+      .hero-box,
+      .summary-grid,
+      .document-card,
+      .meta-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <header>
+    <div class="logo">
+      {% if request.user.unidade %}
+        {% if request.user.unidade.sigla == "HSFVF" or request.user.unidade.sigla == "HSFMA" %}
+          <img src="{% static 'core/img/logo-sagrada-familia.png' %}" alt="Logo" class="header-unit-logo">
+        {% else %}
+          <img src="{% static 'core/img/logo-hsf.png' %}" alt="Logo" class="header-unit-logo">
+        {% endif %}
+      {% else %}
+        <img src="{% static 'core/img/logo-hsf.png' %}" alt="Logo" class="header-unit-logo">
+      {% endif %}
+
+      <div>
+        <span>Intranet Grupo São Francisco</span>
+        <span class="unit-tag">
+          {% if request.user.unidade %}
+            {{ request.user.unidade.nome }}
+          {% else %}
+            Sem unidade vinculada
+          {% endif %}
+        </span>
+      </div>
+    </div>
+
+    <div class="header-right">
+      <a class="logout-btn" href="/portal/">Portal</a>
+      <button class="logout-btn" onclick="doLogout()">Sair</button>
+    </div>
+  </header>
+
+  <main class="page">
+
+    <div class="top-actions">
+      <a class="btn-link" href="/portal/">← Voltar ao portal</a>
+
+      {% if pode_gerenciar %}
+        <a class="btn-success" href="/portal/modulos/base-conhecimento/categorias/nova/">
+          + Nova categoria
+        </a>
+
+        <a class="btn-success" href="/portal/modulos/base-conhecimento/documentos/novo/">
+          + Novo documento
+        </a>
+
+        <a class="btn-link" href="/portal/modulos/base-conhecimento/relatorio-leituras/">
+          Relatório de leituras
+        </a>
+      {% endif %}
+    </div>
+
+    {% if messages %}
+      <div class="messages-box">
+        {% for message in messages %}
+          <div class="message-item {% if message.tags == 'success' %}message-success{% elif message.tags == 'error' %}message-error{% endif %}">
+            {{ message }}
+          </div>
+        {% endfor %}
+      </div>
+    {% endif %}
+
+    {% if total_pendentes_leitura > 0 %}
+      <section class="pending-card">
+        <h2>Você possui documentos obrigatórios pendentes de leitura</h2>
+        <p>
+          Existem <strong>{{ total_pendentes_leitura }}</strong> documento(s) que precisam da sua confirmação de ciência.
+        </p>
+      </section>
+    {% endif %}
+
+    <section class="hero-box">
+      <div class="hero-main">
+        <div class="eyebrow">Base de Conhecimento</div>
+        <h1>Base de Conhecimento / POPs por Setor</h1>
+        <p>
+          Central de documentos, POPs, fluxos, manuais, políticas e orientações por setor, unidade,
+          categoria e status de revisão.
+        </p>
+
+        <p>
+          O conteúdo exibido respeita a unidade, setor e grupo de acesso do usuário.
+        </p>
+      </div>
+
+      <aside class="hero-side">
+        <h3>Filtros</h3>
+        <p>Use os filtros para localizar rapidamente documentos e procedimentos.</p>
+
+        <form method="get" class="form-grid">
+          <div class="form-group">
+            <label>Buscar</label>
+            <input
+              type="text"
+              name="busca"
+              value="{{ busca }}"
+              placeholder="Título, descrição, categoria, setor..."
+            >
+          </div>
+
+          <div class="form-group">
+            <label>Categoria</label>
+            <select name="categoria">
+              <option value="">Todas</option>
+              {% for categoria in categorias %}
+                <option value="{{ categoria.id }}" {% if categoria_id == categoria.id|stringformat:"s" %}selected{% endif %}>
+                  {{ categoria.nome }}
+                </option>
+              {% endfor %}
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label>Tipo</label>
+            <select name="tipo">
+              <option value="">Todos</option>
+              {% for valor, nome in tipos %}
+                <option value="{{ valor }}" {% if tipo_selecionado == valor %}selected{% endif %}>
+                  {{ nome }}
+                </option>
+              {% endfor %}
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label>Unidade</label>
+            <select name="unidade">
+              <option value="">Todas disponíveis</option>
+              <option value="geral" {% if unidade_id == "geral" %}selected{% endif %}>Geral / Todas</option>
+
+              {% for unidade in unidades %}
+                <option value="{{ unidade.id }}" {% if unidade_id == unidade.id|stringformat:"s" %}selected{% endif %}>
+                  {{ unidade.nome }}
+                </option>
+              {% endfor %}
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label>Setor</label>
+            <select name="setor">
+              <option value="">Todos disponíveis</option>
+              <option value="geral" {% if setor_id == "geral" %}selected{% endif %}>Geral / Todos</option>
+
+              {% for setor in setores %}
+                <option value="{{ setor.id }}" {% if setor_id == setor.id|stringformat:"s" %}selected{% endif %}>
+                  {{ setor.nome }}
+                </option>
+              {% endfor %}
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label>Status</label>
+            <select name="status">
+              <option value="">Todos</option>
+              {% for valor, nome in status_choices %}
+                <option value="{{ valor }}" {% if status_selecionado == valor %}selected{% endif %}>
+                  {{ nome }}
+                </option>
+              {% endfor %}
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label>Leitura obrigatória</label>
+            <select name="leitura_obrigatoria">
+              <option value="">Todos</option>
+              <option value="sim" {% if leitura_obrigatoria == "sim" %}selected{% endif %}>Sim</option>
+              <option value="nao" {% if leitura_obrigatoria == "nao" %}selected{% endif %}>Não</option>
+            </select>
+          </div>
+
+          {% if pode_gerenciar %}
+            <div class="form-group">
+              <label>Ativo</label>
+              <select name="ativo">
+                <option value="">Todos</option>
+                <option value="sim" {% if ativo_selecionado == "sim" %}selected{% endif %}>Ativos</option>
+                <option value="nao" {% if ativo_selecionado == "nao" %}selected{% endif %}>Inativos</option>
+              </select>
+            </div>
+          {% endif %}
+
+          <button type="submit" class="btn-submit">Filtrar</button>
+
+          <a href="/portal/modulos/base-conhecimento/" class="btn-link">
+            Limpar filtros
+          </a>
+        </form>
+      </aside>
+    </section>
+
+    <section class="summary-grid">
+      <div class="summary-card">
+        <span>Total</span>
+        <strong>{{ total_documentos }}</strong>
+      </div>
+
+      <div class="summary-card">
+        <span>Vigentes</span>
+        <strong>{{ total_vigentes }}</strong>
+      </div>
+
+      <div class="summary-card">
+        <span>Em revisão</span>
+        <strong>{{ total_revisao }}</strong>
+      </div>
+
+      <div class="summary-card">
+        <span>Obsoletos</span>
+        <strong>{{ total_obsoletos }}</strong>
+      </div>
+
+      <div class="summary-card">
+        <span>Leitura obrigatória</span>
+        <strong>{{ total_leitura_obrigatoria }}</strong>
+      </div>
+
+      <div class="summary-card pending">
+        <span>Pendentes</span>
+        <strong>{{ total_pendentes_leitura }}</strong>
+      </div>
+    </section>
+
+    <section>
+      <div class="section-header">
+        <div>
+          <h2>Documentos encontrados</h2>
+          <p>Resultado conforme os filtros aplicados e permissões do usuário.</p>
+        </div>
+
+        {% if pode_gerenciar %}
+          <a class="btn-success" href="/portal/modulos/base-conhecimento/documentos/novo/">
+            + Cadastrar documento
+          </a>
+        {% endif %}
+      </div>
+
+      <div class="document-list">
+        {% for documento in documentos %}
+          <article class="document-card {% if not documento.ativo %}inactive{% endif %} {% if documento.leitura_obrigatoria and documento.ativo and documento.id not in documentos_lidos_ids %}pending-read{% endif %}">
+            <div class="document-icon">
+              {% if documento.tipo == "pop" %}
+                📋
+              {% elif documento.tipo == "manual" %}
+                📘
+              {% elif documento.tipo == "orientacao" %}
+                🧭
+              {% elif documento.tipo == "politica" %}
+                📜
+              {% elif documento.tipo == "fluxo" %}
+                🔄
+              {% elif documento.tipo == "treinamento" %}
+                🎓
+              {% else %}
+                📄
+              {% endif %}
+            </div>
+
+            <div>
+              <div class="document-title-line">
+                <h3>{{ documento.titulo }}</h3>
+
+                {% if documento.status == "vigente" %}
+                  <span class="badge badge-ok">{{ documento.get_status_display }}</span>
+                {% elif documento.status == "em_revisao" %}
+                  <span class="badge badge-warn">{{ documento.get_status_display }}</span>
+                {% elif documento.status == "obsoleto" %}
+                  <span class="badge badge-danger">{{ documento.get_status_display }}</span>
+                {% else %}
+                  <span class="badge badge-info">{{ documento.get_status_display }}</span>
+                {% endif %}
+              </div>
+
+              {% if documento.descricao %}
+                <p>{{ documento.descricao }}</p>
+              {% else %}
+                <p>Sem descrição cadastrada.</p>
+              {% endif %}
+
+              {% if documento.categoria %}
+                <span class="badge">{{ documento.categoria.nome }}</span>
+              {% else %}
+                <span class="badge">Sem categoria</span>
+              {% endif %}
+
+              <span class="badge">{{ documento.get_tipo_display }}</span>
+              <span class="badge">Versão {{ documento.versao }}</span>
+
+              {% if documento.ativo %}
+                <span class="badge">Ativo</span>
+              {% else %}
+                <span class="badge badge-warn">Inativo</span>
+              {% endif %}
+
+              {% if documento.leitura_obrigatoria %}
+                <span class="badge badge-warn">Leitura obrigatória</span>
+
+                {% if documento.id in documentos_lidos_ids %}
+                  <span class="badge badge-read">Leitura confirmada</span>
+                {% else %}
+                  <span class="badge badge-danger">Pendente de leitura</span>
+                {% endif %}
+              {% endif %}
+
+              {% if documento.arquivo %}
+                <a class="badge" href="{{ documento.arquivo.url }}" target="_blank">Abrir arquivo</a>
+              {% endif %}
+
+              {% if documento.link_externo %}
+                <a class="badge" href="{{ documento.link_externo }}" target="_blank">Abrir link</a>
+              {% endif %}
+
+              {% if not documento.arquivo and not documento.link_externo %}
+                <span class="badge badge-warn">Sem arquivo/link</span>
+              {% endif %}
+
+              <div class="item-actions">
+                {% if documento.leitura_obrigatoria and documento.ativo and documento.id not in documentos_lidos_ids %}
+                  <form
+                    method="post"
+                    action="/portal/modulos/base-conhecimento/documentos/confirmar-leitura/{{ documento.id }}/"
+                    class="read-form"
+                    onsubmit="return confirm('Confirma que você leu e está ciente deste documento?');"
+                  >
+                    {% csrf_token %}
+                    <button type="submit" class="btn-read">
+                      Li e estou ciente
+                    </button>
+                  </form>
+                {% endif %}
+
+                {% if pode_gerenciar %}
+                  <a class="btn-link" href="/portal/modulos/base-conhecimento/documentos/editar/{{ documento.id }}/">
+                    Editar
+                  </a>
+
+                  {% if documento.ativo %}
+                    <a
+                      class="btn-danger"
+                      href="/portal/modulos/base-conhecimento/documentos/inativar/{{ documento.id }}/"
+                      onclick="return confirm('Deseja inativar este documento?');"
+                    >
+                      Inativar
+                    </a>
+                  {% else %}
+                    <a
+                      class="btn-warning"
+                      href="/portal/modulos/base-conhecimento/documentos/reativar/{{ documento.id }}/"
+                      onclick="return confirm('Deseja reativar este documento?');"
+                    >
+                      Reativar
+                    </a>
+                  {% endif %}
+
+                  {% if documento.categoria %}
+                    <a class="btn-link" href="/portal/modulos/base-conhecimento/categorias/editar/{{ documento.categoria.id }}/">
+                      Editar categoria
+                    </a>
+                  {% endif %}
+                {% endif %}
+              </div>
+
+              <div class="meta-grid">
+                <div class="meta-item">
+                  <span>Destino</span>
+                  <strong>{{ documento.destino_exibicao }}</strong>
+                </div>
+
+                <div class="meta-item">
+                  <span>Revisão</span>
+                  <strong>
+                    {% if documento.data_revisao %}
+                      {{ documento.data_revisao|date:"d/m/Y" }}
+                    {% else %}
+                      Não informada
+                    {% endif %}
+                  </strong>
+                </div>
+
+                <div class="meta-item">
+                  <span>Responsável</span>
+                  <strong>
+                    {% if documento.responsavel_revisao %}
+                      {{ documento.responsavel_revisao.get_full_name|default:documento.responsavel_revisao.username }}
+                    {% else %}
+                      Não informado
+                    {% endif %}
+                  </strong>
+                </div>
+              </div>
+            </div>
+          </article>
+        {% empty %}
+          <div class="empty-card">
+            Nenhum documento encontrado para os filtros informados ou para seu perfil de acesso.
+          </div>
+        {% endfor %}
+      </div>
+    </section>
+
+    <footer class="footer">
+      <span>Base de Conhecimento • Intranet Grupo São Francisco</span>
+      <span>Tecnologia da Informação • Ambiente interno</span>
+    </footer>
+
+  </main>
+
+  <script src="{% static 'core/js/home.js' %}"></script>
+</body>
+</html>

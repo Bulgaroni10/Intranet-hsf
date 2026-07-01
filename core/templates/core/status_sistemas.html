@@ -1,0 +1,712 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>Status dos Sistemas | Intranet</title>
+
+  <link rel="stylesheet" href="{% static 'core/css/home.css' %}">
+
+  <style>
+    body {
+      background: #111111;
+      color: #f8fafc;
+      margin: 0;
+      font-family: Arial, sans-serif;
+    }
+
+    .page {
+      max-width: 1180px;
+      margin: 0 auto;
+      padding: 28px 24px 50px;
+    }
+
+    .top-actions {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-bottom: 24px;
+    }
+
+    .btn-link,
+    .btn-danger,
+    .btn-success,
+    .btn-warning {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 10px 14px;
+      border-radius: 10px;
+      border: 1px solid rgba(148, 163, 184, 0.3);
+      background: rgba(15, 23, 42, 0.75);
+      color: #e5e7eb;
+      text-decoration: none;
+      font-size: 13px;
+      font-weight: 800;
+      cursor: pointer;
+    }
+
+    .btn-link:hover {
+      border-color: #2dd4bf;
+      color: #2dd4bf;
+    }
+
+    .btn-success {
+      background: #2dd4bf;
+      color: #06201d;
+      border-color: #2dd4bf;
+    }
+
+    .btn-success:hover {
+      filter: brightness(1.05);
+    }
+
+    .btn-danger {
+      background: rgba(127, 29, 29, 0.35);
+      color: #fecaca;
+      border-color: rgba(248, 113, 113, 0.35);
+    }
+
+    .btn-danger:hover {
+      background: rgba(127, 29, 29, 0.55);
+    }
+
+    .btn-warning {
+      background: rgba(120, 53, 15, 0.35);
+      color: #fde68a;
+      border-color: rgba(251, 191, 36, 0.35);
+    }
+
+    .btn-warning:hover {
+      background: rgba(120, 53, 15, 0.55);
+    }
+
+    .messages-box {
+      display: grid;
+      gap: 10px;
+      margin-bottom: 18px;
+    }
+
+    .message-item {
+      border-radius: 14px;
+      padding: 12px 14px;
+      border: 1px solid rgba(148, 163, 184, 0.22);
+      background: rgba(31, 31, 31, 0.96);
+      color: #e5e7eb;
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    .message-success {
+      border-color: rgba(34, 197, 94, 0.35);
+      background: rgba(22, 101, 52, 0.22);
+      color: #bbf7d0;
+    }
+
+    .message-error {
+      border-color: rgba(248, 113, 113, 0.35);
+      background: rgba(127, 29, 29, 0.22);
+      color: #fecaca;
+    }
+
+    .hero-box {
+      display: grid;
+      grid-template-columns: 1fr 320px;
+      gap: 18px;
+      margin-bottom: 26px;
+    }
+
+    .hero-main,
+    .hero-side,
+    .summary-card,
+    .system-card,
+    .incident-card,
+    .empty-card {
+      background: rgba(31, 31, 31, 0.96);
+      border: 1px solid rgba(148, 163, 184, 0.2);
+      border-radius: 16px;
+      padding: 22px;
+    }
+
+    .eyebrow {
+      color: #2dd4bf;
+      font-size: 12px;
+      font-weight: 900;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      margin-bottom: 8px;
+    }
+
+    h1 {
+      margin: 0 0 10px;
+      font-size: 32px;
+      color: #ffffff;
+    }
+
+    h2 {
+      margin: 0 0 6px;
+      font-size: 20px;
+      color: #ffffff;
+    }
+
+    h3 {
+      margin: 0 0 6px;
+      color: #ffffff;
+    }
+
+    p {
+      color: #cbd5e1;
+      line-height: 1.5;
+    }
+
+    .counter {
+      display: inline-flex;
+      margin-top: 8px;
+      padding: 8px 12px;
+      border-radius: 999px;
+      color: #2dd4bf;
+      background: rgba(45, 212, 191, 0.12);
+      border: 1px solid rgba(45, 212, 191, 0.25);
+      font-weight: 900;
+      font-size: 13px;
+    }
+
+    .summary-grid {
+      display: grid;
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+      gap: 14px;
+      margin-bottom: 26px;
+    }
+
+    .summary-card {
+      padding: 18px;
+    }
+
+    .summary-card span {
+      display: block;
+      color: #94a3b8;
+      font-size: 12px;
+      font-weight: 800;
+      text-transform: uppercase;
+      margin-bottom: 8px;
+    }
+
+    .summary-card strong {
+      display: block;
+      color: #ffffff;
+      font-size: 28px;
+    }
+
+    .summary-operacional {
+      border-color: rgba(34, 197, 94, 0.35);
+    }
+
+    .summary-instavel {
+      border-color: rgba(251, 191, 36, 0.35);
+    }
+
+    .summary-indisponivel {
+      border-color: rgba(248, 113, 113, 0.35);
+    }
+
+    .summary-manutencao {
+      border-color: rgba(96, 165, 250, 0.35);
+    }
+
+    .summary-total {
+      border-color: rgba(45, 212, 191, 0.35);
+    }
+
+    .section-header {
+      margin-bottom: 14px;
+    }
+
+    .systems-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 16px;
+      margin-bottom: 30px;
+    }
+
+    .system-card {
+      min-height: 150px;
+    }
+
+    .system-card.inativo {
+      opacity: 0.55;
+      border-color: rgba(248, 113, 113, 0.28);
+    }
+
+    .system-top {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+
+    .system-title {
+      display: flex;
+      gap: 10px;
+      align-items: flex-start;
+    }
+
+    .system-icon {
+      width: 38px;
+      height: 38px;
+      border-radius: 12px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(45, 212, 191, 0.12);
+      border: 1px solid rgba(45, 212, 191, 0.22);
+      font-size: 20px;
+      flex: 0 0 auto;
+    }
+
+    .system-title h3 {
+      margin: 0 0 4px;
+      font-size: 17px;
+    }
+
+    .system-title p {
+      margin: 0;
+      color: #94a3b8;
+      font-size: 13px;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      padding: 8px 10px;
+      border-radius: 999px;
+      font-size: 11px;
+      font-weight: 900;
+      text-transform: uppercase;
+      white-space: nowrap;
+    }
+
+    .badge-operacional {
+      color: #bbf7d0;
+      background: rgba(22, 101, 52, 0.35);
+      border: 1px solid rgba(34, 197, 94, 0.35);
+    }
+
+    .badge-instavel {
+      color: #fde68a;
+      background: rgba(120, 53, 15, 0.35);
+      border: 1px solid rgba(251, 191, 36, 0.35);
+    }
+
+    .badge-indisponivel {
+      color: #fecaca;
+      background: rgba(127, 29, 29, 0.35);
+      border: 1px solid rgba(248, 113, 113, 0.35);
+    }
+
+    .badge-manutencao {
+      color: #bfdbfe;
+      background: rgba(30, 64, 175, 0.35);
+      border: 1px solid rgba(96, 165, 250, 0.35);
+    }
+
+    .badge-inativo {
+      color: #fecaca;
+      background: rgba(127, 29, 29, 0.35);
+      border: 1px solid rgba(248, 113, 113, 0.35);
+    }
+
+    .system-description {
+      color: #cbd5e1;
+      font-size: 14px;
+      margin-top: 12px;
+    }
+
+    .system-actions {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      border-top: 1px solid rgba(148, 163, 184, 0.16);
+      padding-top: 12px;
+      margin-top: 14px;
+    }
+
+    .incident-card {
+      margin-bottom: 16px;
+      border-color: rgba(45, 212, 191, 0.2);
+    }
+
+    .incident-top {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 16px;
+      margin-bottom: 12px;
+    }
+
+    .incident-title h3 {
+      margin: 0 0 6px;
+    }
+
+    .incident-title p {
+      margin: 0;
+      color: #94a3b8;
+      font-size: 13px;
+    }
+
+    .incident-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 12px;
+      margin: 14px 0;
+    }
+
+    .info-box {
+      background: rgba(15, 23, 42, 0.55);
+      border: 1px solid rgba(148, 163, 184, 0.14);
+      border-radius: 12px;
+      padding: 12px;
+    }
+
+    .info-box span {
+      display: block;
+      color: #94a3b8;
+      font-size: 12px;
+      margin-bottom: 4px;
+    }
+
+    .info-box strong {
+      display: block;
+      color: #ffffff;
+      font-size: 14px;
+    }
+
+    .detail {
+      border-top: 1px solid rgba(148, 163, 184, 0.16);
+      padding-top: 12px;
+      margin-top: 12px;
+    }
+
+    .detail h4 {
+      color: #2dd4bf;
+      margin: 0 0 6px;
+      font-size: 13px;
+    }
+
+    .detail p {
+      margin: 0;
+      white-space: pre-wrap;
+      font-size: 14px;
+    }
+
+    .empty-card {
+      text-align: center;
+      color: #cbd5e1;
+      border-style: dashed;
+    }
+
+    .footer {
+      border-top: 1px solid rgba(148, 163, 184, 0.16);
+      margin-top: 26px;
+      padding-top: 14px;
+      display: flex;
+      justify-content: space-between;
+      color: #94a3b8;
+      font-size: 12px;
+    }
+
+    @media (max-width: 1000px) {
+      .hero-box,
+      .summary-grid,
+      .systems-grid,
+      .incident-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .incident-top,
+      .system-top {
+        flex-direction: column;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <header>
+    <div class="logo">
+      {% if request.user.unidade %}
+        {% if request.user.unidade.sigla == "HSFVF" or request.user.unidade.sigla == "HSFMA" %}
+          <img src="{% static 'core/img/logo-sagrada-familia.png' %}" alt="Logo" class="header-unit-logo">
+        {% else %}
+          <img src="{% static 'core/img/logo-hsf.png' %}" alt="Logo" class="header-unit-logo">
+        {% endif %}
+      {% else %}
+        <img src="{% static 'core/img/logo-hsf.png' %}" alt="Logo" class="header-unit-logo">
+      {% endif %}
+
+      <div>
+        <span>Intranet Grupo São Francisco</span>
+        <span class="unit-tag">
+          {% if request.user.unidade %}
+            {{ request.user.unidade.nome }}
+          {% else %}
+            Sem unidade vinculada
+          {% endif %}
+        </span>
+      </div>
+    </div>
+
+    <div class="header-right">
+      <a class="logout-btn" href="/portal/">Voltar ao portal</a>
+      <button class="logout-btn" onclick="doLogout()">Sair</button>
+    </div>
+  </header>
+
+  <main class="page">
+
+    <div class="top-actions">
+      <a class="btn-link" href="/portal/">← Voltar ao portal</a>
+
+      {% if pode_gerenciar_status %}
+        <a class="btn-success" href="/portal/modulos/status-sistemas/nova/">+ Nova ocorrência</a>
+        <a class="btn-success" href="/portal/modulos/status-sistemas/sistema/novo/">+ Novo sistema</a>
+      {% endif %}
+
+      <a class="btn-link" href="/portal/modulos/status-sistemas/historico/">Histórico</a>
+    </div>
+
+    {% if messages %}
+      <div class="messages-box">
+        {% for message in messages %}
+          <div class="message-item {% if message.tags == 'success' %}message-success{% elif message.tags == 'error' %}message-error{% endif %}">
+            {{ message }}
+          </div>
+        {% endfor %}
+      </div>
+    {% endif %}
+
+    <section class="hero-box">
+      <div class="hero-main">
+        <div class="eyebrow">Monitoramento interno</div>
+        <h1>Status dos Sistemas</h1>
+        <p>
+          Acompanhe a disponibilidade dos principais sistemas e serviços utilizados nas unidades.
+        </p>
+        <span class="counter">{{ ocorrencias_ativas|length }} ocorrência(s) ativa(s)</span>
+      </div>
+
+      <aside class="hero-side">
+        <h3>Controle da TI</h3>
+        <p>
+          Use esta tela para comunicar indisponibilidade, instabilidade, manutenção e normalização dos sistemas.
+        </p>
+
+        {% if pode_gerenciar_status %}
+          <p>
+            Sistemas ativos: {{ total_sistemas_ativos }}<br>
+            Sistemas inativos: {{ total_sistemas_inativos }}
+          </p>
+        {% endif %}
+      </aside>
+    </section>
+
+    <section class="summary-grid">
+      <div class="summary-card summary-total">
+        <span>Sistemas</span>
+        <strong>{{ total_sistemas }}</strong>
+      </div>
+
+      <div class="summary-card summary-operacional">
+        <span>Operacional</span>
+        <strong>{{ resumo.operacional }}</strong>
+      </div>
+
+      <div class="summary-card summary-instavel">
+        <span>Instável</span>
+        <strong>{{ resumo.instavel }}</strong>
+      </div>
+
+      <div class="summary-card summary-indisponivel">
+        <span>Indisponível</span>
+        <strong>{{ resumo.indisponivel }}</strong>
+      </div>
+
+      <div class="summary-card summary-manutencao">
+        <span>Manutenção</span>
+        <strong>{{ resumo.manutencao }}</strong>
+      </div>
+    </section>
+
+    <section>
+      <div class="section-header">
+        <h2>Sistemas monitorados</h2>
+        <p>Resumo atual dos sistemas cadastrados.</p>
+      </div>
+
+      <div class="systems-grid">
+        {% for sistema in sistemas %}
+          <article class="system-card {% if not sistema.ativo %}inativo{% endif %}">
+            <div class="system-top">
+              <div class="system-title">
+                <div class="system-icon">
+                  {{ sistema.icone }}
+                </div>
+
+                <div>
+                  <h3>{{ sistema.nome }}</h3>
+                  <p>{{ sistema.get_categoria_display }}</p>
+                </div>
+              </div>
+
+              {% if not sistema.ativo %}
+                <span class="badge badge-inativo">Inativo</span>
+              {% else %}
+                <span class="badge badge-{{ sistema.status_atual }}">
+                  {% if sistema.status_atual == "operacional" %}
+                    Operacional
+                  {% elif sistema.status_atual == "instavel" %}
+                    Instável
+                  {% elif sistema.status_atual == "indisponivel" %}
+                    Indisponível
+                  {% elif sistema.status_atual == "manutencao" %}
+                    Manutenção
+                  {% else %}
+                    Operacional
+                  {% endif %}
+                </span>
+              {% endif %}
+            </div>
+
+            {% if sistema.descricao %}
+              <p class="system-description">{{ sistema.descricao }}</p>
+            {% else %}
+              <p class="system-description">Sistema monitorado pela Tecnologia da Informação.</p>
+            {% endif %}
+
+            {% if pode_gerenciar_status %}
+              <div class="system-actions">
+                <a class="btn-link" href="/portal/modulos/status-sistemas/sistema/editar/{{ sistema.id }}/">
+                  Editar
+                </a>
+
+                {% if sistema.ativo %}
+                  <a class="btn-warning" href="/portal/modulos/status-sistemas/sistema/inativar/{{ sistema.id }}/">
+                    Inativar
+                  </a>
+                {% else %}
+                  <a class="btn-success" href="/portal/modulos/status-sistemas/sistema/reativar/{{ sistema.id }}/">
+                    Reativar
+                  </a>
+                {% endif %}
+              </div>
+            {% endif %}
+          </article>
+        {% empty %}
+          <div class="empty-card">
+            Nenhum sistema monitorado cadastrado.
+          </div>
+        {% endfor %}
+      </div>
+    </section>
+
+    <section>
+      <div class="section-header">
+        <h2>Ocorrências ativas</h2>
+        <p>Lista de indisponibilidades, instabilidades ou manutenções em andamento.</p>
+      </div>
+
+      {% if ocorrencias_ativas %}
+        {% for ocorrencia in ocorrencias_ativas %}
+          <article class="incident-card">
+
+            <div class="incident-top">
+              <div class="incident-title">
+                <h3>{{ ocorrencia.titulo }}</h3>
+                <p>
+                  {{ ocorrencia.sistema.nome }}
+                  {% if ocorrencia.unidade %}
+                    • {{ ocorrencia.unidade.sigla }}
+                  {% else %}
+                    • Geral / Todas
+                  {% endif %}
+                </p>
+              </div>
+
+              <span class="badge badge-{{ ocorrencia.status }}">
+                {{ ocorrencia.get_status_display }}
+              </span>
+            </div>
+
+            <div class="incident-grid">
+              <div class="info-box">
+                <span>Impacto</span>
+                <strong>{{ ocorrencia.get_impacto_display }}</strong>
+              </div>
+
+              <div class="info-box">
+                <span>Aberta em</span>
+                <strong>{{ ocorrencia.aberto_em|date:"d/m/Y H:i" }}</strong>
+              </div>
+
+              <div class="info-box">
+                <span>Previsão</span>
+                <strong>{{ ocorrencia.previsao|default:"Não informada" }}</strong>
+              </div>
+
+              <div class="info-box">
+                <span>Unidade</span>
+                <strong>
+                  {% if ocorrencia.unidade %}
+                    {{ ocorrencia.unidade.sigla }}
+                  {% else %}
+                    Geral
+                  {% endif %}
+                </strong>
+              </div>
+            </div>
+
+            {% if ocorrencia.mensagem %}
+              <div class="detail">
+                <h4>Mensagem aos usuários</h4>
+                <p>{{ ocorrencia.mensagem }}</p>
+              </div>
+            {% endif %}
+
+            {% if ocorrencia.acao_ti and pode_gerenciar_status %}
+              <div class="detail">
+                <h4>Ação da TI</h4>
+                <p>{{ ocorrencia.acao_ti }}</p>
+              </div>
+            {% endif %}
+
+            {% if pode_gerenciar_status %}
+              <div style="display:flex; gap:10px; flex-wrap:wrap; margin-top:16px;">
+                <a class="btn-danger" href="/portal/modulos/status-sistemas/encerrar/{{ ocorrencia.id }}/">
+                  Encerrar ocorrência
+                </a>
+              </div>
+            {% endif %}
+
+          </article>
+        {% endfor %}
+      {% else %}
+        <div class="empty-card">
+          Nenhuma ocorrência ativa no momento.
+        </div>
+      {% endif %}
+    </section>
+
+    <footer class="footer">
+      <span>Status dos Sistemas • Intranet Grupo São Francisco</span>
+      <span>Tecnologia da Informação • Ambiente interno</span>
+    </footer>
+
+  </main>
+
+  <script src="{% static 'core/js/home.js' %}"></script>
+</body>
+</html>

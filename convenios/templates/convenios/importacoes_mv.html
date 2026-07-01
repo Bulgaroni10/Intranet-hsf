@@ -1,0 +1,201 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>Importações MV | Intranet</title>
+  <link rel="stylesheet" href="{% static 'core/css/home.css' %}">
+
+  <style>
+    body { background:#111; color:#f8fafc; margin:0; font-family:Arial,sans-serif; }
+    .page { max-width:1180px; margin:0 auto; padding:28px 24px 50px; }
+    .top-actions { display:flex; gap:10px; flex-wrap:wrap; margin-bottom:24px; }
+    .btn-link,.btn-success { display:inline-flex; align-items:center; justify-content:center; padding:10px 14px; border-radius:10px; border:1px solid rgba(148,163,184,.3); background:rgba(15,23,42,.75); color:#e5e7eb; text-decoration:none; font-size:13px; font-weight:800; cursor:pointer; }
+    .btn-link:hover { border-color:#2dd4bf; color:#2dd4bf; }
+    .btn-success { background:#2dd4bf; color:#06201d; border-color:#2dd4bf; }
+    .hero-main,.card,.message-item { background:rgba(31,31,31,.96); border:1px solid rgba(148,163,184,.2); border-radius:16px; padding:22px; }
+    .hero-main { margin-bottom:22px; }
+    .eyebrow { color:#2dd4bf; font-size:12px; font-weight:900; text-transform:uppercase; letter-spacing:.08em; margin-bottom:8px; }
+    h1 { margin:0 0 10px; font-size:32px; color:#fff; }
+    h2 { margin:0 0 8px; color:#fff; }
+    p { color:#cbd5e1; line-height:1.5; }
+    .messages-box { display:grid; gap:10px; margin-bottom:18px; }
+    .message-item { padding:12px 14px; font-size:13px; font-weight:700; }
+    .message-success { border-color:rgba(34,197,94,.35); background:rgba(22,101,52,.22); color:#bbf7d0; }
+    .message-error { border-color:rgba(248,113,113,.35); background:rgba(127,29,29,.22); color:#fecaca; }
+    .modelos-grid { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:14px; margin-bottom:24px; }
+    .modelo-card { background:rgba(15,23,42,.45); border:1px solid rgba(148,163,184,.18); border-radius:14px; padding:16px; }
+    .modelo-card h3 { margin:0 0 8px; color:#fff; }
+    .modelo-card p { margin:0 0 12px; font-size:13px; }
+    .table-wrap { overflow-x:auto; margin-top:14px; }
+    table { width:100%; border-collapse:collapse; min-width:900px; }
+    th,td { border-bottom:1px solid rgba(148,163,184,.16); padding:12px 10px; text-align:left; vertical-align:top; font-size:13px; }
+    th { color:#94a3b8; text-transform:uppercase; font-size:11px; letter-spacing:.04em; }
+    td { color:#e5e7eb; }
+    .badge { display:inline-flex; align-items:center; padding:7px 10px; border-radius:999px; font-size:11px; font-weight:900; text-transform:uppercase; color:#2dd4bf; background:rgba(45,212,191,.12); border:1px solid rgba(45,212,191,.25); }
+    .badge-ok { color:#bbf7d0; background:rgba(22,101,52,.35); border-color:rgba(34,197,94,.35); }
+    .badge-warn { color:#fde68a; background:rgba(120,53,15,.35); border-color:rgba(251,191,36,.35); }
+    .badge-danger { color:#fecaca; background:rgba(127,29,29,.35); border-color:rgba(248,113,113,.35); }
+    .empty { text-align:center; color:#cbd5e1; padding:26px; border:1px dashed rgba(148,163,184,.3); border-radius:16px; }
+    .footer { border-top:1px solid rgba(148,163,184,.16); margin-top:26px; padding-top:14px; display:flex; justify-content:space-between; color:#94a3b8; font-size:12px; }
+    @media(max-width:900px){ .modelos-grid{grid-template-columns:1fr;} }
+  </style>
+</head>
+
+<body>
+  <header>
+    <div class="logo">
+      {% if request.user.unidade %}
+        {% if request.user.unidade.sigla == "HSFVF" or request.user.unidade.sigla == "HSFMA" %}
+          <img src="{% static 'core/img/logo-sagrada-familia.png' %}" alt="Logo" class="header-unit-logo">
+        {% else %}
+          <img src="{% static 'core/img/logo-hsf.png' %}" alt="Logo" class="header-unit-logo">
+        {% endif %}
+      {% else %}
+        <img src="{% static 'core/img/logo-hsf.png' %}" alt="Logo" class="header-unit-logo">
+      {% endif %}
+
+      <div>
+        <span>Intranet Grupo São Francisco</span>
+        <span class="unit-tag">
+          {% if request.user.unidade %}{{ request.user.unidade.nome }}{% else %}Sem unidade vinculada{% endif %}
+        </span>
+      </div>
+    </div>
+
+    <div class="header-right">
+      <a class="logout-btn" href="/portal/modulos/mv/">MV</a>
+      <a class="logout-btn" href="/portal/">Portal</a>
+      <button class="logout-btn" onclick="doLogout()">Sair</button>
+    </div>
+  </header>
+
+  <main class="page">
+    <div class="top-actions">
+      <a class="btn-link" href="/portal/modulos/mv/">← Voltar ao MV</a>
+      <a class="btn-link" href="/portal/modulos/mv/convenios/">Convênios MV</a>
+      <a class="btn-success" href="/portal/modulos/mv/importacoes/nova/">+ Nova importação</a>
+    </div>
+
+    {% if messages %}
+      <div class="messages-box">
+        {% for message in messages %}
+          <div class="message-item {% if message.tags == 'success' %}message-success{% elif message.tags == 'error' %}message-error{% endif %}">
+            {{ message }}
+          </div>
+        {% endfor %}
+      </div>
+    {% endif %}
+
+    <section class="hero-main">
+      <div class="eyebrow">MV / Importações</div>
+      <h1>Importações MV</h1>
+      <p>
+        Importe em massa convênios, planos, procedimentos proibidos e regras de atendimento por CSV ou XLSX.
+      </p>
+    </section>
+
+    <section class="card">
+      <h2>Modelos de importação</h2>
+      <p>Baixe o modelo correto antes de importar.</p>
+
+      <div class="modelos-grid">
+        <div class="modelo-card">
+          <h3>Convênios e planos</h3>
+          <p>Cria ou atualiza convênios e seus planos.</p>
+          <a class="btn-link" href="/portal/modulos/mv/importacoes/modelo/convenios_planos/">Baixar modelo CSV</a>
+        </div>
+
+        <div class="modelo-card">
+          <h3>Procedimentos proibidos</h3>
+          <p>Importa procedimentos proibidos por plano.</p>
+          <a class="btn-link" href="/portal/modulos/mv/importacoes/modelo/procedimentos_proibidos/">Baixar modelo CSV</a>
+        </div>
+
+        <div class="modelo-card">
+          <h3>Regras de atendimento</h3>
+          <p>Importa regras manuais por unidade, convênio e plano.</p>
+          <a class="btn-link" href="/portal/modulos/mv/importacoes/modelo/regras_atendimento/">Baixar modelo CSV</a>
+        </div>
+      </div>
+    </section>
+
+    <section class="card" style="margin-top:18px;">
+      <h2>Histórico de importações</h2>
+      <p>Últimas 100 importações realizadas.</p>
+
+      {% if importacoes %}
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Tipo</th>
+                <th>Status</th>
+                <th>Usuário</th>
+                <th>Linhas</th>
+                <th>Sucesso</th>
+                <th>Erros</th>
+                <th>Criado em</th>
+                <th>Finalizado em</th>
+                <th>Ações</th>
+              </tr>
+            </thead>
+
+            <tbody>
+              {% for importacao in importacoes %}
+                <tr>
+                  <td>#{{ importacao.id }}</td>
+                  <td>{{ importacao.get_tipo_display }}</td>
+                  <td>
+                    {% if importacao.status == "concluida" %}
+                      <span class="badge badge-ok">{{ importacao.get_status_display }}</span>
+                    {% elif importacao.status == "concluida_com_erros" %}
+                      <span class="badge badge-warn">{{ importacao.get_status_display }}</span>
+                    {% elif importacao.status == "erro" %}
+                      <span class="badge badge-danger">{{ importacao.get_status_display }}</span>
+                    {% else %}
+                      <span class="badge">{{ importacao.get_status_display }}</span>
+                    {% endif %}
+                  </td>
+                  <td>
+                    {% if importacao.usuario %}
+                      {{ importacao.usuario.get_full_name|default:importacao.usuario.username }}
+                    {% else %}
+                      Sistema
+                    {% endif %}
+                  </td>
+                  <td>{{ importacao.total_linhas }}</td>
+                  <td>{{ importacao.total_sucesso }}</td>
+                  <td>{{ importacao.total_erros }}</td>
+                  <td>{{ importacao.criado_em|date:"d/m/Y H:i" }}</td>
+                  <td>
+                    {% if importacao.finalizado_em %}
+                      {{ importacao.finalizado_em|date:"d/m/Y H:i" }}
+                    {% else %}
+                      -
+                    {% endif %}
+                  </td>
+                  <td>
+                    <a class="btn-link" href="/portal/modulos/mv/importacoes/{{ importacao.id }}/">Ver log</a>
+                  </td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      {% else %}
+        <div class="empty">Nenhuma importação realizada até o momento.</div>
+      {% endif %}
+    </section>
+
+    <footer class="footer">
+      <span>Importações MV • Intranet Grupo São Francisco</span>
+      <span>Tecnologia da Informação</span>
+    </footer>
+  </main>
+
+  <script src="{% static 'core/js/home.js' %}"></script>
+</body>
+</html>

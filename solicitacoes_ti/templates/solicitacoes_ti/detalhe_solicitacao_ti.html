@@ -1,0 +1,306 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>Detalhe da Solicitação | Intranet</title>
+
+  <link rel="stylesheet" href="{% static 'core/css/home.css' %}">
+
+  <style>
+    body { background:#111; color:#f8fafc; margin:0; font-family:Arial,sans-serif; }
+    .page { max-width:980px; margin:0 auto; padding:28px 24px 50px; }
+    .top-actions { display:flex; gap:10px; flex-wrap:wrap; margin-bottom:24px; }
+
+    .btn-link, .btn-submit {
+      display:inline-flex; align-items:center; justify-content:center;
+      padding:10px 14px; border-radius:10px;
+      border:1px solid rgba(148,163,184,.3);
+      background:rgba(15,23,42,.75); color:#e5e7eb;
+      text-decoration:none; font-size:13px; font-weight:800; cursor:pointer;
+    }
+
+    .btn-link:hover { border-color:#2dd4bf; color:#2dd4bf; }
+    .btn-submit { background:#2dd4bf; color:#06201d; border-color:#2dd4bf; }
+
+    .hero-main, .detail-card, .chat-card, .notice {
+      background:rgba(31,31,31,.96);
+      border:1px solid rgba(148,163,184,.2);
+      border-radius:16px;
+      padding:22px;
+      margin-bottom:18px;
+    }
+
+    .eyebrow { color:#2dd4bf; font-size:12px; font-weight:900; text-transform:uppercase; letter-spacing:.08em; margin-bottom:8px; }
+    h1 { margin:0 0 10px; font-size:32px; color:#fff; }
+    h2 { margin:0 0 8px; color:#fff; font-size:20px; }
+    h3 { margin:0 0 6px; color:#fff; }
+    p { color:#cbd5e1; line-height:1.5; }
+
+    .notice-error { border-color:rgba(248,113,113,.35); background:rgba(127,29,29,.25); }
+    .notice-success { border-color:rgba(34,197,94,.35); background:rgba(22,101,52,.25); }
+    .notice-info { border-color:rgba(96,165,250,.35); background:rgba(30,64,175,.22); }
+
+    .badge {
+      display:inline-flex; align-items:center; padding:8px 12px; border-radius:999px;
+      border:1px solid rgba(45,212,191,.25);
+      background:rgba(45,212,191,.12); color:#2dd4bf;
+      font-size:12px; font-weight:900; white-space:nowrap;
+    }
+
+    .info-grid { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:12px; margin-top:14px; }
+    .info-box { background:rgba(15,23,42,.55); border:1px solid rgba(148,163,184,.14); border-radius:12px; padding:12px; }
+    .info-box span { display:block; color:#94a3b8; font-size:12px; margin-bottom:4px; }
+    .info-box strong { display:block; color:#fff; font-size:14px; }
+
+    .detail-section { border-top:1px solid rgba(148,163,184,.16); padding-top:12px; margin-top:12px; }
+    .detail-section h4 { color:#2dd4bf; margin:0 0 6px; font-size:13px; }
+    .detail-section p { margin:0; white-space:pre-wrap; font-size:14px; }
+
+    .chat-box {
+      max-height:480px;
+      overflow:auto;
+      display:flex;
+      flex-direction:column;
+      gap:12px;
+      padding-right:4px;
+    }
+
+    .msg {
+      border-radius:14px;
+      padding:12px;
+      border:1px solid rgba(148,163,184,.18);
+      background:rgba(15,23,42,.55);
+    }
+
+    .msg-ti { border-color:rgba(45,212,191,.35); background:rgba(45,212,191,.10); }
+    .msg-user { border-color:rgba(96,165,250,.35); background:rgba(30,64,175,.18); }
+    .msg-system { border-color:rgba(148,163,184,.25); background:rgba(51,65,85,.35); }
+
+    .msg-head {
+      display:flex;
+      justify-content:space-between;
+      gap:10px;
+      margin-bottom:6px;
+      color:#94a3b8;
+      font-size:12px;
+      font-weight:800;
+    }
+
+    .msg p { margin:0; white-space:pre-wrap; color:#e5e7eb; }
+
+    .form-group { margin-top:16px; }
+    .form-group label { display:block; color:#cbd5e1; font-size:12px; font-weight:800; text-transform:uppercase; margin-bottom:7px; }
+
+    .form-group textarea {
+      width:100%; box-sizing:border-box;
+      border:1px solid rgba(148,163,184,.28);
+      background:#2a2a2a; color:#fff;
+      border-radius:10px; padding:12px; outline:none;
+      font-family:Arial,sans-serif; resize:vertical;
+    }
+
+    .footer { border-top:1px solid rgba(148,163,184,.16); margin-top:26px; padding-top:14px; display:flex; justify-content:space-between; color:#94a3b8; font-size:12px; }
+
+    @media (max-width:800px) {
+      .info-grid { grid-template-columns:1fr; }
+      .msg-head { flex-direction:column; }
+    }
+  </style>
+</head>
+
+<body>
+
+  <header>
+    <div class="logo">
+      {% if request.user.unidade %}
+        {% if request.user.unidade.sigla == "HSFVF" or request.user.unidade.sigla == "HSFMA" %}
+          <img src="{% static 'core/img/logo-sagrada-familia.png' %}" alt="Logo" class="header-unit-logo">
+        {% else %}
+          <img src="{% static 'core/img/logo-hsf.png' %}" alt="Logo" class="header-unit-logo">
+        {% endif %}
+      {% else %}
+        <img src="{% static 'core/img/logo-hsf.png' %}" alt="Logo" class="header-unit-logo">
+      {% endif %}
+
+      <div>
+        <span>Intranet Grupo São Francisco</span>
+        <span class="unit-tag">
+          {% if request.user.unidade %}
+            {{ request.user.unidade.nome }}
+          {% else %}
+            Sem unidade vinculada
+          {% endif %}
+        </span>
+      </div>
+    </div>
+
+    <div class="header-right">
+      <a class="logout-btn" href="/portal/modulos/solicitacoes-ti/">Solicitações</a>
+      <a class="logout-btn" href="/portal/">Portal</a>
+      <button class="logout-btn" onclick="doLogout()">Sair</button>
+    </div>
+  </header>
+
+  <main class="page">
+
+    <div class="top-actions">
+      <a class="btn-link" href="/portal/modulos/solicitacoes-ti/">← Voltar para solicitações</a>
+
+      {% if pode_gerenciar %}
+        <a class="btn-link" href="/portal/modulos/solicitacoes-ti/atender/{{ solicitacao.id }}/">Atender solicitação</a>
+      {% endif %}
+
+      <a class="btn-link" href="/portal/">Voltar ao portal</a>
+    </div>
+
+    <section class="hero-main">
+      <div class="eyebrow">Solicitação de TI</div>
+      <h1>#{{ solicitacao.id }} - {{ solicitacao.titulo }}</h1>
+      <p>Acompanhe o andamento da sua solicitação e responda à TI quando a conversa estiver iniciada.</p>
+      <span class="badge">{{ solicitacao.get_status_display }}</span>
+    </section>
+
+    {% if erro %}
+      <section class="notice notice-error">
+        <h3>Atenção</h3>
+        <p>{{ erro }}</p>
+      </section>
+    {% endif %}
+
+    {% if sucesso %}
+      <section class="notice notice-success">
+        <h3>Sucesso</h3>
+        <p>{{ sucesso }}</p>
+      </section>
+    {% endif %}
+
+    <section class="detail-card">
+      <h2>Resumo</h2>
+
+      <div class="info-grid">
+        <div class="info-box">
+          <span>Tipo</span>
+          <strong>{{ solicitacao.get_tipo_display }}</strong>
+        </div>
+
+        <div class="info-box">
+          <span>Prioridade</span>
+          <strong>{{ solicitacao.get_prioridade_display }}</strong>
+        </div>
+
+        <div class="info-box">
+          <span>Aberta em</span>
+          <strong>{{ solicitacao.criado_em|date:"d/m/Y H:i" }}</strong>
+        </div>
+
+        <div class="info-box">
+          <span>Visto pela TI</span>
+          <strong>{% if solicitacao.visto_pela_ti %}Sim{% else %}Ainda não{% endif %}</strong>
+        </div>
+
+        <div class="info-box">
+          <span>Conversa</span>
+          <strong>{% if solicitacao.conversa_iniciada %}Iniciada{% else %}Não iniciada{% endif %}</strong>
+        </div>
+
+        <div class="info-box">
+          <span>Responsável TI</span>
+          <strong>
+            {% if solicitacao.responsavel_ti %}
+              {{ solicitacao.responsavel_ti.get_full_name|default:solicitacao.responsavel_ti.username }}
+            {% else %}
+              Não definido
+            {% endif %}
+          </strong>
+        </div>
+      </div>
+
+      {% if solicitacao.equipamento %}
+        <div class="detail-section">
+          <h4>Equipamento / referência</h4>
+          <p>{{ solicitacao.equipamento }}</p>
+        </div>
+      {% endif %}
+
+      <div class="detail-section">
+        <h4>Descrição</h4>
+        <p>{{ solicitacao.descricao }}</p>
+      </div>
+
+      {% if solicitacao.resposta_ti %}
+        <div class="detail-section">
+          <h4>Resposta / solução da TI</h4>
+          <p>{{ solicitacao.resposta_ti }}</p>
+        </div>
+      {% endif %}
+    </section>
+
+    <section class="chat-card">
+      <h2>Conversa com a TI</h2>
+
+      {% if solicitacao.conversa_iniciada %}
+        <div class="chat-box">
+          {% for mensagem in mensagens %}
+            <div class="msg {% if mensagem.origem == 'ti' %}msg-ti{% elif mensagem.origem == 'solicitante' %}msg-user{% else %}msg-system{% endif %}">
+              <div class="msg-head">
+                <span>
+                  {% if mensagem.origem == 'ti' %}
+                    TI
+                  {% elif mensagem.origem == 'solicitante' %}
+                    Solicitante
+                  {% else %}
+                    Sistema
+                  {% endif %}
+                  {% if mensagem.autor %}
+                    • {{ mensagem.autor.get_full_name|default:mensagem.autor.username }}
+                  {% endif %}
+                </span>
+                <span>{{ mensagem.criado_em|date:"d/m/Y H:i" }}</span>
+              </div>
+
+              <p>{{ mensagem.mensagem }}</p>
+            </div>
+          {% empty %}
+            <p>Nenhuma mensagem registrada.</p>
+          {% endfor %}
+        </div>
+
+        {% if not solicitacao.esta_encerrada %}
+          <form method="post">
+            {% csrf_token %}
+
+            <div class="form-group">
+              <label>Responder</label>
+              <textarea name="mensagem" rows="4" placeholder="Digite sua resposta para a TI..." required></textarea>
+            </div>
+
+            <button type="submit" class="btn-submit">Enviar resposta</button>
+          </form>
+        {% else %}
+          <section class="notice notice-info" style="margin-top:16px;">
+            <h3>Solicitação encerrada</h3>
+            <p>Esta solicitação já foi encerrada e não aceita novas mensagens.</p>
+          </section>
+        {% endif %}
+      {% else %}
+        <section class="notice notice-info">
+          <h3>Conversa ainda não iniciada</h3>
+          <p>A conversa será liberada quando a TI iniciar o atendimento pelo chamado.</p>
+        </section>
+      {% endif %}
+    </section>
+
+    <footer class="footer">
+      <span>Solicitações Internas de TI • Detalhe</span>
+      <span>Tecnologia da Informação • Ambiente interno</span>
+    </footer>
+
+  </main>
+
+  <script src="{% static 'core/js/home.js' %}"></script>
+</body>
+</html>

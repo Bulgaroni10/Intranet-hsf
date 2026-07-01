@@ -1,0 +1,414 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>{{ config.titulo_form_novo }} | Intranet</title>
+
+  <link rel="stylesheet" href="{% static 'core/css/home.css' %}">
+
+  <style>
+    body {
+      background: #111111;
+      color: #f8fafc;
+      margin: 0;
+      font-family: Arial, sans-serif;
+    }
+
+    .page {
+      max-width: 980px;
+      margin: 0 auto;
+      padding: 28px 24px 50px;
+    }
+
+    .top-actions {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-bottom: 24px;
+    }
+
+    .btn-link,
+    .btn-submit {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 10px 14px;
+      border-radius: 10px;
+      border: 1px solid rgba(148, 163, 184, 0.3);
+      background: rgba(15, 23, 42, 0.75);
+      color: #e5e7eb;
+      text-decoration: none;
+      font-size: 13px;
+      font-weight: 800;
+      cursor: pointer;
+    }
+
+    .btn-link:hover {
+      border-color: #2dd4bf;
+      color: #2dd4bf;
+    }
+
+    .btn-submit {
+      background: #2dd4bf;
+      color: #06201d;
+      border-color: #2dd4bf;
+      min-width: 260px;
+    }
+
+    .hero-main,
+    .form-card,
+    .help-card,
+    .message-item {
+      background: rgba(31, 31, 31, 0.96);
+      border: 1px solid rgba(148, 163, 184, 0.2);
+      border-radius: 16px;
+      padding: 22px;
+    }
+
+    .hero-main {
+      margin-bottom: 22px;
+    }
+
+    .eyebrow {
+      color: #2dd4bf;
+      font-size: 12px;
+      font-weight: 900;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      margin-bottom: 8px;
+    }
+
+    h1 {
+      margin: 0 0 10px;
+      font-size: 32px;
+      color: #ffffff;
+    }
+
+    h2 {
+      margin: 0 0 8px;
+      color: #ffffff;
+    }
+
+    p,
+    li {
+      color: #cbd5e1;
+      line-height: 1.5;
+    }
+
+    .messages-box {
+      display: grid;
+      gap: 10px;
+      margin-bottom: 18px;
+    }
+
+    .message-item {
+      padding: 12px 14px;
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    .message-success {
+      border-color: rgba(34, 197, 94, 0.35);
+      background: rgba(22, 101, 52, 0.22);
+      color: #bbf7d0;
+    }
+
+    .message-error {
+      border-color: rgba(248, 113, 113, 0.35);
+      background: rgba(127, 29, 29, 0.22);
+      color: #fecaca;
+    }
+
+    .layout {
+      display: grid;
+      grid-template-columns: 1fr 320px;
+      gap: 18px;
+    }
+
+    .form-group {
+      margin-bottom: 16px;
+    }
+
+    .form-group label {
+      display: block;
+      color: #cbd5e1;
+      font-size: 12px;
+      font-weight: 800;
+      text-transform: uppercase;
+      margin-bottom: 7px;
+    }
+
+    .form-group input,
+    .form-group select,
+    .form-group textarea {
+      width: 100%;
+      box-sizing: border-box;
+      border: 1px solid rgba(148, 163, 184, 0.28);
+      background: #2a2a2a;
+      color: #ffffff;
+      border-radius: 10px;
+      padding: 12px;
+      outline: none;
+      font-family: Arial, sans-serif;
+    }
+
+    .form-group textarea {
+      min-height: 130px;
+      resize: vertical;
+    }
+
+    .form-group input:focus,
+    .form-group select:focus,
+    .form-group textarea:focus {
+      border-color: #2dd4bf;
+      box-shadow: 0 0 0 2px rgba(45, 212, 191, 0.15);
+    }
+
+    .checkbox-line {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      color: #cbd5e1;
+      font-weight: 800;
+      font-size: 13px;
+      margin-bottom: 18px;
+    }
+
+    .checkbox-line input {
+      width: 18px;
+      height: 18px;
+    }
+
+    .current-file {
+      margin-top: 8px;
+      color: #94a3b8;
+      font-size: 12px;
+    }
+
+    .current-file a {
+      color: #2dd4bf;
+      text-decoration: none;
+      font-weight: 800;
+    }
+
+    .help-list {
+      padding-left: 18px;
+      margin-bottom: 0;
+    }
+
+    .help-list li {
+      margin-bottom: 8px;
+    }
+
+    .footer {
+      border-top: 1px solid rgba(148, 163, 184, 0.16);
+      margin-top: 26px;
+      padding-top: 14px;
+      display: flex;
+      justify-content: space-between;
+      color: #94a3b8;
+      font-size: 12px;
+    }
+
+    @media (max-width: 900px) {
+      .layout {
+        grid-template-columns: 1fr;
+      }
+
+      .btn-submit {
+        width: 100%;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <header>
+    <div class="logo">
+      {% if request.user.unidade %}
+        {% if request.user.unidade.sigla == "HSFVF" or request.user.unidade.sigla == "HSFMA" %}
+          <img src="{% static 'core/img/logo-sagrada-familia.png' %}" alt="Logo" class="header-unit-logo">
+        {% else %}
+          <img src="{% static 'core/img/logo-hsf.png' %}" alt="Logo" class="header-unit-logo">
+        {% endif %}
+      {% else %}
+        <img src="{% static 'core/img/logo-hsf.png' %}" alt="Logo" class="header-unit-logo">
+      {% endif %}
+
+      <div>
+        <span>Intranet Grupo São Francisco</span>
+        <span class="unit-tag">
+          {% if request.user.unidade %}
+            {{ request.user.unidade.nome }}
+          {% else %}
+            Sem unidade vinculada
+          {% endif %}
+        </span>
+      </div>
+    </div>
+
+    <div class="header-right">
+      <a class="logout-btn" href="{{ config.url_lista }}">Voltar</a>
+      <a class="logout-btn" href="/portal/modulos/mv/">MV</a>
+      <button class="logout-btn" onclick="doLogout()">Sair</button>
+    </div>
+  </header>
+
+  <main class="page">
+
+    <div class="top-actions">
+      <a class="btn-link" href="{{ config.url_lista }}">← Voltar para {{ config.titulo_lista }}</a>
+      <a class="btn-link" href="/portal/modulos/mv/">Voltar ao MV</a>
+      <a class="btn-link" href="/portal/">Portal</a>
+    </div>
+
+    {% if messages %}
+      <div class="messages-box">
+        {% for message in messages %}
+          <div class="message-item {% if message.tags == 'success' %}message-success{% elif message.tags == 'error' %}message-error{% endif %}">
+            {{ message }}
+          </div>
+        {% endfor %}
+      </div>
+    {% endif %}
+
+    <section class="hero-main">
+      <div class="eyebrow">MV / Sistema Hospitalar</div>
+
+      {% if modo == "editar" %}
+        <h1>{{ config.titulo_form_editar }}</h1>
+        <p>Altere as informações do conteúdo selecionado.</p>
+      {% else %}
+        <h1>{{ config.titulo_form_novo }}</h1>
+        <p>Cadastre um novo conteúdo para exibição na área de {{ config.titulo_lista }}.</p>
+      {% endif %}
+    </section>
+
+    <section class="layout">
+
+      <article class="form-card">
+        <form method="post" enctype="multipart/form-data">
+          {% csrf_token %}
+
+          <div class="form-group">
+            <label>Título</label>
+            <input
+              type="text"
+              name="titulo"
+              value="{{ form_data.titulo }}"
+              maxlength="180"
+              required
+              placeholder="Ex: Contingência MV - Unidade Osasco"
+            >
+          </div>
+
+          <div class="form-group">
+            <label>Descrição</label>
+            <textarea
+              name="descricao"
+              placeholder="Descreva a orientação, link, observação ou instrução operacional..."
+            >{{ form_data.descricao }}</textarea>
+          </div>
+
+          <div class="form-group">
+            <label>Unidade</label>
+            <select name="unidade">
+              <option value="">Todas as unidades</option>
+
+              {% for unidade in unidades %}
+                <option value="{{ unidade.id }}" {% if form_data.unidade == unidade.id|stringformat:"s" %}selected{% endif %}>
+                  {{ unidade.nome }}
+                </option>
+              {% endfor %}
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label>Link externo</label>
+            <input
+              type="url"
+              name="link_externo"
+              value="{{ form_data.link_externo }}"
+              placeholder="https://..."
+            >
+          </div>
+
+          <div class="form-group">
+            <label>Arquivo</label>
+            <input
+              type="file"
+              name="arquivo"
+            >
+
+            {% if modo == "editar" and conteudo.arquivo %}
+              <div class="current-file">
+                Arquivo atual:
+                <a href="{{ conteudo.arquivo.url }}" target="_blank">
+                  {{ conteudo.arquivo.name }}
+                </a>
+              </div>
+            {% endif %}
+          </div>
+
+          <div class="form-group">
+            <label>Ordem de exibição</label>
+            <input
+              type="number"
+              name="ordem"
+              value="{{ form_data.ordem }}"
+              min="0"
+            >
+          </div>
+
+          <label class="checkbox-line">
+            <input
+              type="checkbox"
+              name="ativo"
+              {% if form_data.ativo %}checked{% endif %}
+            >
+            Conteúdo ativo
+          </label>
+
+          <button type="submit" class="btn-submit">
+            {% if modo == "editar" %}
+              Salvar alterações
+            {% else %}
+              Cadastrar conteúdo
+            {% endif %}
+          </button>
+        </form>
+      </article>
+
+      <aside class="help-card">
+        <h2>{{ config.icone }} {{ config.etiqueta }}</h2>
+
+        <p>
+          Esse cadastro será exibido dentro do módulo MV, conforme o tipo selecionado.
+        </p>
+
+        <ul class="help-list">
+          <li>Use unidade em branco para exibir para todas as unidades.</li>
+          <li>Use link externo para portais, sistemas ou chamados.</li>
+          <li>Use arquivo para anexar PDF, POP, manual ou orientação.</li>
+          <li>A ordem menor aparece primeiro na listagem.</li>
+          <li>Ao inativar, o conteúdo deixa de aparecer para os usuários.</li>
+        </ul>
+      </aside>
+
+    </section>
+
+    <footer class="footer">
+      <span>{{ config.titulo_lista }} • Intranet Grupo São Francisco</span>
+      <span>Tecnologia da Informação • Ambiente interno</span>
+    </footer>
+
+  </main>
+
+  <script src="{% static 'core/js/home.js' %}"></script>
+</body>
+</html>

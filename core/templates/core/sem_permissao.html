@@ -1,0 +1,37 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>Sem permissão | Intranet</title>
+
+  <link rel="stylesheet" href="{% static 'core/css/home.css' %}">
+</head>
+
+<body>
+  <div id="portal-screen" style="display: block;">
+    <main class="portal-shell">
+      <section class="hero">
+        <div class="hero-main">
+          <div class="hero-eyebrow">Acesso negado</div>
+
+          <h1>Você não tem permissão para acessar este módulo.</h1>
+
+          <p class="welcome-sub">
+            Caso precise deste acesso, solicite liberação para a Tecnologia da Informação.
+          </p>
+
+          <br>
+
+          <a class="btn-login" href="/portal/" style="display:inline-block; text-align:center; text-decoration:none;">
+            Voltar ao portal
+          </a>
+        </div>
+      </section>
+    </main>
+  </div>
+</body>
+</html>

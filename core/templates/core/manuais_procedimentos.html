@@ -1,0 +1,584 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>Manuais e Procedimentos | Intranet</title>
+
+  <link rel="stylesheet" href="{% static 'core/css/home.css' %}">
+
+  <style>
+    .top-actions {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-bottom: 24px;
+    }
+
+    .btn-action {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 10px 14px;
+      border-radius: 10px;
+      border: 1px solid rgba(148, 163, 184, 0.3);
+      background: rgba(15, 23, 42, 0.75);
+      color: #e5e7eb;
+      text-decoration: none;
+      font-size: 13px;
+      font-weight: 800;
+      cursor: pointer;
+    }
+
+    .btn-action:hover {
+      border-color: #2dd4bf;
+      color: #2dd4bf;
+    }
+
+    .btn-primary {
+      background: #2dd4bf;
+      color: #06201d;
+      border-color: #2dd4bf;
+    }
+
+    .btn-primary:hover {
+      color: #06201d;
+      filter: brightness(1.05);
+    }
+
+    .messages-box {
+      display: grid;
+      gap: 10px;
+      margin-bottom: 18px;
+    }
+
+    .message-item {
+      border-radius: 14px;
+      padding: 12px 14px;
+      border: 1px solid rgba(148, 163, 184, 0.22);
+      background: rgba(31, 31, 31, 0.96);
+      color: #e5e7eb;
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    .message-success {
+      border-color: rgba(34, 197, 94, 0.35);
+      background: rgba(22, 101, 52, 0.22);
+      color: #bbf7d0;
+    }
+
+    .message-error {
+      border-color: rgba(248, 113, 113, 0.35);
+      background: rgba(127, 29, 29, 0.22);
+      color: #fecaca;
+    }
+
+    .summary-grid {
+      display: grid;
+      grid-template-columns: repeat(6, minmax(0, 1fr));
+      gap: 14px;
+      margin-bottom: 26px;
+    }
+
+    .summary-card {
+      background: rgba(31, 31, 31, 0.96);
+      border: 1px solid rgba(148, 163, 184, 0.2);
+      border-radius: 16px;
+      padding: 18px;
+    }
+
+    .summary-card span {
+      display: block;
+      color: #94a3b8;
+      font-size: 12px;
+      font-weight: 800;
+      text-transform: uppercase;
+      margin-bottom: 8px;
+    }
+
+    .summary-card strong {
+      display: block;
+      color: #ffffff;
+      font-size: 26px;
+    }
+
+    .content-list {
+      display: grid;
+      gap: 14px;
+    }
+
+    .content-card {
+      display: grid;
+      grid-template-columns: 54px 1fr;
+      gap: 14px;
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid rgba(255, 255, 255, 0.10);
+      border-radius: 18px;
+      padding: 18px;
+      transition: all 0.2s ease;
+    }
+
+    .content-card:hover {
+      transform: translateY(-2px);
+      border-color: rgba(45, 212, 191, 0.55);
+      background: rgba(45, 212, 191, 0.08);
+      box-shadow: 0 14px 34px rgba(0, 0, 0, 0.25);
+    }
+
+    .content-card.inativo {
+      opacity: 0.62;
+      border-color: rgba(248, 113, 113, 0.25);
+    }
+
+    .content-icon {
+      width: 46px;
+      height: 46px;
+      border-radius: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(45, 212, 191, 0.12);
+      border: 1px solid rgba(45, 212, 191, 0.22);
+      font-size: 24px;
+    }
+
+    .content-head {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 8px;
+    }
+
+    .content-head h3 {
+      color: #ffffff;
+      font-size: 18px;
+      margin: 0;
+      line-height: 1.3;
+    }
+
+    .badges {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+    }
+
+    .badge {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      color: #2dd4bf;
+      background: rgba(45, 212, 191, 0.10);
+      border: 1px solid rgba(45, 212, 191, 0.22);
+      border-radius: 999px;
+      padding: 6px 10px;
+      white-space: nowrap;
+    }
+
+    .badge-inativo {
+      color: #fecaca;
+      background: rgba(127, 29, 29, 0.35);
+      border-color: rgba(248, 113, 113, 0.35);
+    }
+
+    .content-meta {
+      color: rgba(255, 255, 255, 0.72);
+      font-size: 13px;
+      line-height: 1.5;
+      margin-bottom: 10px;
+    }
+
+    .content-description {
+      color: rgba(255, 255, 255, 0.78);
+      font-size: 13px;
+      line-height: 1.5;
+      margin-top: 8px;
+      white-space: pre-wrap;
+    }
+
+    .content-url {
+      margin-top: 10px;
+      color: #94a3b8;
+      font-size: 12px;
+      overflow-wrap: anywhere;
+    }
+
+    .content-actions {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-top: 14px;
+      padding-top: 14px;
+      border-top: 1px solid rgba(148, 163, 184, 0.16);
+    }
+
+    .content-action {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 999px;
+      border: 1px solid rgba(45, 212, 191, 0.24);
+      background: rgba(45, 212, 191, 0.10);
+      color: #2dd4bf;
+      padding: 8px 12px;
+      font-size: 12px;
+      font-weight: 700;
+      text-decoration: none;
+    }
+
+    .content-action:hover {
+      background: rgba(45, 212, 191, 0.18);
+    }
+
+    @media (max-width: 1000px) {
+      .summary-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .content-card {
+        grid-template-columns: 1fr;
+      }
+
+      .content-head {
+        flex-direction: column;
+      }
+
+      .badges {
+        justify-content: flex-start;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
+
+  <div id="portal-screen" style="display: block;">
+    <header>
+      <div class="logo">
+        {% if request.user.unidade %}
+          {% if request.user.unidade.sigla == "HSFVF" or request.user.unidade.sigla == "HSFMA" %}
+            <img src="{% static 'core/img/logo-sagrada-familia.png' %}" alt="Logo" class="header-unit-logo">
+          {% else %}
+            <img src="{% static 'core/img/logo-hsf.png' %}" alt="Logo" class="header-unit-logo">
+          {% endif %}
+        {% else %}
+          <img src="{% static 'core/img/logo-hsf.png' %}" alt="Logo" class="header-unit-logo">
+        {% endif %}
+
+        <div>
+          <span>Intranet Grupo São Francisco</span>
+          <span class="unit-tag">
+            {% if request.user.unidade %}
+              {{ request.user.unidade.nome }}
+            {% else %}
+              Sem unidade vinculada
+            {% endif %}
+          </span>
+        </div>
+      </div>
+
+      <div class="header-right">
+        <a class="logout-btn" href="/portal/">Voltar ao portal</a>
+        <button class="logout-btn" onclick="doLogout()">Sair</button>
+      </div>
+    </header>
+
+    <main class="portal-shell">
+
+      <div class="top-actions">
+        <a class="btn-action" href="/portal/">← Voltar ao portal</a>
+
+        {% if pode_gerenciar %}
+          <a class="btn-action btn-primary" href="/portal/modulos/manuais-procedimentos/novo/">
+            + Novo manual / procedimento
+          </a>
+        {% endif %}
+      </div>
+
+      {% if messages %}
+        <div class="messages-box">
+          {% for message in messages %}
+            <div class="message-item {% if message.tags == 'success' %}message-success{% elif message.tags == 'error' %}message-error{% endif %}">
+              {{ message }}
+            </div>
+          {% endfor %}
+        </div>
+      {% endif %}
+
+      <section class="hero">
+        <div class="hero-main">
+          <div class="hero-eyebrow">Administrativo e documentos</div>
+
+          <h1>Manuais e Procedimentos</h1>
+
+          <p class="welcome-sub">
+            Central de POPs, manuais, tutoriais, documentos internos e procedimentos por unidade.
+          </p>
+        </div>
+
+        <aside class="support-card">
+          <h3>Como usar</h3>
+
+          <p>
+            Pesquise pelo nome do documento, filtre por unidade, tipo de conteúdo ou status.
+          </p>
+
+          <div class="support-actions">
+            <button class="support-action">
+              Dica
+              <small>Os conteúdos podem ter arquivo, link externo ou apenas observação.</small>
+            </button>
+          </div>
+        </aside>
+      </section>
+
+      <section class="summary-grid">
+        <div class="summary-card">
+          <span>Total</span>
+          <strong>{{ total_conteudos }}</strong>
+        </div>
+
+        <div class="summary-card">
+          <span>Ativos</span>
+          <strong>{{ total_ativos }}</strong>
+        </div>
+
+        <div class="summary-card">
+          <span>Gerais</span>
+          <strong>{{ total_gerais }}</strong>
+        </div>
+
+        <div class="summary-card">
+          <span>Com arquivo</span>
+          <strong>{{ total_com_arquivo }}</strong>
+        </div>
+
+        <div class="summary-card">
+          <span>Com link</span>
+          <strong>{{ total_com_link }}</strong>
+        </div>
+
+        {% if pode_gerenciar %}
+          <div class="summary-card">
+            <span>Inativos</span>
+            <strong>{{ total_inativos }}</strong>
+          </div>
+        {% endif %}
+      </section>
+
+      <section class="category-section">
+        <div class="category-header">
+          <h2>Filtros</h2>
+          <p>Localize rapidamente o documento desejado.</p>
+        </div>
+
+        <div class="panel-box">
+          <form method="get">
+            <div class="grid-section">
+
+              <div class="form-group">
+                <label>Busca</label>
+                <input
+                  type="text"
+                  name="busca"
+                  value="{{ busca }}"
+                  placeholder="Ex: abertura de chamado, impressora, MV, protocolo..."
+                >
+              </div>
+
+              <div class="form-group">
+                <label>Unidade</label>
+                <select name="unidade">
+                  <option value="">Todas</option>
+                  <option value="geral" {% if unidade_id == "geral" %}selected{% endif %}>
+                    Geral / Todas as unidades
+                  </option>
+
+                  {% for unidade in unidades %}
+                    <option value="{{ unidade.id }}" {% if unidade_id == unidade.id|stringformat:"s" %}selected{% endif %}>
+                      {{ unidade.nome }}
+                    </option>
+                  {% endfor %}
+                </select>
+              </div>
+
+              <div class="form-group">
+                <label>Tipo</label>
+                <select name="tipo">
+                  <option value="">Todos</option>
+
+                  {% for valor, nome in tipos_conteudo %}
+                    <option value="{{ valor }}" {% if tipo == valor %}selected{% endif %}>
+                      {{ nome }}
+                    </option>
+                  {% endfor %}
+                </select>
+              </div>
+
+              {% if pode_gerenciar %}
+                <div class="form-group">
+                  <label>Status</label>
+                  <select name="status">
+                    <option value="">Todos</option>
+                    <option value="ativo" {% if status == "ativo" %}selected{% endif %}>Ativos</option>
+                    <option value="inativo" {% if status == "inativo" %}selected{% endif %}>Inativos</option>
+                  </select>
+                </div>
+              {% endif %}
+
+            </div>
+
+            <div style="display:flex; gap:10px; flex-wrap:wrap; margin-top: 12px;">
+              <button type="submit" class="btn-login" style="max-width: 180px;">
+                Consultar
+              </button>
+
+              <a href="/portal/modulos/manuais-procedimentos/" class="logout-btn" style="text-decoration:none; display:flex; align-items:center;">
+                Limpar filtros
+              </a>
+            </div>
+          </form>
+        </div>
+      </section>
+
+      <section class="category-section">
+        <div class="category-header">
+          <h2>Documentos encontrados</h2>
+          <p>Conteúdos liberados para sua unidade e perfil de acesso.</p>
+        </div>
+
+        <div class="content-list">
+          {% for conteudo in conteudos %}
+            <div class="content-card {% if not conteudo.ativo %}inativo{% endif %}">
+              <div class="content-icon">
+                {% if conteudo.tipo == "manual" %}
+                  📘
+                {% elif conteudo.tipo == "contingencia" %}
+                  🛟
+                {% elif conteudo.tipo == "link" %}
+                  🔗
+                {% elif conteudo.tipo == "chamado" %}
+                  🎫
+                {% elif conteudo.tipo == "convenio" %}
+                  🏥
+                {% else %}
+                  📄
+                {% endif %}
+              </div>
+
+              <div>
+                <div class="content-head">
+                  <h3>{{ conteudo.titulo }}</h3>
+
+                  <div class="badges">
+                    <span class="badge">{{ conteudo.get_tipo_display }}</span>
+
+                    {% if conteudo.unidade %}
+                      <span class="badge">{{ conteudo.unidade.sigla }}</span>
+                    {% else %}
+                      <span class="badge">Geral</span>
+                    {% endif %}
+
+                    {% if not conteudo.ativo %}
+                      <span class="badge badge-inativo">Inativo</span>
+                    {% endif %}
+                  </div>
+                </div>
+
+                <div class="content-meta">
+                  <strong>Atualizado em:</strong> {{ conteudo.atualizado_em|date:"d/m/Y H:i" }}
+
+                  {% if conteudo.grupos_permitidos.all %}
+                    <br>
+                    <strong>Grupos:</strong>
+                    {% for grupo in conteudo.grupos_permitidos.all %}
+                      {{ grupo.name }}{% if not forloop.last %}, {% endif %}
+                    {% endfor %}
+                  {% else %}
+                    <br>
+                    <strong>Grupos:</strong> Todos os usuários com acesso ao módulo
+                  {% endif %}
+                </div>
+
+                {% if conteudo.descricao %}
+                  <div class="content-description">{{ conteudo.descricao }}</div>
+                {% endif %}
+
+                {% if pode_gerenciar and conteudo.link_externo %}
+                  <div class="content-url">
+                    {{ conteudo.link_externo }}
+                  </div>
+                {% endif %}
+
+                <div class="content-actions">
+                  {% if conteudo.arquivo %}
+                    <a
+                      class="content-action"
+                      href="{{ conteudo.arquivo.url }}"
+                      target="_blank"
+                    >
+                      Abrir arquivo
+                    </a>
+                  {% endif %}
+
+                  {% if conteudo.link_externo %}
+                    <a
+                      class="content-action"
+                      href="{{ conteudo.link_externo }}"
+                      target="_blank"
+                    >
+                      Abrir link
+                    </a>
+                  {% endif %}
+
+                  {% if pode_gerenciar %}
+                    <a class="content-action" href="/portal/modulos/manuais-procedimentos/editar/{{ conteudo.id }}/">
+                      Editar
+                    </a>
+
+                    {% if conteudo.ativo %}
+                      <a class="content-action" href="/portal/modulos/manuais-procedimentos/inativar/{{ conteudo.id }}/">
+                        Inativar
+                      </a>
+                    {% else %}
+                      <a class="content-action" href="/portal/modulos/manuais-procedimentos/reativar/{{ conteudo.id }}/">
+                        Reativar
+                      </a>
+                    {% endif %}
+                  {% endif %}
+                </div>
+              </div>
+            </div>
+          {% empty %}
+            <div class="notice">
+              <div class="notice-icon">🔎</div>
+
+              <div>
+                <h3>Nenhum conteúdo encontrado</h3>
+                <p>
+                  Não há documentos cadastrados para os filtros informados ou para seu perfil de acesso.
+                </p>
+              </div>
+            </div>
+          {% endfor %}
+        </div>
+      </section>
+
+      <footer class="footer">
+        <span>Manuais e Procedimentos • Intranet Grupo São Francisco</span>
+        <span>Tecnologia da Informação • Ambiente interno</span>
+      </footer>
+
+    </main>
+  </div>
+
+  <script src="{% static 'core/js/home.js' %}"></script>
+</body>
+</html>

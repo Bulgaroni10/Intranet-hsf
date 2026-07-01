@@ -1,0 +1,457 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>Atender Solicitação de TI | Intranet</title>
+
+  <link rel="stylesheet" href="{% static 'core/css/home.css' %}">
+
+  <style>
+    body { background:#111; color:#f8fafc; margin:0; font-family:Arial,sans-serif; }
+    .page { max-width:1100px; margin:0 auto; padding:28px 24px 50px; }
+    .top-actions { display:flex; gap:10px; flex-wrap:wrap; margin-bottom:24px; }
+
+    .btn-link, .btn-submit, .btn-success, .btn-warning {
+      display:inline-flex; align-items:center; justify-content:center;
+      padding:10px 14px; border-radius:10px;
+      border:1px solid rgba(148,163,184,.3);
+      background:rgba(15,23,42,.75); color:#e5e7eb;
+      text-decoration:none; font-size:13px; font-weight:800; cursor:pointer;
+    }
+
+    .btn-link:hover { border-color:#2dd4bf; color:#2dd4bf; }
+    .btn-submit, .btn-success { background:#2dd4bf; color:#06201d; border-color:#2dd4bf; }
+    .btn-warning { background:rgba(120,53,15,.75); color:#fde68a; border-color:rgba(251,191,36,.35); }
+
+    .hero-main, .detail-card, .form-card, .notice {
+      background:rgba(31,31,31,.96);
+      border:1px solid rgba(148,163,184,.2);
+      border-radius:16px;
+      padding:22px;
+    }
+
+    .hero-main { margin-bottom:22px; }
+    .eyebrow { color:#2dd4bf; font-size:12px; font-weight:900; text-transform:uppercase; letter-spacing:.08em; margin-bottom:8px; }
+    h1 { margin:0 0 10px; font-size:32px; color:#fff; }
+    h2 { margin:0 0 8px; color:#fff; font-size:20px; }
+    h3 { margin:0 0 6px; color:#fff; }
+    p { color:#cbd5e1; line-height:1.5; }
+
+    .notice { margin-bottom:18px; }
+    .notice-error { border-color:rgba(248,113,113,.35); background:rgba(127,29,29,.25); }
+    .notice-success { border-color:rgba(34,197,94,.35); background:rgba(22,101,52,.25); }
+
+    .layout-grid { display:grid; grid-template-columns:1fr 360px; gap:18px; }
+    .detail-card, .form-card { margin-bottom:18px; }
+
+    .info-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:12px; margin-top:14px; }
+    .info-box { background:rgba(15,23,42,.55); border:1px solid rgba(148,163,184,.14); border-radius:12px; padding:12px; }
+    .info-box span { display:block; color:#94a3b8; font-size:12px; margin-bottom:4px; }
+    .info-box strong { display:block; color:#fff; font-size:14px; }
+
+    .detail-section { border-top:1px solid rgba(148,163,184,.16); padding-top:12px; margin-top:12px; }
+    .detail-section h4 { color:#2dd4bf; margin:0 0 6px; font-size:13px; }
+    .detail-section p { margin:0; white-space:pre-wrap; font-size:14px; }
+
+    .badge {
+      display:inline-flex; align-items:center; padding:8px 12px; border-radius:999px;
+      border:1px solid rgba(45,212,191,.25);
+      background:rgba(45,212,191,.12); color:#2dd4bf;
+      font-size:12px; font-weight:900; white-space:nowrap;
+    }
+
+    .sla-pill {
+      display:inline-flex;
+      align-items:center;
+      gap:6px;
+      margin-top:8px;
+      padding:8px 12px;
+      border-radius:999px;
+      font-size:12px;
+      font-weight:900;
+      border:1px solid rgba(148,163,184,.24);
+    }
+
+    .sla-ok { color:#bbf7d0; background:rgba(22,101,52,.35); border-color:rgba(34,197,94,.35); }
+    .sla-alerta { color:#fde68a; background:rgba(120,53,15,.40); border-color:rgba(251,191,36,.38); }
+    .sla-estourado { color:#fecaca; background:rgba(127,29,29,.45); border-color:rgba(248,113,113,.42); }
+    .sla-encerrado { color:#bfdbfe; background:rgba(30,64,175,.35); border-color:rgba(96,165,250,.35); }
+    .sla-sem { color:#cbd5e1; background:rgba(51,65,85,.45); border-color:rgba(148,163,184,.25); }
+
+    .form-group { margin-bottom:14px; }
+    .form-group label { display:block; color:#cbd5e1; font-size:12px; font-weight:800; text-transform:uppercase; margin-bottom:7px; }
+    .form-group input, .form-group select, .form-group textarea {
+      width:100%; box-sizing:border-box; border:1px solid rgba(148,163,184,.28);
+      background:#2a2a2a; color:#fff; border-radius:10px; padding:12px; outline:none; font-family:Arial,sans-serif;
+    }
+    .form-group textarea { resize:vertical; }
+
+    .quick-actions { display:flex; flex-direction:column; gap:10px; }
+    .quick-actions form { margin:0; }
+    .quick-actions button { width:100%; }
+
+    .chat-box {
+      max-height:420px;
+      overflow:auto;
+      display:flex;
+      flex-direction:column;
+      gap:12px;
+      padding-right:4px;
+    }
+
+    .msg {
+      border-radius:14px;
+      padding:12px;
+      border:1px solid rgba(148,163,184,.18);
+      background:rgba(15,23,42,.55);
+    }
+
+    .msg-ti { border-color:rgba(45,212,191,.35); background:rgba(45,212,191,.10); }
+    .msg-user { border-color:rgba(96,165,250,.35); background:rgba(30,64,175,.18); }
+    .msg-system { border-color:rgba(148,163,184,.25); background:rgba(51,65,85,.35); }
+
+    .msg-head {
+      display:flex;
+      justify-content:space-between;
+      gap:10px;
+      margin-bottom:6px;
+      color:#94a3b8;
+      font-size:12px;
+      font-weight:800;
+    }
+
+    .msg p { margin:0; white-space:pre-wrap; color:#e5e7eb; }
+
+    .footer { border-top:1px solid rgba(148,163,184,.16); margin-top:26px; padding-top:14px; display:flex; justify-content:space-between; color:#94a3b8; font-size:12px; }
+
+    @media (max-width:1000px) {
+      .layout-grid, .info-grid { grid-template-columns:1fr; }
+    }
+  </style>
+</head>
+
+<body>
+
+  <header>
+    <div class="logo">
+      {% if request.user.unidade %}
+        {% if request.user.unidade.sigla == "HSFVF" or request.user.unidade.sigla == "HSFMA" %}
+          <img src="{% static 'core/img/logo-sagrada-familia.png' %}" alt="Logo" class="header-unit-logo">
+        {% else %}
+          <img src="{% static 'core/img/logo-hsf.png' %}" alt="Logo" class="header-unit-logo">
+        {% endif %}
+      {% else %}
+        <img src="{% static 'core/img/logo-hsf.png' %}" alt="Logo" class="header-unit-logo">
+      {% endif %}
+
+      <div>
+        <span>Intranet Grupo São Francisco</span>
+        <span class="unit-tag">
+          {% if request.user.unidade %}
+            {{ request.user.unidade.nome }}
+          {% else %}
+            Sem unidade vinculada
+          {% endif %}
+        </span>
+      </div>
+    </div>
+
+    <div class="header-right">
+      <a class="logout-btn" href="/portal/modulos/solicitacoes-ti/">Solicitações</a>
+      <a class="logout-btn" href="/portal/">Portal</a>
+      <button class="logout-btn" onclick="doLogout()">Sair</button>
+    </div>
+  </header>
+
+  <main class="page">
+
+    <div class="top-actions">
+      <a class="btn-link" href="/portal/modulos/solicitacoes-ti/">← Voltar para solicitações</a>
+      <a class="btn-link" href="/portal/modulos/solicitacoes-ti/detalhe/{{ solicitacao.id }}/">Ver como solicitante</a>
+      <a class="btn-link" href="/portal/">Voltar ao portal</a>
+    </div>
+
+    <section class="hero-main">
+      <div class="eyebrow">Atendimento da TI</div>
+      <h1>#{{ solicitacao.id }} - {{ solicitacao.titulo }}</h1>
+      <p>Atualize o status, registre a tratativa e converse com o solicitante.</p>
+
+      <span class="badge">{{ solicitacao.get_status_display }}</span>
+      <span class="sla-pill {{ solicitacao.sla_classe_css }}">
+        {{ solicitacao.sla_icone }} {{ solicitacao.sla_status_exibicao }} • {{ solicitacao.tempo_restante_sla }}
+      </span>
+    </section>
+
+    {% if erro %}
+      <section class="notice notice-error">
+        <h3>Atenção</h3>
+        <p>{{ erro }}</p>
+      </section>
+    {% endif %}
+
+    {% if sucesso %}
+      <section class="notice notice-success">
+        <h3>Sucesso</h3>
+        <p>{{ sucesso }}</p>
+      </section>
+    {% endif %}
+
+    <div class="layout-grid">
+
+      <div>
+
+        <section class="detail-card">
+          <h2>Dados da solicitação</h2>
+
+          <div class="info-grid">
+            <div class="info-box"><span>Tipo</span><strong>{{ solicitacao.get_tipo_display }}</strong></div>
+            <div class="info-box"><span>Prioridade</span><strong>{{ solicitacao.get_prioridade_display }}</strong></div>
+            <div class="info-box"><span>SLA</span><strong>{{ solicitacao.sla_horas|default:"-" }}h</strong></div>
+
+            <div class="info-box">
+              <span>Prazo SLA</span>
+              <strong>
+                {% if solicitacao.sla_prazo_em %}
+                  {{ solicitacao.sla_prazo_em|date:"d/m/Y H:i" }}
+                {% else %}
+                  Não definido
+                {% endif %}
+              </strong>
+            </div>
+
+            <div class="info-box">
+              <span>Unidade</span>
+              <strong>{% if solicitacao.unidade %}{{ solicitacao.unidade.sigla }} - {{ solicitacao.unidade.nome }}{% else %}Não informada{% endif %}</strong>
+            </div>
+
+            <div class="info-box">
+              <span>Setor</span>
+              <strong>{% if solicitacao.setor %}{{ solicitacao.setor.nome }}{% else %}Não informado{% endif %}</strong>
+            </div>
+
+            <div class="info-box">
+              <span>Solicitante</span>
+              <strong>{% if solicitacao.solicitante %}{{ solicitacao.solicitante.get_full_name|default:solicitacao.solicitante.username }}{% else %}Não informado{% endif %}</strong>
+            </div>
+
+            <div class="info-box">
+              <span>Responsável TI</span>
+              <strong>{% if solicitacao.responsavel_ti %}{{ solicitacao.responsavel_ti.get_full_name|default:solicitacao.responsavel_ti.username }}{% else %}Não definido{% endif %}</strong>
+            </div>
+
+            <div class="info-box"><span>Aberta em</span><strong>{{ solicitacao.criado_em|date:"d/m/Y H:i" }}</strong></div>
+            <div class="info-box"><span>Resolvida em</span><strong>{% if solicitacao.resolvido_em %}{{ solicitacao.resolvido_em|date:"d/m/Y H:i" }}{% else %}Não resolvida{% endif %}</strong></div>
+          </div>
+
+          {% if solicitacao.equipamento %}
+            <div class="detail-section">
+              <h4>Equipamento / Referência</h4>
+              <p>{{ solicitacao.equipamento }}</p>
+            </div>
+          {% endif %}
+
+          <div class="detail-section">
+            <h4>Descrição enviada pelo solicitante</h4>
+            <p>{{ solicitacao.descricao }}</p>
+          </div>
+
+          {% if solicitacao.anexo %}
+            <div class="detail-section">
+              <h4>Anexo</h4>
+              <p>
+                <a href="{{ solicitacao.anexo.url }}" target="_blank" style="color:#2dd4bf; text-decoration:none; font-weight:800;">
+                  Abrir anexo
+                </a>
+              </p>
+            </div>
+          {% endif %}
+        </section>
+
+        <section class="form-card">
+          <h2>Conversa com o solicitante</h2>
+
+          {% if solicitacao.conversa_iniciada %}
+            <div class="chat-box">
+              {% for mensagem in mensagens %}
+                <div class="msg {% if mensagem.origem == 'ti' %}msg-ti{% elif mensagem.origem == 'solicitante' %}msg-user{% else %}msg-system{% endif %}">
+                  <div class="msg-head">
+                    <span>
+                      {% if mensagem.origem == 'ti' %}
+                        TI
+                      {% elif mensagem.origem == 'solicitante' %}
+                        Solicitante
+                      {% else %}
+                        Sistema
+                      {% endif %}
+                      {% if mensagem.autor %}
+                        • {{ mensagem.autor.get_full_name|default:mensagem.autor.username }}
+                      {% endif %}
+                    </span>
+                    <span>{{ mensagem.criado_em|date:"d/m/Y H:i" }}</span>
+                  </div>
+                  <p>{{ mensagem.mensagem }}</p>
+                </div>
+              {% empty %}
+                <p>Nenhuma mensagem registrada.</p>
+              {% endfor %}
+            </div>
+
+            {% if not solicitacao.esta_encerrada %}
+              <form method="post" style="margin-top:16px;">
+                {% csrf_token %}
+                <input type="hidden" name="acao" value="enviar_mensagem_ti">
+
+                <div class="form-group">
+                  <label>Mensagem para o solicitante</label>
+                  <textarea name="mensagem" rows="4" placeholder="Digite uma mensagem para o solicitante..." required></textarea>
+                </div>
+
+                <button type="submit" class="btn-submit">Enviar mensagem</button>
+              </form>
+            {% endif %}
+          {% else %}
+            <p>A conversa ainda não foi iniciada. Use o botão “Iniciar conversa” na lateral.</p>
+          {% endif %}
+        </section>
+
+        <section class="form-card">
+          <h2>Atualizar atendimento</h2>
+
+          <form method="post">
+            {% csrf_token %}
+            <input type="hidden" name="acao" value="salvar_atendimento">
+
+            <div class="form-group">
+              <label>Status</label>
+              <select name="status" required>
+                {% for valor, nome in status_choices %}
+                  <option value="{{ valor }}" {% if solicitacao.status == valor %}selected{% endif %}>{{ nome }}</option>
+                {% endfor %}
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label>Prioridade</label>
+              <select name="prioridade" required>
+                {% for valor, nome in prioridades %}
+                  <option value="{{ valor }}" {% if solicitacao.prioridade == valor %}selected{% endif %}>{{ nome }}</option>
+                {% endfor %}
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label>Resposta / Tratativa da TI</label>
+              <textarea name="resposta_ti" rows="7">{{ solicitacao.resposta_ti }}</textarea>
+            </div>
+
+            <button type="submit" class="btn-submit">Salvar atendimento</button>
+          </form>
+        </section>
+
+      </div>
+
+      <aside>
+
+        <section class="form-card">
+          <h2>Ações rápidas</h2>
+
+          <div class="quick-actions">
+
+            <form method="post">
+              {% csrf_token %}
+              <input type="hidden" name="acao" value="assumir">
+              <button type="submit" class="btn-success">Assumir / Marcar como visto</button>
+            </form>
+
+            {% if not solicitacao.conversa_iniciada %}
+              <form method="post">
+                {% csrf_token %}
+                <input type="hidden" name="acao" value="iniciar_conversa">
+
+                <div class="form-group">
+                  <label>Primeira mensagem</label>
+                  <textarea name="primeira_mensagem" rows="5" placeholder="Ex: Olá, estamos analisando sua solicitação. Pode nos informar mais detalhes?"></textarea>
+                </div>
+
+                <button type="submit" class="btn-warning">Iniciar conversa</button>
+              </form>
+            {% else %}
+              <a class="btn-link" href="/portal/modulos/solicitacoes-ti/detalhe/{{ solicitacao.id }}/">
+                Conversa já iniciada
+              </a>
+            {% endif %}
+
+          </div>
+        </section>
+
+        <section class="form-card">
+          <h2>Resolver solicitação</h2>
+
+          <form method="post">
+            {% csrf_token %}
+            <input type="hidden" name="acao" value="resolver">
+
+            <div class="form-group">
+              <label>Solução aplicada</label>
+              <textarea name="resposta_ti" rows="7" placeholder="Informe a solução aplicada antes de marcar como resolvida.">{{ solicitacao.resposta_ti }}</textarea>
+            </div>
+
+            <button type="submit" class="btn-success">Marcar como resolvida</button>
+          </form>
+        </section>
+
+        <section class="detail-card">
+          <h2>Controle</h2>
+
+          <div class="detail-section">
+            <h4>SLA</h4>
+            <p>
+              {{ solicitacao.sla_icone }} {{ solicitacao.sla_status_exibicao }}<br>
+              {{ solicitacao.tempo_restante_sla }}
+              {% if solicitacao.sla_prazo_em %}
+                <br>Prazo: {{ solicitacao.sla_prazo_em|date:"d/m/Y H:i" }}
+              {% endif %}
+            </p>
+          </div>
+
+          <div class="detail-section">
+            <h4>Visto pela TI</h4>
+            <p>
+              {% if solicitacao.visto_pela_ti %}
+                Sim {% if solicitacao.visto_pela_ti_em %}em {{ solicitacao.visto_pela_ti_em|date:"d/m/Y H:i" }}{% endif %}
+              {% else %}
+                Ainda não
+              {% endif %}
+            </p>
+          </div>
+
+          <div class="detail-section">
+            <h4>Conversa</h4>
+            <p>
+              {% if solicitacao.conversa_iniciada %}
+                Iniciada pela TI {% if solicitacao.conversa_iniciada_em %}em {{ solicitacao.conversa_iniciada_em|date:"d/m/Y H:i" }}{% endif %}
+              {% else %}
+                Ainda não iniciada
+              {% endif %}
+            </p>
+          </div>
+        </section>
+
+      </aside>
+
+    </div>
+
+    <footer class="footer">
+      <span>Solicitações Internas de TI • Atendimento</span>
+      <span>Tecnologia da Informação • Ambiente interno</span>
+    </footer>
+
+  </main>
+
+  <script src="{% static 'core/js/home.js' %}"></script>
+</body>
+</html>

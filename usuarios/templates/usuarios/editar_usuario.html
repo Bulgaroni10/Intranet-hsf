@@ -1,0 +1,545 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>Editar Usuário | Administração</title>
+
+  <link rel="stylesheet" href="{% static 'core/css/home.css' %}">
+
+  <style>
+    .user-form-page {
+      width: min(1100px, calc(100% - 32px));
+      margin: 0 auto;
+      padding: 28px 0 36px;
+      color: #ffffff;
+    }
+
+    .form-hero,
+    .form-card {
+      background:
+        radial-gradient(circle at top left, rgba(45, 212, 191, 0.12), transparent 32%),
+        rgba(255, 255, 255, 0.04);
+      border: 1px solid rgba(255, 255, 255, 0.10);
+      border-radius: 24px;
+      box-shadow: 0 14px 34px rgba(0, 0, 0, 0.20);
+    }
+
+    .form-hero {
+      padding: 24px;
+      margin-bottom: 18px;
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+
+    .form-eyebrow {
+      color: #2dd4bf;
+      font-size: 12px;
+      font-weight: 900;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      margin-bottom: 8px;
+    }
+
+    .form-hero h1 {
+      margin: 0 0 8px 0;
+      color: #ffffff;
+      font-size: 30px;
+      line-height: 1.15;
+    }
+
+    .form-hero p {
+      margin: 0;
+      color: rgba(255, 255, 255, 0.68);
+      font-size: 14px;
+      line-height: 1.55;
+      max-width: 760px;
+    }
+
+    .form-actions-top {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .btn-link {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 999px;
+      padding: 10px 14px;
+      border: 1px solid rgba(45, 212, 191, 0.28);
+      background: rgba(45, 212, 191, 0.10);
+      color: #2dd4bf;
+      text-decoration: none;
+      font-size: 13px;
+      font-weight: 900;
+      transition: 0.2s ease;
+      white-space: nowrap;
+    }
+
+    .btn-link:hover {
+      background: rgba(45, 212, 191, 0.18);
+      border-color: rgba(45, 212, 191, 0.52);
+      transform: translateY(-1px);
+    }
+
+    .messages-box {
+      display: grid;
+      gap: 8px;
+      margin-bottom: 16px;
+    }
+
+    .message-alert {
+      border-radius: 16px;
+      padding: 12px 14px;
+      font-size: 13px;
+      font-weight: 800;
+      border: 1px solid rgba(255, 255, 255, 0.12);
+    }
+
+    .message-alert.success {
+      color: #2dd4bf;
+      background: rgba(45, 212, 191, 0.10);
+      border-color: rgba(45, 212, 191, 0.28);
+    }
+
+    .message-alert.error {
+      color: #fecaca;
+      background: rgba(239, 68, 68, 0.14);
+      border-color: rgba(239, 68, 68, 0.30);
+    }
+
+    .form-card {
+      padding: 22px;
+    }
+
+    .section-title {
+      margin: 0 0 14px 0;
+      color: #2dd4bf;
+      font-size: 15px;
+      font-weight: 950;
+      text-transform: uppercase;
+      letter-spacing: 0.07em;
+    }
+
+    .form-section {
+      margin-bottom: 26px;
+    }
+
+    .form-section:last-child {
+      margin-bottom: 0;
+    }
+
+    .form-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 14px;
+    }
+
+    .form-grid.three {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+
+    .field.full {
+      grid-column: 1 / -1;
+    }
+
+    .field label {
+      display: block;
+      color: rgba(255, 255, 255, 0.68);
+      font-size: 12px;
+      font-weight: 850;
+      margin-bottom: 7px;
+    }
+
+    .field input,
+    .field select {
+      width: 100%;
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      background: rgba(0, 0, 0, 0.24);
+      color: #ffffff;
+      border-radius: 15px;
+      padding: 12px 13px;
+      outline: none;
+      font-size: 13px;
+      box-sizing: border-box;
+    }
+
+    .field input:focus,
+    .field select:focus {
+      border-color: rgba(45, 212, 191, 0.60);
+      box-shadow: 0 0 0 3px rgba(45, 212, 191, 0.10);
+    }
+
+    .field select option {
+      color: #111827;
+    }
+
+    .hint {
+      display: block;
+      color: rgba(255, 255, 255, 0.42);
+      font-size: 11px;
+      line-height: 1.4;
+      margin-top: 6px;
+    }
+
+    .checks-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+      gap: 10px;
+    }
+
+    .check-card {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      background: rgba(0, 0, 0, 0.18);
+      border: 1px solid rgba(255, 255, 255, 0.10);
+      border-radius: 16px;
+      padding: 12px;
+      cursor: pointer;
+    }
+
+    .check-card input {
+      margin-top: 2px;
+    }
+
+    .check-card strong {
+      display: block;
+      color: #ffffff;
+      font-size: 13px;
+      margin-bottom: 3px;
+    }
+
+    .check-card span {
+      display: block;
+      color: rgba(255, 255, 255, 0.54);
+      font-size: 11px;
+      line-height: 1.4;
+    }
+
+    .groups-box {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 10px;
+    }
+
+    .group-option {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      background: rgba(0, 0, 0, 0.18);
+      border: 1px solid rgba(255, 255, 255, 0.10);
+      border-radius: 14px;
+      padding: 11px 12px;
+      color: rgba(255, 255, 255, 0.78);
+      font-size: 13px;
+      font-weight: 800;
+      cursor: pointer;
+    }
+
+    .form-footer {
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 10px;
+      flex-wrap: wrap;
+      padding-top: 18px;
+      border-top: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    .btn-cancel,
+    .btn-save {
+      border-radius: 999px;
+      padding: 12px 18px;
+      font-size: 13px;
+      font-weight: 950;
+      cursor: pointer;
+      transition: 0.2s ease;
+      text-decoration: none;
+      border: 1px solid rgba(255, 255, 255, 0.12);
+    }
+
+    .btn-cancel {
+      color: rgba(255, 255, 255, 0.72);
+      background: rgba(255, 255, 255, 0.05);
+    }
+
+    .btn-save {
+      border: 0;
+      background: #2dd4bf;
+      color: #06211d;
+    }
+
+    .btn-cancel:hover,
+    .btn-save:hover {
+      transform: translateY(-1px);
+      filter: brightness(1.06);
+    }
+
+    @media (max-width: 760px) {
+      .form-grid,
+      .form-grid.three {
+        grid-template-columns: 1fr;
+      }
+
+      .user-form-page {
+        width: calc(100% - 20px);
+        padding-top: 16px;
+      }
+
+      .form-hero h1 {
+        font-size: 24px;
+      }
+
+      .form-footer {
+        justify-content: stretch;
+      }
+
+      .btn-cancel,
+      .btn-save {
+        width: 100%;
+        text-align: center;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
+
+  <div id="portal-screen" style="display: block;">
+    <header>
+      <div class="logo">
+        {% if request.user.unidade.sigla == "HSFVF" or request.user.unidade.sigla == "HSFMA" %}
+          <img src="{% static 'core/img/logo-sagrada-familia.png' %}" alt="Logo" class="header-unit-logo">
+        {% else %}
+          <img src="{% static 'core/img/logo-hsf.png' %}" alt="Logo" class="header-unit-logo">
+        {% endif %}
+
+        <div>
+          <span>Intranet Grupo São Francisco</span>
+          <span class="unit-tag">{{ request.user.unidade.nome }}</span>
+        </div>
+      </div>
+
+      <div class="header-right">
+        <a class="logout-btn" href="/conversas/">💬 Conversas</a>
+        <a class="logout-btn" href="/portal/administracao/usuarios/">Usuários</a>
+        <a class="logout-btn" href="/portal/">Voltar ao portal</a>
+        <button class="logout-btn" onclick="doLogout()">Sair</button>
+      </div>
+    </header>
+
+    <main class="user-form-page">
+
+      {% if messages %}
+        <div class="messages-box">
+          {% for message in messages %}
+            <div class="message-alert {{ message.tags }}">
+              {{ message }}
+            </div>
+          {% endfor %}
+        </div>
+      {% endif %}
+
+      <section class="form-hero">
+        <div>
+          <div class="form-eyebrow">Administração</div>
+          <h1>Editar usuário</h1>
+          <p>
+            Atualize os dados de acesso de {{ usuario_editado.get_full_name|default:usuario_editado.username }}.
+            Alteração de senha será feita em uma tela separada.
+          </p>
+        </div>
+
+        <div class="form-actions-top">
+          <a class="btn-link" href="/portal/administracao/usuarios/">
+            Voltar para usuários
+          </a>
+        </div>
+      </section>
+
+      <section class="form-card">
+        <form method="post" action="/portal/administracao/usuarios/editar/{{ usuario_editado.id }}/">
+          {% csrf_token %}
+
+          <div class="form-section">
+            <h2 class="section-title">Dados principais</h2>
+
+            <div class="form-grid">
+              <div class="field">
+                <label for="first_name">Nome *</label>
+                <input type="text" id="first_name" name="first_name" value="{{ form_data.first_name|default:'' }}" required>
+              </div>
+
+              <div class="field">
+                <label for="last_name">Sobrenome *</label>
+                <input type="text" id="last_name" name="last_name" value="{{ form_data.last_name|default:'' }}" required>
+              </div>
+
+              <div class="field">
+                <label for="username">Login *</label>
+                <input type="text" id="username" name="username" value="{{ form_data.username|default:'' }}" required>
+              </div>
+
+              <div class="field">
+                <label for="email">E-mail</label>
+                <input type="email" id="email" name="email" value="{{ form_data.email|default:'' }}">
+              </div>
+            </div>
+          </div>
+
+          <div class="form-section">
+            <h2 class="section-title">Vínculo interno</h2>
+
+            <div class="form-grid three">
+              <div class="field">
+                <label for="unidade">Unidade</label>
+                <select id="unidade" name="unidade">
+                  <option value="">Selecione</option>
+                  {% for unidade in unidades %}
+                    <option value="{{ unidade.id }}" {% if form_data.unidade == unidade.id|stringformat:"s" %}selected{% endif %}>
+                      {{ unidade.sigla }} - {{ unidade.nome }}
+                    </option>
+                  {% endfor %}
+                </select>
+              </div>
+
+              <div class="field">
+                <label for="setor">Setor</label>
+                <select id="setor" name="setor">
+                  <option value="">Selecione</option>
+                  {% for setor in setores %}
+                    <option value="{{ setor.id }}" {% if form_data.setor == setor.id|stringformat:"s" %}selected{% endif %}>
+                      {{ setor.nome }}
+                    </option>
+                  {% endfor %}
+                </select>
+              </div>
+
+              <div class="field">
+                <label for="telefone">Telefone</label>
+                <input type="text" id="telefone" name="telefone" value="{{ form_data.telefone|default:'' }}">
+              </div>
+            </div>
+          </div>
+
+          <div class="form-section">
+            <h2 class="section-title">Tipo de prestador</h2>
+
+            <div class="form-grid three">
+              <div class="field">
+                <label for="tipo_prestador">Tipo *</label>
+                <select id="tipo_prestador" name="tipo_prestador">
+                  {% for valor, texto in tipo_prestador_choices %}
+                    <option value="{{ valor }}" {% if form_data.tipo_prestador == valor %}selected{% endif %}>
+                      {{ texto }}
+                    </option>
+                  {% endfor %}
+                </select>
+              </div>
+
+              <div class="field">
+                <label for="tipo_conselho">Conselho</label>
+                <select id="tipo_conselho" name="tipo_conselho">
+                  {% for valor, texto in tipo_conselho_choices %}
+                    <option value="{{ valor }}" {% if form_data.tipo_conselho == valor %}selected{% endif %}>
+                      {{ texto }}
+                    </option>
+                  {% endfor %}
+                </select>
+              </div>
+
+              <div class="field">
+                <label for="numero_conselho">Número do conselho</label>
+                <input type="text" id="numero_conselho" name="numero_conselho" value="{{ form_data.numero_conselho|default:'' }}">
+              </div>
+
+              <div class="field">
+                <label for="uf_conselho">UF conselho</label>
+                <input type="text" id="uf_conselho" name="uf_conselho" value="{{ form_data.uf_conselho|default:'' }}" maxlength="2">
+              </div>
+            </div>
+          </div>
+
+          <div class="form-section">
+            <h2 class="section-title">Status e acesso</h2>
+
+            <div class="checks-grid">
+              <label class="check-card">
+                <input type="checkbox" name="is_active" {% if form_data.is_active %}checked{% endif %}>
+                <span>
+                  <strong>Usuário ativo</strong>
+                  <span>Permite que o usuário acesse a intranet.</span>
+                </span>
+              </label>
+
+              <label class="check-card">
+                <input type="checkbox" name="primeiro_acesso" {% if form_data.primeiro_acesso %}checked{% endif %}>
+                <span>
+                  <strong>Primeiro acesso</strong>
+                  <span>Marca o usuário como novo acesso no sistema.</span>
+                </span>
+              </label>
+
+              <label class="check-card">
+                <input type="checkbox" name="is_staff" {% if form_data.is_staff %}checked{% endif %}>
+                <span>
+                  <strong>Acesso ao admin Django</strong>
+                  <span>Use apenas para equipe técnica autorizada.</span>
+                </span>
+              </label>
+            </div>
+          </div>
+
+          <div class="form-section">
+            <h2 class="section-title">Grupos e permissões</h2>
+
+            {% if grupos %}
+              <div class="groups-box">
+                {% for grupo in grupos %}
+                  <label class="group-option">
+                    <input
+                      type="checkbox"
+                      name="groups"
+                      value="{{ grupo.id }}"
+                      {% if grupo.id|stringformat:"s" in form_data.groups %}checked{% endif %}
+                    >
+                    {{ grupo.name }}
+                  </label>
+                {% endfor %}
+              </div>
+            {% else %}
+              <span class="hint">
+                Nenhum grupo cadastrado ainda. Depois podemos criar a tela de grupos e permissões.
+              </span>
+            {% endif %}
+          </div>
+
+          <div class="form-footer">
+            <a class="btn-cancel" href="/portal/administracao/usuarios/">
+              Cancelar
+            </a>
+
+            <button class="btn-save" type="submit">
+              Salvar alterações
+            </button>
+          </div>
+        </form>
+      </section>
+
+    </main>
+  </div>
+
+  <script src="{% static 'core/js/home.js' %}"></script>
+</body>
+</html>

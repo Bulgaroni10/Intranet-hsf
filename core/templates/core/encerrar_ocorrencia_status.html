@@ -1,0 +1,424 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>Encerrar Ocorrência | Intranet</title>
+
+  <link rel="stylesheet" href="{% static 'core/css/home.css' %}">
+
+  <style>
+    body {
+      background: #111111;
+      color: #f8fafc;
+      margin: 0;
+      font-family: Arial, sans-serif;
+    }
+
+    .page {
+      max-width: 1080px;
+      margin: 0 auto;
+      padding: 28px 24px 50px;
+    }
+
+    .top-actions {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-bottom: 24px;
+    }
+
+    .btn-link,
+    .btn-submit {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 10px 14px;
+      border-radius: 10px;
+      border: 1px solid rgba(148, 163, 184, 0.3);
+      background: rgba(15, 23, 42, 0.75);
+      color: #e5e7eb;
+      text-decoration: none;
+      font-size: 13px;
+      font-weight: 800;
+      cursor: pointer;
+    }
+
+    .btn-link:hover {
+      border-color: #2dd4bf;
+      color: #2dd4bf;
+    }
+
+    .btn-submit {
+      background: #2dd4bf;
+      color: #06201d;
+      border-color: #2dd4bf;
+      width: 260px;
+    }
+
+    .hero-box {
+      display: grid;
+      grid-template-columns: 1fr 300px;
+      gap: 18px;
+      margin-bottom: 26px;
+    }
+
+    .hero-main,
+    .hero-side,
+    .form-card,
+    .summary-card,
+    .alert-card {
+      background: rgba(31, 31, 31, 0.96);
+      border: 1px solid rgba(148, 163, 184, 0.2);
+      border-radius: 16px;
+      padding: 22px;
+    }
+
+    .eyebrow {
+      color: #2dd4bf;
+      font-size: 12px;
+      font-weight: 900;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      margin-bottom: 8px;
+    }
+
+    h1 {
+      margin: 0 0 10px;
+      font-size: 32px;
+      color: #ffffff;
+    }
+
+    h2 {
+      margin: 0 0 6px;
+      font-size: 20px;
+      color: #ffffff;
+    }
+
+    h3 {
+      margin: 0 0 6px;
+      color: #ffffff;
+    }
+
+    p {
+      color: #cbd5e1;
+      line-height: 1.5;
+    }
+
+    .alert-card {
+      border-color: rgba(248, 113, 113, 0.35);
+      background: rgba(127, 29, 29, 0.22);
+      margin-bottom: 18px;
+    }
+
+    .alert-card h3 {
+      color: #fecaca;
+    }
+
+    .summary-card {
+      margin-bottom: 22px;
+    }
+
+    .summary-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 12px;
+      margin-top: 14px;
+    }
+
+    .info-box {
+      background: rgba(15, 23, 42, 0.55);
+      border: 1px solid rgba(148, 163, 184, 0.14);
+      border-radius: 12px;
+      padding: 12px;
+    }
+
+    .info-box span {
+      display: block;
+      color: #94a3b8;
+      font-size: 12px;
+      margin-bottom: 4px;
+    }
+
+    .info-box strong {
+      display: block;
+      color: #ffffff;
+      font-size: 14px;
+    }
+
+    .detail {
+      border-top: 1px solid rgba(148, 163, 184, 0.16);
+      padding-top: 12px;
+      margin-top: 12px;
+    }
+
+    .detail h4 {
+      color: #2dd4bf;
+      margin: 0 0 6px;
+      font-size: 13px;
+    }
+
+    .detail p {
+      margin: 0;
+      white-space: pre-wrap;
+      font-size: 14px;
+    }
+
+    .form-grid {
+      display: grid;
+      gap: 16px;
+    }
+
+    .form-group label {
+      display: block;
+      color: #cbd5e1;
+      font-size: 12px;
+      font-weight: 800;
+      text-transform: uppercase;
+      margin-bottom: 7px;
+    }
+
+    .form-group textarea {
+      width: 100%;
+      box-sizing: border-box;
+      border: 1px solid rgba(148, 163, 184, 0.28);
+      background: #2a2a2a;
+      color: #ffffff;
+      border-radius: 10px;
+      padding: 12px;
+      outline: none;
+      font-family: Arial, sans-serif;
+      resize: vertical;
+    }
+
+    .form-group textarea:focus {
+      border-color: #2dd4bf;
+      box-shadow: 0 0 0 2px rgba(45, 212, 191, 0.15);
+    }
+
+    .form-actions {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-top: 20px;
+    }
+
+    .footer {
+      border-top: 1px solid rgba(148, 163, 184, 0.16);
+      margin-top: 26px;
+      padding-top: 14px;
+      display: flex;
+      justify-content: space-between;
+      color: #94a3b8;
+      font-size: 12px;
+    }
+
+    @media (max-width: 900px) {
+      .hero-box,
+      .summary-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .btn-submit {
+        width: 100%;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <header>
+    <div class="logo">
+      {% if request.user.unidade %}
+        {% if request.user.unidade.sigla == "HSFVF" or request.user.unidade.sigla == "HSFMA" %}
+          <img src="{% static 'core/img/logo-sagrada-familia.png' %}" alt="Logo" class="header-unit-logo">
+        {% else %}
+          <img src="{% static 'core/img/logo-hsf.png' %}" alt="Logo" class="header-unit-logo">
+        {% endif %}
+      {% else %}
+        <img src="{% static 'core/img/logo-hsf.png' %}" alt="Logo" class="header-unit-logo">
+      {% endif %}
+
+      <div>
+        <span>Intranet Grupo São Francisco</span>
+        <span class="unit-tag">
+          {% if request.user.unidade %}
+            {{ request.user.unidade.nome }}
+          {% else %}
+            Sem unidade vinculada
+          {% endif %}
+        </span>
+      </div>
+    </div>
+
+    <div class="header-right">
+      <a class="logout-btn" href="/portal/modulos/status-sistemas/">Status</a>
+      <a class="logout-btn" href="/portal/">Portal</a>
+      <button class="logout-btn" onclick="doLogout()">Sair</button>
+    </div>
+  </header>
+
+  <main class="page">
+
+    <div class="top-actions">
+      <a class="btn-link" href="/portal/modulos/status-sistemas/">← Voltar ao status</a>
+      <a class="btn-link" href="/portal/">Voltar ao portal</a>
+    </div>
+
+    <section class="hero-box">
+      <div class="hero-main">
+        <div class="eyebrow">Status dos Sistemas</div>
+        <h1>Encerrar ocorrência</h1>
+        <p>
+          Informe a causa raiz, solução aplicada e observação final antes de encerrar a ocorrência.
+        </p>
+      </div>
+
+      <aside class="hero-side">
+        <h3>Ocorrência</h3>
+        <p>
+          <strong>{{ ocorrencia.sistema.nome }}</strong><br>
+          {{ ocorrencia.titulo }}
+        </p>
+      </aside>
+    </section>
+
+    {% if erro %}
+      <div class="alert-card">
+        <h3>Atenção</h3>
+        <p>{{ erro }}</p>
+      </div>
+    {% endif %}
+
+    <section class="summary-card">
+      <h2>Resumo da ocorrência</h2>
+      <p>Confira os dados antes de encerrar.</p>
+
+      <div class="summary-grid">
+        <div class="info-box">
+          <span>Sistema</span>
+          <strong>{{ ocorrencia.sistema.nome }}</strong>
+        </div>
+
+        <div class="info-box">
+          <span>Status</span>
+          <strong>{{ ocorrencia.get_status_display }}</strong>
+        </div>
+
+        <div class="info-box">
+          <span>Impacto</span>
+          <strong>{{ ocorrencia.get_impacto_display }}</strong>
+        </div>
+
+        <div class="info-box">
+          <span>Unidade</span>
+          <strong>
+            {% if ocorrencia.unidade %}
+              {{ ocorrencia.unidade.sigla }}
+            {% else %}
+              Geral
+            {% endif %}
+          </strong>
+        </div>
+      </div>
+
+      <div class="summary-grid">
+        <div class="info-box">
+          <span>Aberta em</span>
+          <strong>{{ ocorrencia.aberto_em|date:"d/m/Y H:i" }}</strong>
+        </div>
+
+        <div class="info-box">
+          <span>Previsão</span>
+          <strong>{{ ocorrencia.previsao|default:"Não informada" }}</strong>
+        </div>
+
+        <div class="info-box">
+          <span>ID</span>
+          <strong>#{{ ocorrencia.id }}</strong>
+        </div>
+
+        <div class="info-box">
+          <span>Situação</span>
+          <strong>Ativa</strong>
+        </div>
+      </div>
+
+      {% if ocorrencia.mensagem %}
+        <div class="detail">
+          <h4>Mensagem inicial</h4>
+          <p>{{ ocorrencia.mensagem }}</p>
+        </div>
+      {% endif %}
+
+      {% if ocorrencia.acao_ti %}
+        <div class="detail">
+          <h4>Ação da TI durante a ocorrência</h4>
+          <p>{{ ocorrencia.acao_ti }}</p>
+        </div>
+      {% endif %}
+    </section>
+
+    <section class="form-card">
+      <form method="post">
+        {% csrf_token %}
+
+        <div class="form-grid">
+
+          <div class="form-group">
+            <label>Causa raiz</label>
+            <textarea
+              name="causa_raiz"
+              rows="5"
+              placeholder="Ex: Instabilidade no link principal da operadora, causando perda de comunicação com o ambiente..."
+              required
+            ></textarea>
+          </div>
+
+          <div class="form-group">
+            <label>Solução aplicada</label>
+            <textarea
+              name="solucao_aplicada"
+              rows="5"
+              placeholder="Ex: Realizado failover para link secundário, acompanhamento com operadora e validação dos acessos..."
+              required
+            ></textarea>
+          </div>
+
+          <div class="form-group">
+            <label>Observação final</label>
+            <textarea
+              name="observacao_encerramento"
+              rows="4"
+              placeholder="Ex: Ambiente normalizado e monitorado pela equipe de TI."
+            ></textarea>
+          </div>
+
+        </div>
+
+        <div class="form-actions">
+          <button type="submit" class="btn-submit">
+            Encerrar ocorrência
+          </button>
+
+          <a href="/portal/modulos/status-sistemas/" class="btn-link">
+            Cancelar
+          </a>
+        </div>
+      </form>
+    </section>
+
+    <footer class="footer">
+      <span>Status dos Sistemas • Encerramento de ocorrência</span>
+      <span>Tecnologia da Informação • Ambiente interno</span>
+    </footer>
+
+  </main>
+
+  <script src="{% static 'core/js/home.js' %}"></script>
+</body>
+</html>

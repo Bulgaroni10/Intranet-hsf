@@ -1,0 +1,382 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>{{ titulo_pagina }} | Intranet</title>
+
+  <link rel="stylesheet" href="{% static 'core/css/home.css' %}">
+
+  <style>
+    .checks-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 8px;
+      margin-top: 8px;
+    }
+
+    .check-card {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      color: rgba(255, 255, 255, 0.76);
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid rgba(255, 255, 255, 0.10);
+      border-radius: 14px;
+      padding: 10px;
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    .info-help {
+      color: #fed7aa;
+      background: rgba(249, 115, 22, 0.10);
+      border: 1px solid rgba(249, 115, 22, 0.28);
+      border-radius: 16px;
+      padding: 12px 14px;
+      font-size: 13px;
+      line-height: 1.5;
+      margin-bottom: 16px;
+    }
+
+    .arquivo-atual {
+      color: rgba(255, 255, 255, 0.72);
+      background: rgba(45, 212, 191, 0.08);
+      border: 1px solid rgba(45, 212, 191, 0.20);
+      border-radius: 14px;
+      padding: 10px;
+      font-size: 13px;
+      margin-top: 8px;
+    }
+
+    .arquivo-atual a {
+      color: #2dd4bf;
+      font-weight: 800;
+      text-decoration: none;
+    }
+  </style>
+</head>
+
+<body>
+
+  <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
+
+  <div id="portal-screen" style="display: block;">
+    <header>
+      <div class="logo">
+        {% if request.user.unidade %}
+          {% if request.user.unidade.sigla == "HSFVF" or request.user.unidade.sigla == "HSFMA" %}
+            <img src="{% static 'core/img/logo-sagrada-familia.png' %}" alt="Logo" class="header-unit-logo">
+          {% else %}
+            <img src="{% static 'core/img/logo-hsf.png' %}" alt="Logo" class="header-unit-logo">
+          {% endif %}
+        {% else %}
+          <img src="{% static 'core/img/logo-hsf.png' %}" alt="Logo" class="header-unit-logo">
+        {% endif %}
+
+        <div>
+          <span>Intranet Grupo São Francisco</span>
+          <span class="unit-tag">
+            {% if request.user.unidade %}
+              {{ request.user.unidade.nome }}
+            {% else %}
+              Sem unidade vinculada
+            {% endif %}
+          </span>
+        </div>
+      </div>
+
+      <div class="header-right">
+        <a class="logout-btn" href="/portal/modulos/documentos/">Voltar aos documentos</a>
+        <a class="logout-btn" href="/portal/">Portal</a>
+        <button class="logout-btn" onclick="doLogout()">Sair</button>
+      </div>
+    </header>
+
+    <main class="portal-shell">
+
+      <section class="hero">
+        <div class="hero-main">
+          <div class="hero-eyebrow">Qualidade / ONA</div>
+
+          <h1>{{ titulo_pagina }}</h1>
+
+          <p class="welcome-sub">
+            {{ subtitulo_pagina }}
+          </p>
+        </div>
+
+        <aside class="support-card">
+          <h3>Orientação</h3>
+
+          <p>
+            Para documento geral, deixe a unidade em branco. Para compartilhar entre unidades específicas,
+            selecione uma unidade principal e marque as unidades adicionais.
+          </p>
+        </aside>
+      </section>
+
+      <section class="category-section">
+        <div class="category-header">
+          <h2>Dados do documento</h2>
+          <p>Título, tipo, categoria e status são obrigatórios. No cadastro novo, o arquivo também é obrigatório.</p>
+        </div>
+
+        <div class="panel-box">
+          {% if erro %}
+            <div class="notice" style="margin-bottom: 16px;">
+              <div class="notice-icon">⚠️</div>
+              <div>
+                <h3>Atenção</h3>
+                <p>{{ erro }}</p>
+              </div>
+            </div>
+          {% endif %}
+
+          <div class="info-help">
+            <strong>Regra de unidade:</strong>
+            se a unidade ficar em branco, o documento será geral para todas as unidades.
+            Se escolher uma unidade, ele aparecerá somente para ela e para as unidades marcadas como compartilhadas.
+          </div>
+
+          <form method="post" enctype="multipart/form-data" action="{{ url_salvar }}">
+            {% csrf_token %}
+
+            <div class="grid-section">
+
+              <div class="form-group">
+                <label>Código</label>
+                <input
+                  type="text"
+                  name="codigo"
+                  value="{{ form_data.codigo }}"
+                  placeholder="Ex: POP-TI-001"
+                >
+              </div>
+
+              <div class="form-group" style="grid-column: span 2;">
+                <label>Título</label>
+                <input
+                  type="text"
+                  name="titulo"
+                  value="{{ form_data.titulo }}"
+                  placeholder="Ex: Procedimento de abertura de chamado"
+                  required
+                >
+              </div>
+
+              <div class="form-group">
+                <label>Tipo</label>
+                <select name="tipo" required>
+                  {% for valor, nome in tipos %}
+                    <option value="{{ valor }}" {% if form_data.tipo == valor %}selected{% endif %}>
+                      {{ nome }}
+                    </option>
+                  {% endfor %}
+                </select>
+              </div>
+
+              <div class="form-group">
+                <label>Categoria</label>
+                <select name="categoria" required>
+                  {% for valor, nome in categorias %}
+                    <option value="{{ valor }}" {% if form_data.categoria == valor %}selected{% endif %}>
+                      {{ nome }}
+                    </option>
+                  {% endfor %}
+                </select>
+              </div>
+
+              <div class="form-group">
+                <label>Status</label>
+                <select name="status" required>
+                  {% for valor, nome in status_choices %}
+                    <option value="{{ valor }}" {% if form_data.status == valor %}selected{% endif %}>
+                      {{ nome }}
+                    </option>
+                  {% endfor %}
+                </select>
+              </div>
+
+              <div class="form-group">
+                <label>Unidade principal</label>
+                <select name="unidade">
+                  <option value="">Geral / Todas as unidades</option>
+
+                  {% for unidade in unidades %}
+                    <option value="{{ unidade.id }}" {% if form_data.unidade == unidade.id|stringformat:"s" %}selected{% endif %}>
+                      {{ unidade.nome }}
+                    </option>
+                  {% endfor %}
+                </select>
+              </div>
+
+              <div class="form-group">
+                <label>Setor</label>
+                <select name="setor">
+                  <option value="">Todos / Não informado</option>
+
+                  {% for setor in setores %}
+                    <option value="{{ setor.id }}" {% if form_data.setor == setor.id|stringformat:"s" %}selected{% endif %}>
+                      {{ setor.nome }}
+                    </option>
+                  {% endfor %}
+                </select>
+              </div>
+
+              <div class="form-group" style="grid-column: 1 / -1;">
+                <label>Compartilhar também com estas unidades</label>
+
+                <div class="checks-grid">
+                  {% for unidade in unidades %}
+                    <label class="check-card">
+                      <input
+                        type="checkbox"
+                        name="unidades_compartilhadas"
+                        value="{{ unidade.id }}"
+                        {% if unidade.id|stringformat:"s" in form_data.unidades_compartilhadas %}checked{% endif %}
+                      >
+                      {{ unidade.nome }}
+                    </label>
+                  {% endfor %}
+                </div>
+              </div>
+
+              <div class="form-group" style="grid-column: 1 / -1;">
+                <label>Grupos permitidos</label>
+
+                <div class="checks-grid">
+                  {% for grupo in grupos %}
+                    <label class="check-card">
+                      <input
+                        type="checkbox"
+                        name="grupos_permitidos"
+                        value="{{ grupo.id }}"
+                        {% if grupo.id|stringformat:"s" in form_data.grupos_permitidos %}checked{% endif %}
+                      >
+                      {{ grupo.name }}
+                    </label>
+                  {% endfor %}
+                </div>
+
+                <p style="color: rgba(255,255,255,0.56); font-size: 12px; margin-top: 8px;">
+                  Se não selecionar nenhum grupo, o documento ficará disponível para todos os usuários que tiverem acesso ao módulo Documentos.
+                </p>
+              </div>
+
+              <div class="form-group">
+                <label>Versão</label>
+                <input
+                  type="text"
+                  name="versao"
+                  value="{{ form_data.versao }}"
+                  placeholder="Ex: 1.0"
+                >
+              </div>
+
+              <div class="form-group">
+                <label>Responsável</label>
+                <input
+                  type="text"
+                  name="responsavel"
+                  value="{{ form_data.responsavel }}"
+                  placeholder="Ex: Tecnologia da Informação"
+                >
+              </div>
+
+              <div class="form-group">
+                <label>Data de publicação</label>
+                <input
+                  type="date"
+                  name="data_publicacao"
+                  value="{{ form_data.data_publicacao }}"
+                >
+              </div>
+
+              <div class="form-group">
+                <label>Data de validade</label>
+                <input
+                  type="date"
+                  name="data_validade"
+                  value="{{ form_data.data_validade }}"
+                >
+              </div>
+
+              <div class="form-group" style="grid-column: 1 / -1;">
+                <label>Descrição</label>
+                <textarea
+                  name="descricao"
+                  rows="6"
+                  placeholder="Descreva a finalidade do documento..."
+                >{{ form_data.descricao }}</textarea>
+              </div>
+
+              <div class="form-group">
+                <label>Arquivo</label>
+                <input
+                  type="file"
+                  name="arquivo"
+                  {% if modo == "novo" %}required{% endif %}
+                >
+
+                {% if documento and documento.arquivo %}
+                  <div class="arquivo-atual">
+                    Arquivo atual:
+                    <a href="{{ documento.arquivo.url }}" target="_blank">
+                      Abrir documento
+                    </a>
+
+                    <label style="display:flex; align-items:center; gap:8px; margin-top:8px;">
+                      <input type="checkbox" name="remover_arquivo">
+                      Remover arquivo atual
+                    </label>
+                  </div>
+                {% endif %}
+              </div>
+
+              <div class="form-group" style="grid-column: 1 / -1;">
+                <label style="display:flex; align-items:center; gap:8px;">
+                  <input type="checkbox" name="exibir_no_dashboard" {% if form_data.exibir_no_dashboard %}checked{% endif %}>
+                  Exibir no dashboard quando estiver próximo do vencimento ou em revisão
+                </label>
+
+                <label style="display:flex; align-items:center; gap:8px; margin-top:8px;">
+                  <input type="checkbox" name="leitura_obrigatoria" {% if form_data.leitura_obrigatoria %}checked{% endif %}>
+                  Leitura obrigatória
+                </label>
+
+                <label style="display:flex; align-items:center; gap:8px; margin-top:8px;">
+                  <input type="checkbox" name="ativo" {% if form_data.ativo %}checked{% endif %}>
+                  Ativo
+                </label>
+              </div>
+
+            </div>
+
+            <div style="display:flex; gap:10px; flex-wrap:wrap; margin-top: 16px;">
+              <button type="submit" class="btn-login" style="max-width: 240px;">
+                {{ botao_salvar }}
+              </button>
+
+              <a href="/portal/modulos/documentos/" class="logout-btn" style="text-decoration:none; display:flex; align-items:center;">
+                Cancelar
+              </a>
+            </div>
+          </form>
+        </div>
+      </section>
+
+      <footer class="footer">
+        <span>Documentos / Protocolos ONA • {{ titulo_pagina }}</span>
+        <span>Tecnologia da Informação • Ambiente interno</span>
+      </footer>
+
+    </main>
+  </div>
+
+  <script src="{% static 'core/js/home.js' %}"></script>
+</body>
+</html>

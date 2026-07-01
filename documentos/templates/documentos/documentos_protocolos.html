@@ -1,0 +1,611 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>Documentos e Protocolos | Intranet</title>
+
+  <link rel="stylesheet" href="{% static 'core/css/home.css' %}">
+
+  <style>
+    .doc-summary-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+      gap: 16px;
+      margin-top: 18px;
+    }
+
+    .doc-summary-card,
+    .doc-card {
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid rgba(255, 255, 255, 0.10);
+      border-radius: 18px;
+      padding: 18px;
+      transition: all 0.2s ease;
+    }
+
+    .doc-card.inativo {
+      opacity: 0.62;
+      border-color: rgba(239, 68, 68, 0.22);
+    }
+
+    .doc-summary-card:hover,
+    .doc-card:hover {
+      transform: translateY(-2px);
+      border-color: rgba(45, 212, 191, 0.55);
+      background: rgba(45, 212, 191, 0.08);
+      box-shadow: 0 14px 34px rgba(0, 0, 0, 0.25);
+    }
+
+    .doc-summary-card h3 {
+      color: #ffffff;
+      font-size: 14px;
+      margin: 0 0 8px 0;
+    }
+
+    .doc-number {
+      color: #2dd4bf;
+      font-size: 30px;
+      font-weight: 900;
+      margin-bottom: 4px;
+    }
+
+    .doc-summary-card p {
+      color: rgba(255, 255, 255, 0.68);
+      font-size: 13px;
+      margin: 0;
+      line-height: 1.5;
+    }
+
+    .docs-grid {
+      display: grid;
+      gap: 16px;
+    }
+
+    .doc-top {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-bottom: 12px;
+    }
+
+    .doc-title-line {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+    }
+
+    .doc-icon {
+      width: 42px;
+      height: 42px;
+      border-radius: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(45, 212, 191, 0.12);
+      border: 1px solid rgba(45, 212, 191, 0.22);
+      font-size: 22px;
+      flex: 0 0 auto;
+    }
+
+    .doc-card h3 {
+      color: #ffffff;
+      font-size: 18px;
+      margin: 0 0 6px 0;
+      line-height: 1.3;
+    }
+
+    .doc-meta {
+      color: rgba(255, 255, 255, 0.62);
+      font-size: 12px;
+      line-height: 1.5;
+    }
+
+    .doc-description {
+      color: rgba(255, 255, 255, 0.76);
+      font-size: 14px;
+      line-height: 1.6;
+      margin-top: 12px;
+      white-space: pre-line;
+    }
+
+    .doc-badges {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+    }
+
+    .doc-badge {
+      font-size: 11px;
+      font-weight: 800;
+      text-transform: uppercase;
+      color: #2dd4bf;
+      background: rgba(45, 212, 191, 0.10);
+      border: 1px solid rgba(45, 212, 191, 0.22);
+      border-radius: 999px;
+      padding: 6px 10px;
+      text-decoration: none;
+    }
+
+    .doc-badge.vencido,
+    .doc-badge.inativo {
+      color: #fecaca;
+      background: rgba(239, 68, 68, 0.18);
+      border-color: rgba(239, 68, 68, 0.35);
+    }
+
+    .doc-badge.proximo,
+    .doc-badge.revisao {
+      color: #fed7aa;
+      background: rgba(249, 115, 22, 0.16);
+      border-color: rgba(249, 115, 22, 0.32);
+    }
+
+    .doc-actions {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-top: 14px;
+    }
+
+    .doc-action,
+    .doc-action-danger {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 999px;
+      border: 1px solid rgba(45, 212, 191, 0.24);
+      background: rgba(45, 212, 191, 0.10);
+      color: #2dd4bf;
+      padding: 8px 12px;
+      font-size: 12px;
+      font-weight: 800;
+      text-decoration: none;
+      cursor: pointer;
+    }
+
+    .doc-action-danger {
+      color: #fecaca;
+      background: rgba(239, 68, 68, 0.12);
+      border-color: rgba(239, 68, 68, 0.28);
+    }
+
+    .grupo-lista {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-top: 8px;
+    }
+
+    .grupo-pill {
+      color: rgba(255, 255, 255, 0.70);
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid rgba(255, 255, 255, 0.10);
+      border-radius: 999px;
+      padding: 5px 8px;
+      font-size: 11px;
+      font-weight: 800;
+    }
+  </style>
+</head>
+
+<body>
+
+  <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
+
+  <div id="portal-screen" style="display: block;">
+    <header>
+      <div class="logo">
+        {% if request.user.unidade %}
+          {% if request.user.unidade.sigla == "HSFVF" or request.user.unidade.sigla == "HSFMA" %}
+            <img src="{% static 'core/img/logo-sagrada-familia.png' %}" alt="Logo" class="header-unit-logo">
+          {% else %}
+            <img src="{% static 'core/img/logo-hsf.png' %}" alt="Logo" class="header-unit-logo">
+          {% endif %}
+        {% else %}
+          <img src="{% static 'core/img/logo-hsf.png' %}" alt="Logo" class="header-unit-logo">
+        {% endif %}
+
+        <div>
+          <span>Intranet Grupo São Francisco</span>
+          <span class="unit-tag">
+            {% if request.user.unidade %}
+              {{ request.user.unidade.nome }}
+            {% else %}
+              Sem unidade vinculada
+            {% endif %}
+          </span>
+        </div>
+      </div>
+
+      <div class="header-right">
+        {% if pode_gerenciar_documentos %}
+          <a class="logout-btn" href="/portal/modulos/documentos/novo/">Novo documento</a>
+        {% endif %}
+
+        <a class="logout-btn" href="/portal/">Voltar ao portal</a>
+        <button class="logout-btn" onclick="doLogout()">Sair</button>
+      </div>
+    </header>
+
+    <main class="portal-shell">
+
+      <section class="hero">
+        <div class="hero-main">
+          <div class="hero-eyebrow">Qualidade / ONA</div>
+
+          <h1>Documentos / Protocolos ONA</h1>
+
+          <p class="welcome-sub">
+            Consulte POPs, protocolos, políticas internas, fluxos e documentos institucionais por unidade e setor.
+          </p>
+        </div>
+
+        <aside class="support-card">
+          <h3>Controle documental</h3>
+
+          <p>
+            Documentos vencidos ou próximos do vencimento devem ser revisados pelo responsável da área.
+          </p>
+        </aside>
+      </section>
+
+      <section class="category-section">
+        <div class="category-header">
+          <h2>Resumo</h2>
+          <p>Visão rápida dos documentos disponíveis para seu perfil.</p>
+        </div>
+
+        <div class="doc-summary-grid">
+          <div class="doc-summary-card">
+            <h3>Total encontrado</h3>
+            <div class="doc-number">{{ total_documentos }}</div>
+            <p>Documentos filtrados na consulta atual.</p>
+          </div>
+
+          <div class="doc-summary-card">
+            <h3>Ativos</h3>
+            <div class="doc-number">{{ total_ativos }}</div>
+            <p>Documentos ativos visíveis para seu perfil.</p>
+          </div>
+
+          <div class="doc-summary-card">
+            <h3>Em revisão</h3>
+            <div class="doc-number">{{ total_em_revisao }}</div>
+            <p>Documentos marcados como revisão.</p>
+          </div>
+
+          <div class="doc-summary-card">
+            <h3>Próximos do vencimento</h3>
+            <div class="doc-number">{{ total_proximos }}</div>
+            <p>Documentos que vencem nos próximos 30 dias.</p>
+          </div>
+
+          <div class="doc-summary-card">
+            <h3>Vencidos</h3>
+            <div class="doc-number">{{ total_vencidos }}</div>
+            <p>Documentos com validade expirada.</p>
+          </div>
+
+          {% if pode_gerenciar_documentos %}
+            <div class="doc-summary-card">
+              <h3>Inativos</h3>
+              <div class="doc-number">{{ total_inativos }}</div>
+              <p>Documentos desativados pela administração.</p>
+            </div>
+          {% endif %}
+        </div>
+      </section>
+
+      <section class="category-section">
+        <div class="category-header">
+          <h2>Filtros</h2>
+          <p>Localize documentos por unidade, setor, tipo, categoria, status ou vencimento.</p>
+        </div>
+
+        <div class="panel-box">
+          <form method="get">
+            <div class="grid-section">
+
+              <div class="form-group">
+                <label>Busca</label>
+                <input
+                  type="text"
+                  name="busca"
+                  value="{{ busca }}"
+                  placeholder="Ex: POP, protocolo, enfermagem, TI..."
+                >
+              </div>
+
+              <div class="form-group">
+                <label>Unidade</label>
+                <select name="unidade">
+                  <option value="">Minha unidade + Geral</option>
+                  <option value="geral" {% if unidade_id == "geral" %}selected{% endif %}>
+                    Geral / Todas as unidades
+                  </option>
+
+                  {% for unidade in unidades %}
+                    <option value="{{ unidade.id }}" {% if unidade_id == unidade.id|stringformat:"s" %}selected{% endif %}>
+                      {{ unidade.nome }}
+                    </option>
+                  {% endfor %}
+                </select>
+              </div>
+
+              <div class="form-group">
+                <label>Setor</label>
+                <select name="setor">
+                  <option value="">Todos</option>
+
+                  {% for setor_item in setores %}
+                    <option value="{{ setor_item.id }}" {% if setor_id == setor_item.id|stringformat:"s" %}selected{% endif %}>
+                      {{ setor_item.nome }}
+                    </option>
+                  {% endfor %}
+                </select>
+              </div>
+
+              <div class="form-group">
+                <label>Tipo</label>
+                <select name="tipo">
+                  <option value="">Todos</option>
+
+                  {% for valor, nome in tipos %}
+                    <option value="{{ valor }}" {% if tipo == valor %}selected{% endif %}>
+                      {{ nome }}
+                    </option>
+                  {% endfor %}
+                </select>
+              </div>
+
+              <div class="form-group">
+                <label>Categoria</label>
+                <select name="categoria">
+                  <option value="">Todas</option>
+
+                  {% for valor, nome in categorias %}
+                    <option value="{{ valor }}" {% if categoria == valor %}selected{% endif %}>
+                      {{ nome }}
+                    </option>
+                  {% endfor %}
+                </select>
+              </div>
+
+              <div class="form-group">
+                <label>Status</label>
+                <select name="status">
+                  <option value="">Todos</option>
+
+                  {% for valor, nome in status_choices %}
+                    <option value="{{ valor }}" {% if status == valor %}selected{% endif %}>
+                      {{ nome }}
+                    </option>
+                  {% endfor %}
+                </select>
+              </div>
+
+              <div class="form-group">
+                <label>Vencimento</label>
+                <select name="vencimento">
+                  <option value="">Todos</option>
+                  <option value="proximos" {% if vencimento == "proximos" %}selected{% endif %}>
+                    Vencem em até 30 dias
+                  </option>
+                  <option value="vencidos" {% if vencimento == "vencidos" %}selected{% endif %}>
+                    Vencidos
+                  </option>
+                  <option value="sem_validade" {% if vencimento == "sem_validade" %}selected{% endif %}>
+                    Sem validade
+                  </option>
+                </select>
+              </div>
+
+              {% if pode_gerenciar_documentos %}
+                <div class="form-group">
+                  <label>Ativo/Inativo</label>
+                  <select name="ativo">
+                    <option value="">Todos</option>
+                    <option value="ativo" {% if ativo == "ativo" %}selected{% endif %}>
+                      Ativos
+                    </option>
+                    <option value="inativo" {% if ativo == "inativo" %}selected{% endif %}>
+                      Inativos
+                    </option>
+                  </select>
+                </div>
+              {% endif %}
+
+            </div>
+
+            <div style="display:flex; gap:10px; flex-wrap:wrap; margin-top: 12px;">
+              <button type="submit" class="btn-login" style="max-width: 180px;">
+                Consultar
+              </button>
+
+              <a href="/portal/modulos/documentos/" class="logout-btn" style="text-decoration:none; display:flex; align-items:center;">
+                Limpar filtros
+              </a>
+            </div>
+          </form>
+        </div>
+      </section>
+
+      <section class="category-section">
+        <div class="category-header">
+          <h2>Documentos disponíveis</h2>
+          <p>Arquivos liberados para sua unidade e perfil.</p>
+        </div>
+
+        <div class="docs-grid">
+          {% for documento in documentos %}
+            <div class="doc-card {% if not documento.ativo %}inativo{% endif %}">
+              <div class="doc-top">
+                <div class="doc-title-line">
+                  <div class="doc-icon">
+                    {% if documento.tipo == "pop" %}
+                      📋
+                    {% elif documento.tipo == "protocolo" %}
+                      🏥
+                    {% elif documento.tipo == "politica" %}
+                      📜
+                    {% elif documento.tipo == "manual" %}
+                      📘
+                    {% elif documento.tipo == "formulario" %}
+                      📝
+                    {% elif documento.tipo == "fluxo" %}
+                      🔁
+                    {% elif documento.tipo == "plano_contingencia" %}
+                      🛟
+                    {% else %}
+                      📄
+                    {% endif %}
+                  </div>
+
+                  <div>
+                    <h3>
+                      {% if documento.codigo %}
+                        {{ documento.codigo }} -
+                      {% endif %}
+                      {{ documento.titulo }}
+                    </h3>
+
+                    <div class="doc-meta">
+                      {{ documento.get_tipo_display }} • {{ documento.get_categoria_display }}
+
+                      {% if documento.unidade %}
+                        • {{ documento.unidade.sigla }}
+                      {% else %}
+                        • Geral
+                      {% endif %}
+
+                      {% if documento.unidades_compartilhadas.all %}
+                        • Compartilhado com:
+                        {% for unidade in documento.unidades_compartilhadas.all %}
+                          {{ unidade.sigla }}{% if not forloop.last %}, {% endif %}
+                        {% endfor %}
+                      {% endif %}
+
+                      {% if documento.setor %}
+                        • {{ documento.setor.nome }}
+                      {% endif %}
+
+                      {% if documento.versao %}
+                        • Versão {{ documento.versao }}
+                      {% endif %}
+                    </div>
+
+                    {% if documento.grupos_permitidos.all %}
+                      <div class="grupo-lista">
+                        {% for grupo in documento.grupos_permitidos.all %}
+                          <span class="grupo-pill">{{ grupo.name }}</span>
+                        {% endfor %}
+                      </div>
+                    {% endif %}
+                  </div>
+                </div>
+
+                <div class="doc-badges">
+                  {% if not documento.ativo %}
+                    <span class="doc-badge inativo">Inativo</span>
+                  {% endif %}
+
+                  <span class="doc-badge {% if documento.status == 'em_revisao' %}revisao{% endif %}">
+                    {{ documento.get_status_display }}
+                  </span>
+
+                  {% if documento.leitura_obrigatoria %}
+                    <span class="doc-badge">Leitura obrigatória</span>
+                  {% endif %}
+
+                  {% if documento.esta_vencido %}
+                    <span class="doc-badge vencido">Vencido</span>
+                  {% elif documento.proximo_do_vencimento %}
+                    <span class="doc-badge proximo">
+                      Vence em {{ documento.dias_para_vencer }} dia(s)
+                    </span>
+                  {% endif %}
+                </div>
+              </div>
+
+              {% if documento.descricao %}
+                <div class="doc-description">
+                  {{ documento.descricao }}
+                </div>
+              {% endif %}
+
+              <div class="doc-meta" style="margin-top: 12px;">
+                Publicado em {{ documento.data_publicacao|date:"d/m/Y" }}
+
+                {% if documento.data_validade %}
+                  • Validade {{ documento.data_validade|date:"d/m/Y" }}
+                {% else %}
+                  • Sem validade definida
+                {% endif %}
+
+                {% if documento.responsavel %}
+                  • Responsável: {{ documento.responsavel }}
+                {% endif %}
+              </div>
+
+              <div class="doc-actions">
+                {% if documento.arquivo %}
+                  <a class="doc-action" href="{{ documento.arquivo.url }}" target="_blank">
+                    Abrir documento
+                  </a>
+                {% endif %}
+
+                {% if pode_gerenciar_documentos %}
+                  <a class="doc-action" href="/portal/modulos/documentos/editar/{{ documento.id }}/">
+                    Editar
+                  </a>
+
+                  {% if documento.ativo %}
+                    <form method="post" action="/portal/modulos/documentos/inativar/{{ documento.id }}/" style="display:inline;">
+                      {% csrf_token %}
+                      <button type="submit" class="doc-action-danger">
+                        Inativar
+                      </button>
+                    </form>
+                  {% else %}
+                    <form method="post" action="/portal/modulos/documentos/reativar/{{ documento.id }}/" style="display:inline;">
+                      {% csrf_token %}
+                      <button type="submit" class="doc-action">
+                        Reativar
+                      </button>
+                    </form>
+                  {% endif %}
+                {% endif %}
+              </div>
+            </div>
+          {% empty %}
+            <div class="notice">
+              <div class="notice-icon">🔎</div>
+
+              <div>
+                <h3>Nenhum documento encontrado</h3>
+                <p>
+                  Não há documentos cadastrados para os filtros informados ou para seu perfil de acesso.
+                </p>
+              </div>
+            </div>
+          {% endfor %}
+        </div>
+      </section>
+
+      <footer class="footer">
+        <span>Documentos / Protocolos ONA • Intranet Grupo São Francisco</span>
+        <span>Tecnologia da Informação • Ambiente interno</span>
+      </footer>
+
+    </main>
+  </div>
+
+  <script src="{% static 'core/js/home.js' %}"></script>
+</body>
+</html>

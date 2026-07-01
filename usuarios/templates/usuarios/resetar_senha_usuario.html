@@ -1,0 +1,419 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>Resetar Senha | Administração</title>
+
+  <link rel="stylesheet" href="{% static 'core/css/home.css' %}">
+
+  <style>
+    .reset-page {
+      width: min(820px, calc(100% - 32px));
+      margin: 0 auto;
+      padding: 28px 0 36px;
+      color: #ffffff;
+    }
+
+    .reset-hero,
+    .reset-card {
+      background:
+        radial-gradient(circle at top left, rgba(45, 212, 191, 0.12), transparent 32%),
+        rgba(255, 255, 255, 0.04);
+      border: 1px solid rgba(255, 255, 255, 0.10);
+      border-radius: 24px;
+      box-shadow: 0 14px 34px rgba(0, 0, 0, 0.20);
+    }
+
+    .reset-hero {
+      padding: 24px;
+      margin-bottom: 18px;
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+
+    .reset-eyebrow {
+      color: #2dd4bf;
+      font-size: 12px;
+      font-weight: 900;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      margin-bottom: 8px;
+    }
+
+    .reset-hero h1 {
+      margin: 0 0 8px 0;
+      color: #ffffff;
+      font-size: 30px;
+      line-height: 1.15;
+    }
+
+    .reset-hero p {
+      margin: 0;
+      color: rgba(255, 255, 255, 0.68);
+      font-size: 14px;
+      line-height: 1.55;
+      max-width: 640px;
+    }
+
+    .btn-link {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 999px;
+      padding: 10px 14px;
+      border: 1px solid rgba(45, 212, 191, 0.28);
+      background: rgba(45, 212, 191, 0.10);
+      color: #2dd4bf;
+      text-decoration: none;
+      font-size: 13px;
+      font-weight: 900;
+      transition: 0.2s ease;
+      white-space: nowrap;
+    }
+
+    .btn-link:hover {
+      background: rgba(45, 212, 191, 0.18);
+      border-color: rgba(45, 212, 191, 0.52);
+      transform: translateY(-1px);
+    }
+
+    .messages-box {
+      display: grid;
+      gap: 8px;
+      margin-bottom: 16px;
+    }
+
+    .message-alert {
+      border-radius: 16px;
+      padding: 12px 14px;
+      font-size: 13px;
+      font-weight: 800;
+      border: 1px solid rgba(255, 255, 255, 0.12);
+    }
+
+    .message-alert.success {
+      color: #2dd4bf;
+      background: rgba(45, 212, 191, 0.10);
+      border-color: rgba(45, 212, 191, 0.28);
+    }
+
+    .message-alert.error {
+      color: #fecaca;
+      background: rgba(239, 68, 68, 0.14);
+      border-color: rgba(239, 68, 68, 0.30);
+    }
+
+    .reset-card {
+      padding: 22px;
+    }
+
+    .user-box {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      background: rgba(0, 0, 0, 0.18);
+      border: 1px solid rgba(255, 255, 255, 0.10);
+      border-radius: 18px;
+      padding: 14px;
+      margin-bottom: 20px;
+    }
+
+    .user-avatar {
+      width: 46px;
+      height: 46px;
+      border-radius: 16px;
+      background: rgba(45, 212, 191, 0.13);
+      border: 1px solid rgba(45, 212, 191, 0.24);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #2dd4bf;
+      font-size: 18px;
+      font-weight: 950;
+      flex: 0 0 auto;
+    }
+
+    .user-box strong {
+      display: block;
+      color: #ffffff;
+      font-size: 15px;
+      margin-bottom: 4px;
+    }
+
+    .user-box span {
+      display: block;
+      color: rgba(255, 255, 255, 0.54);
+      font-size: 12px;
+      line-height: 1.4;
+    }
+
+    .form-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+      margin-bottom: 18px;
+    }
+
+    .field label {
+      display: block;
+      color: rgba(255, 255, 255, 0.68);
+      font-size: 12px;
+      font-weight: 850;
+      margin-bottom: 7px;
+    }
+
+    .field input {
+      width: 100%;
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      background: rgba(0, 0, 0, 0.24);
+      color: #ffffff;
+      border-radius: 15px;
+      padding: 12px 13px;
+      outline: none;
+      font-size: 13px;
+      box-sizing: border-box;
+    }
+
+    .field input:focus {
+      border-color: rgba(45, 212, 191, 0.60);
+      box-shadow: 0 0 0 3px rgba(45, 212, 191, 0.10);
+    }
+
+    .hint {
+      display: block;
+      color: rgba(255, 255, 255, 0.42);
+      font-size: 11px;
+      line-height: 1.4;
+      margin-top: 6px;
+    }
+
+    .checks-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+
+    .check-card {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      background: rgba(0, 0, 0, 0.18);
+      border: 1px solid rgba(255, 255, 255, 0.10);
+      border-radius: 16px;
+      padding: 12px;
+      cursor: pointer;
+    }
+
+    .check-card input {
+      margin-top: 2px;
+    }
+
+    .check-card strong {
+      display: block;
+      color: #ffffff;
+      font-size: 13px;
+      margin-bottom: 3px;
+    }
+
+    .check-card span {
+      display: block;
+      color: rgba(255, 255, 255, 0.54);
+      font-size: 11px;
+      line-height: 1.4;
+    }
+
+    .form-footer {
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 10px;
+      flex-wrap: wrap;
+      padding-top: 18px;
+      border-top: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    .btn-cancel,
+    .btn-save {
+      border-radius: 999px;
+      padding: 12px 18px;
+      font-size: 13px;
+      font-weight: 950;
+      cursor: pointer;
+      transition: 0.2s ease;
+      text-decoration: none;
+      border: 1px solid rgba(255, 255, 255, 0.12);
+    }
+
+    .btn-cancel {
+      color: rgba(255, 255, 255, 0.72);
+      background: rgba(255, 255, 255, 0.05);
+    }
+
+    .btn-save {
+      border: 0;
+      background: #2dd4bf;
+      color: #06211d;
+    }
+
+    .btn-cancel:hover,
+    .btn-save:hover {
+      transform: translateY(-1px);
+      filter: brightness(1.06);
+    }
+
+    @media (max-width: 700px) {
+      .form-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .reset-page {
+        width: calc(100% - 20px);
+        padding-top: 16px;
+      }
+
+      .reset-hero h1 {
+        font-size: 24px;
+      }
+
+      .form-footer {
+        justify-content: stretch;
+      }
+
+      .btn-cancel,
+      .btn-save {
+        width: 100%;
+        text-align: center;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
+
+  <div id="portal-screen" style="display: block;">
+    <header>
+      <div class="logo">
+        {% if request.user.unidade.sigla == "HSFVF" or request.user.unidade.sigla == "HSFMA" %}
+          <img src="{% static 'core/img/logo-sagrada-familia.png' %}" alt="Logo" class="header-unit-logo">
+        {% else %}
+          <img src="{% static 'core/img/logo-hsf.png' %}" alt="Logo" class="header-unit-logo">
+        {% endif %}
+
+        <div>
+          <span>Intranet Grupo São Francisco</span>
+          <span class="unit-tag">{{ request.user.unidade.nome }}</span>
+        </div>
+      </div>
+
+      <div class="header-right">
+        <a class="logout-btn" href="/conversas/">💬 Conversas</a>
+        <a class="logout-btn" href="/portal/administracao/usuarios/">Usuários</a>
+        <a class="logout-btn" href="/portal/">Voltar ao portal</a>
+        <button class="logout-btn" onclick="doLogout()">Sair</button>
+      </div>
+    </header>
+
+    <main class="reset-page">
+
+      {% if messages %}
+        <div class="messages-box">
+          {% for message in messages %}
+            <div class="message-alert {{ message.tags }}">
+              {{ message }}
+            </div>
+          {% endfor %}
+        </div>
+      {% endif %}
+
+      <section class="reset-hero">
+        <div>
+          <div class="reset-eyebrow">Administração</div>
+          <h1>Resetar senha</h1>
+          <p>
+            Defina uma nova senha para o usuário selecionado.
+            Após salvar, o usuário já poderá acessar com a nova senha.
+          </p>
+        </div>
+
+        <a class="btn-link" href="/portal/administracao/usuarios/">
+          Voltar para usuários
+        </a>
+      </section>
+
+      <section class="reset-card">
+        <div class="user-box">
+          <div class="user-avatar">
+            {{ usuario_editado.get_full_name|default:usuario_editado.username|slice:":1"|upper }}
+          </div>
+
+          <div>
+            <strong>{{ usuario_editado.get_full_name|default:usuario_editado.username }}</strong>
+            <span>{{ usuario_editado.username }}</span>
+            {% if usuario_editado.email %}
+              <span>{{ usuario_editado.email }}</span>
+            {% endif %}
+          </div>
+        </div>
+
+        <form method="post" action="/portal/administracao/usuarios/resetar-senha/{{ usuario_editado.id }}/">
+          {% csrf_token %}
+
+          <div class="form-grid">
+            <div class="field">
+              <label for="nova_senha">Nova senha *</label>
+              <input type="password" id="nova_senha" name="nova_senha" required>
+              <span class="hint">Mínimo de 6 caracteres nesta etapa.</span>
+            </div>
+
+            <div class="field">
+              <label for="confirmar_senha">Confirmar nova senha *</label>
+              <input type="password" id="confirmar_senha" name="confirmar_senha" required>
+            </div>
+          </div>
+
+          <div class="checks-grid">
+            <label class="check-card">
+              <input type="checkbox" name="primeiro_acesso" {% if primeiro_acesso %}checked{% endif %}>
+              <span>
+                <strong>Marcar como primeiro acesso</strong>
+                <span>Útil quando quiser tratar esse usuário como novo acesso.</span>
+              </span>
+            </label>
+
+            <label class="check-card">
+              <input type="checkbox" name="is_active" {% if is_active %}checked{% endif %}>
+              <span>
+                <strong>Manter usuário ativo</strong>
+                <span>Se desmarcar, o usuário não conseguirá acessar a intranet.</span>
+              </span>
+            </label>
+          </div>
+
+          <div class="form-footer">
+            <a class="btn-cancel" href="/portal/administracao/usuarios/">
+              Cancelar
+            </a>
+
+            <button class="btn-save" type="submit">
+              Salvar nova senha
+            </button>
+          </div>
+        </form>
+      </section>
+
+    </main>
+  </div>
+
+  <script src="{% static 'core/js/home.js' %}"></script>
+</body>
+</html>

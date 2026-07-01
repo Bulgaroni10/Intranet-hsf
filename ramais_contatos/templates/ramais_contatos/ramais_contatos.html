@@ -1,0 +1,623 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>Ramais e Contatos | Intranet</title>
+
+  <link rel="stylesheet" href="{% static 'core/css/home.css' %}">
+
+  <style>
+    .top-actions {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-bottom: 24px;
+    }
+
+    .btn-action {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 10px 14px;
+      border-radius: 10px;
+      border: 1px solid rgba(148, 163, 184, 0.3);
+      background: rgba(15, 23, 42, 0.75);
+      color: #e5e7eb;
+      text-decoration: none;
+      font-size: 13px;
+      font-weight: 800;
+      cursor: pointer;
+    }
+
+    .btn-action:hover {
+      border-color: #2dd4bf;
+      color: #2dd4bf;
+    }
+
+    .btn-primary {
+      background: #2dd4bf;
+      color: #06201d;
+      border-color: #2dd4bf;
+    }
+
+    .btn-primary:hover {
+      color: #06201d;
+      filter: brightness(1.05);
+    }
+
+    .btn-warning {
+      background: rgba(120, 53, 15, 0.75);
+      color: #fde68a;
+      border-color: rgba(251, 191, 36, 0.35);
+    }
+
+    .btn-danger {
+      background: rgba(127, 29, 29, 0.75);
+      color: #fecaca;
+      border-color: rgba(248, 113, 113, 0.35);
+    }
+
+    .btn-success {
+      background: rgba(22, 101, 52, 0.75);
+      color: #bbf7d0;
+      border-color: rgba(34, 197, 94, 0.35);
+    }
+
+    .summary-grid {
+      display: grid;
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+      gap: 14px;
+      margin-bottom: 26px;
+    }
+
+    .summary-card {
+      background: rgba(31, 31, 31, 0.96);
+      border: 1px solid rgba(148, 163, 184, 0.2);
+      border-radius: 16px;
+      padding: 18px;
+    }
+
+    .summary-card span {
+      display: block;
+      color: #94a3b8;
+      font-size: 12px;
+      font-weight: 800;
+      text-transform: uppercase;
+      margin-bottom: 8px;
+    }
+
+    .summary-card strong {
+      display: block;
+      color: #ffffff;
+      font-size: 26px;
+    }
+
+    .messages-box {
+      display: grid;
+      gap: 10px;
+      margin-bottom: 18px;
+    }
+
+    .message-item {
+      border-radius: 14px;
+      padding: 12px 14px;
+      border: 1px solid rgba(148, 163, 184, 0.22);
+      background: rgba(31, 31, 31, 0.96);
+      color: #e5e7eb;
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    .message-success {
+      border-color: rgba(34, 197, 94, 0.35);
+      background: rgba(22, 101, 52, 0.22);
+      color: #bbf7d0;
+    }
+
+    .message-error {
+      border-color: rgba(248, 113, 113, 0.35);
+      background: rgba(127, 29, 29, 0.22);
+      color: #fecaca;
+    }
+
+    .contatos-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 16px;
+    }
+
+    .contato-card {
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid rgba(255, 255, 255, 0.10);
+      border-radius: 18px;
+      padding: 18px;
+      transition: all 0.2s ease;
+      position: relative;
+    }
+
+    .contato-card:hover {
+      transform: translateY(-2px);
+      border-color: rgba(45, 212, 191, 0.55);
+      background: rgba(45, 212, 191, 0.08);
+      box-shadow: 0 14px 34px rgba(0, 0, 0, 0.25);
+    }
+
+    .contato-card.inativo {
+      opacity: 0.62;
+      border-color: rgba(248, 113, 113, 0.25);
+    }
+
+    .contato-top {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+
+    .contato-icon {
+      width: 42px;
+      height: 42px;
+      border-radius: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(45, 212, 191, 0.12);
+      border: 1px solid rgba(45, 212, 191, 0.22);
+      font-size: 22px;
+      flex: 0 0 auto;
+    }
+
+    .contato-badges {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+    }
+
+    .contato-badge {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      color: #2dd4bf;
+      background: rgba(45, 212, 191, 0.10);
+      border: 1px solid rgba(45, 212, 191, 0.22);
+      border-radius: 999px;
+      padding: 6px 10px;
+    }
+
+    .contato-badge-inativo {
+      color: #fecaca;
+      background: rgba(127, 29, 29, 0.35);
+      border-color: rgba(248, 113, 113, 0.35);
+    }
+
+    .contato-card h3 {
+      color: #ffffff;
+      font-size: 17px;
+      margin: 0 0 6px 0;
+      line-height: 1.3;
+    }
+
+    .contato-sub {
+      color: rgba(255, 255, 255, 0.70);
+      font-size: 13px;
+      margin-bottom: 14px;
+    }
+
+    .contato-info {
+      display: grid;
+      gap: 8px;
+      font-size: 13px;
+      color: rgba(255, 255, 255, 0.78);
+    }
+
+    .contato-info strong {
+      color: #ffffff;
+    }
+
+    .contato-actions {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-top: 14px;
+    }
+
+    .contato-action {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 999px;
+      border: 1px solid rgba(45, 212, 191, 0.24);
+      background: rgba(45, 212, 191, 0.10);
+      color: #2dd4bf;
+      padding: 8px 12px;
+      font-size: 12px;
+      font-weight: 700;
+      text-decoration: none;
+    }
+
+    .contato-action:hover {
+      background: rgba(45, 212, 191, 0.18);
+    }
+
+    .contador-box {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      color: #2dd4bf;
+      background: rgba(45, 212, 191, 0.10);
+      border: 1px solid rgba(45, 212, 191, 0.22);
+      border-radius: 999px;
+      padding: 8px 12px;
+      font-size: 12px;
+      font-weight: 700;
+      margin-top: 10px;
+    }
+
+    @media (max-width: 1000px) {
+      .summary-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
+
+  <div id="portal-screen" style="display: block;">
+    <header>
+      <div class="logo">
+        {% if request.user.unidade %}
+          {% if request.user.unidade.sigla == "HSFVF" or request.user.unidade.sigla == "HSFMA" %}
+            <img src="{% static 'core/img/logo-sagrada-familia.png' %}" alt="Logo" class="header-unit-logo">
+          {% else %}
+            <img src="{% static 'core/img/logo-hsf.png' %}" alt="Logo" class="header-unit-logo">
+          {% endif %}
+        {% else %}
+          <img src="{% static 'core/img/logo-hsf.png' %}" alt="Logo" class="header-unit-logo">
+        {% endif %}
+
+        <div>
+          <span>Intranet Grupo São Francisco</span>
+          <span class="unit-tag">
+            {% if request.user.unidade %}
+              {{ request.user.unidade.nome }}
+            {% else %}
+              Sem unidade vinculada
+            {% endif %}
+          </span>
+        </div>
+      </div>
+
+      <div class="header-right">
+        <a class="logout-btn" href="/portal/">Voltar ao portal</a>
+        <button class="logout-btn" onclick="doLogout()">Sair</button>
+      </div>
+    </header>
+
+    <main class="portal-shell">
+
+      <div class="top-actions">
+        <a class="btn-action" href="/portal/">← Voltar ao portal</a>
+
+        {% if pode_gerenciar %}
+          <a class="btn-action btn-primary" href="/portal/modulos/ramais-contatos/novo/">
+            + Novo ramal / contato
+          </a>
+        {% endif %}
+      </div>
+
+      {% if messages %}
+        <div class="messages-box">
+          {% for message in messages %}
+            <div class="message-item {% if message.tags == 'success' %}message-success{% elif message.tags == 'error' %}message-error{% endif %}">
+              {{ message }}
+            </div>
+          {% endfor %}
+        </div>
+      {% endif %}
+
+      <section class="hero">
+        <div class="hero-main">
+          <div class="hero-eyebrow">Comunicação interna</div>
+
+          <h1>Ramais e Contatos</h1>
+
+          <p class="welcome-sub">
+            Consulte ramais, telefones, e-mails e contatos internos por unidade, setor ou serviço.
+          </p>
+
+          <div class="contador-box">
+            {{ total_contatos }} contato(s) encontrado(s)
+          </div>
+        </div>
+
+        <aside class="support-card">
+          <h3>Consulta rápida</h3>
+
+          <p>
+            Pesquise por setor, nome, ramal, telefone, e-mail, WhatsApp ou localização.
+          </p>
+
+          <div class="support-actions">
+            <button class="support-action">
+              Dica
+              <small>Use o filtro de setor para encontrar rapidamente áreas como TI, Recepção e Faturamento.</small>
+            </button>
+          </div>
+        </aside>
+      </section>
+
+      <section class="summary-grid">
+        <div class="summary-card">
+          <span>Total</span>
+          <strong>{{ total_contatos }}</strong>
+        </div>
+
+        <div class="summary-card">
+          <span>Ativos</span>
+          <strong>{{ total_ativos }}</strong>
+        </div>
+
+        <div class="summary-card">
+          <span>Gerais</span>
+          <strong>{{ total_gerais }}</strong>
+        </div>
+
+        <div class="summary-card">
+          <span>Emergência</span>
+          <strong>{{ total_emergencia }}</strong>
+        </div>
+
+        {% if pode_gerenciar %}
+          <div class="summary-card">
+            <span>Inativos</span>
+            <strong>{{ total_inativos }}</strong>
+          </div>
+        {% endif %}
+      </section>
+
+      <section class="category-section">
+        <div class="category-header">
+          <h2>Filtros</h2>
+          <p>Localize contatos internos da sua unidade ou contatos gerais.</p>
+        </div>
+
+        <div class="panel-box">
+          <form method="get">
+            <div class="grid-section">
+
+              <div class="form-group">
+                <label>Busca</label>
+                <input
+                  type="text"
+                  name="busca"
+                  value="{{ busca }}"
+                  placeholder="Ex: TI, recepção, 1234, faturamento..."
+                >
+              </div>
+
+              <div class="form-group">
+                <label>Unidade</label>
+                <select name="unidade">
+                  <option value="">Minha unidade + Geral</option>
+                  <option value="geral" {% if unidade_id == "geral" %}selected{% endif %}>
+                    Geral / Todas as unidades
+                  </option>
+
+                  {% for unidade in unidades %}
+                    <option value="{{ unidade.id }}" {% if unidade_id == unidade.id|stringformat:"s" %}selected{% endif %}>
+                      {{ unidade.nome }}
+                    </option>
+                  {% endfor %}
+                </select>
+              </div>
+
+              <div class="form-group">
+                <label>Tipo</label>
+                <select name="tipo">
+                  <option value="">Todos</option>
+
+                  {% for valor, nome in tipos %}
+                    <option value="{{ valor }}" {% if tipo == valor %}selected{% endif %}>
+                      {{ nome }}
+                    </option>
+                  {% endfor %}
+                </select>
+              </div>
+
+              <div class="form-group">
+                <label>Setor</label>
+                <select name="setor">
+                  <option value="">Todos</option>
+
+                  {% for item in setores %}
+                    <option value="{{ item }}" {% if setor == item %}selected{% endif %}>
+                      {{ item }}
+                    </option>
+                  {% endfor %}
+                </select>
+              </div>
+
+              {% if pode_gerenciar %}
+                <div class="form-group">
+                  <label>Status</label>
+                  <select name="status">
+                    <option value="">Todos</option>
+                    <option value="ativo" {% if status == "ativo" %}selected{% endif %}>Ativos</option>
+                    <option value="inativo" {% if status == "inativo" %}selected{% endif %}>Inativos</option>
+                  </select>
+                </div>
+              {% endif %}
+
+            </div>
+
+            <div style="display:flex; gap:10px; flex-wrap:wrap; margin-top: 12px;">
+              <button type="submit" class="btn-login" style="max-width: 180px;">
+                Consultar
+              </button>
+
+              <a href="/portal/modulos/ramais-contatos/" class="logout-btn" style="text-decoration:none; display:flex; align-items:center;">
+                Limpar filtros
+              </a>
+            </div>
+          </form>
+        </div>
+      </section>
+
+      <section class="category-section">
+        <div class="category-header">
+          <h2>Contatos disponíveis</h2>
+          <p>Contatos liberados para sua unidade e contatos gerais.</p>
+        </div>
+
+        <div class="contatos-grid">
+          {% for contato in contatos %}
+            <div class="contato-card {% if not contato.ativo %}inativo{% endif %}">
+              <div class="contato-top">
+                <div class="contato-icon">
+                  {% if contato.tipo == "pessoa" %}
+                    👤
+                  {% elif contato.tipo == "servico" %}
+                    🛠️
+                  {% elif contato.tipo == "emergencia" %}
+                    🚨
+                  {% else %}
+                    ☎️
+                  {% endif %}
+                </div>
+
+                <div class="contato-badges">
+                  {% if contato.unidade %}
+                    <span class="contato-badge">{{ contato.unidade.sigla }}</span>
+                  {% else %}
+                    <span class="contato-badge">Geral</span>
+                  {% endif %}
+
+                  <span class="contato-badge">{{ contato.get_tipo_display }}</span>
+
+                  {% if not contato.ativo %}
+                    <span class="contato-badge contato-badge-inativo">Inativo</span>
+                  {% endif %}
+                </div>
+              </div>
+
+              <h3>{{ contato.nome }}</h3>
+
+              <div class="contato-sub">
+                {% if contato.setor %}
+                  {{ contato.setor }}
+                {% else %}
+                  Setor não informado
+                {% endif %}
+
+                {% if contato.cargo_funcao %}
+                  • {{ contato.cargo_funcao }}
+                {% endif %}
+              </div>
+
+              <div class="contato-info">
+                {% if contato.ramal %}
+                  <div><strong>Ramal:</strong> {{ contato.ramal }}</div>
+                {% endif %}
+
+                {% if contato.telefone %}
+                  <div><strong>Telefone:</strong> {{ contato.telefone }}</div>
+                {% endif %}
+
+                {% if contato.celular %}
+                  <div><strong>Celular:</strong> {{ contato.celular }}</div>
+                {% endif %}
+
+                {% if contato.whatsapp %}
+                  <div><strong>WhatsApp:</strong> {{ contato.whatsapp }}</div>
+                {% endif %}
+
+                {% if contato.email %}
+                  <div><strong>E-mail:</strong> {{ contato.email }}</div>
+                {% endif %}
+
+                {% if contato.localizacao %}
+                  <div><strong>Localização:</strong> {{ contato.localizacao }}</div>
+                {% endif %}
+
+                {% if contato.observacao %}
+                  <div><strong>Observação:</strong> {{ contato.observacao }}</div>
+                {% endif %}
+              </div>
+
+              <div class="contato-actions">
+                {% if contato.telefone %}
+                  <a class="contato-action" href="tel:{{ contato.telefone }}">
+                    Ligar telefone
+                  </a>
+                {% endif %}
+
+                {% if contato.celular %}
+                  <a class="contato-action" href="tel:{{ contato.celular }}">
+                    Ligar celular
+                  </a>
+                {% endif %}
+
+                {% if contato.whatsapp_para_link %}
+                  <a class="contato-action" href="https://wa.me/{{ contato.whatsapp_para_link }}" target="_blank">
+                    WhatsApp
+                  </a>
+                {% endif %}
+
+                {% if contato.email %}
+                  <a class="contato-action" href="mailto:{{ contato.email }}">
+                    Enviar e-mail
+                  </a>
+                {% endif %}
+
+                {% if pode_gerenciar %}
+                  <a class="contato-action" href="/portal/modulos/ramais-contatos/editar/{{ contato.id }}/">
+                    Editar
+                  </a>
+
+                  {% if contato.ativo %}
+                    <a class="contato-action" href="/portal/modulos/ramais-contatos/inativar/{{ contato.id }}/">
+                      Inativar
+                    </a>
+                  {% else %}
+                    <a class="contato-action" href="/portal/modulos/ramais-contatos/reativar/{{ contato.id }}/">
+                      Reativar
+                    </a>
+                  {% endif %}
+                {% endif %}
+              </div>
+            </div>
+          {% empty %}
+            <div class="notice">
+              <div class="notice-icon">🔎</div>
+
+              <div>
+                <h3>Nenhum contato encontrado</h3>
+                <p>
+                  Não há ramais ou contatos cadastrados para os filtros informados.
+                </p>
+              </div>
+            </div>
+          {% endfor %}
+        </div>
+      </section>
+
+      <footer class="footer">
+        <span>Ramais e Contatos • Intranet Grupo São Francisco</span>
+        <span>Tecnologia da Informação • Ambiente interno</span>
+      </footer>
+
+    </main>
+  </div>
+
+  <script src="{% static 'core/js/home.js' %}"></script>
+</body>
+</html>

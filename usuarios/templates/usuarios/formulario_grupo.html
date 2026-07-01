@@ -1,0 +1,290 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>{{ titulo }} | Administração</title>
+
+  <link rel="stylesheet" href="{% static 'core/css/home.css' %}">
+
+  <style>
+    .form-page {
+      width: min(760px, calc(100% - 32px));
+      margin: 0 auto;
+      padding: 28px 0 36px;
+      color: #ffffff;
+    }
+
+    .form-hero,
+    .form-card {
+      background:
+        radial-gradient(circle at top left, rgba(45, 212, 191, 0.12), transparent 32%),
+        rgba(255, 255, 255, 0.04);
+      border: 1px solid rgba(255, 255, 255, 0.10);
+      border-radius: 24px;
+      box-shadow: 0 14px 34px rgba(0, 0, 0, 0.20);
+    }
+
+    .form-hero {
+      padding: 24px;
+      margin-bottom: 18px;
+      display: flex;
+      justify-content: space-between;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+
+    .form-eyebrow {
+      color: #2dd4bf;
+      font-size: 12px;
+      font-weight: 900;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      margin-bottom: 8px;
+    }
+
+    .form-hero h1 {
+      margin: 0 0 8px 0;
+      color: #ffffff;
+      font-size: 30px;
+      line-height: 1.15;
+    }
+
+    .form-hero p {
+      margin: 0;
+      color: rgba(255, 255, 255, 0.68);
+      font-size: 14px;
+      line-height: 1.55;
+      max-width: 560px;
+    }
+
+    .btn-link {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 999px;
+      padding: 10px 14px;
+      border: 1px solid rgba(45, 212, 191, 0.28);
+      background: rgba(45, 212, 191, 0.10);
+      color: #2dd4bf;
+      text-decoration: none;
+      font-size: 13px;
+      font-weight: 900;
+      transition: 0.2s ease;
+      white-space: nowrap;
+    }
+
+    .btn-link:hover {
+      background: rgba(45, 212, 191, 0.18);
+      border-color: rgba(45, 212, 191, 0.52);
+      transform: translateY(-1px);
+    }
+
+    .messages-box {
+      display: grid;
+      gap: 8px;
+      margin-bottom: 16px;
+    }
+
+    .message-alert {
+      border-radius: 16px;
+      padding: 12px 14px;
+      font-size: 13px;
+      font-weight: 800;
+      border: 1px solid rgba(255, 255, 255, 0.12);
+    }
+
+    .message-alert.error {
+      color: #fecaca;
+      background: rgba(239, 68, 68, 0.14);
+      border-color: rgba(239, 68, 68, 0.30);
+    }
+
+    .form-card {
+      padding: 22px;
+    }
+
+    .field {
+      margin-bottom: 18px;
+    }
+
+    .field label {
+      display: block;
+      color: rgba(255, 255, 255, 0.68);
+      font-size: 12px;
+      font-weight: 850;
+      margin-bottom: 7px;
+    }
+
+    .field input {
+      width: 100%;
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      background: rgba(0, 0, 0, 0.24);
+      color: #ffffff;
+      border-radius: 15px;
+      padding: 12px 13px;
+      outline: none;
+      font-size: 13px;
+      box-sizing: border-box;
+    }
+
+    .field input:focus {
+      border-color: rgba(45, 212, 191, 0.60);
+      box-shadow: 0 0 0 3px rgba(45, 212, 191, 0.10);
+    }
+
+    .hint-box {
+      background: rgba(249, 115, 22, 0.10);
+      border: 1px solid rgba(249, 115, 22, 0.28);
+      color: #fed7aa;
+      border-radius: 16px;
+      padding: 13px 14px;
+      font-size: 12px;
+      line-height: 1.5;
+      margin-bottom: 20px;
+    }
+
+    .form-footer {
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+      flex-wrap: wrap;
+      padding-top: 18px;
+      border-top: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    .btn-cancel,
+    .btn-save {
+      border-radius: 999px;
+      padding: 12px 18px;
+      font-size: 13px;
+      font-weight: 950;
+      cursor: pointer;
+      transition: 0.2s ease;
+      text-decoration: none;
+      border: 1px solid rgba(255, 255, 255, 0.12);
+    }
+
+    .btn-cancel {
+      color: rgba(255, 255, 255, 0.72);
+      background: rgba(255, 255, 255, 0.05);
+    }
+
+    .btn-save {
+      border: 0;
+      background: #2dd4bf;
+      color: #06211d;
+    }
+
+    .btn-cancel:hover,
+    .btn-save:hover {
+      transform: translateY(-1px);
+      filter: brightness(1.06);
+    }
+
+    @media (max-width: 700px) {
+      .form-page {
+        width: calc(100% - 20px);
+        padding-top: 16px;
+      }
+
+      .form-hero h1 {
+        font-size: 24px;
+      }
+
+      .form-footer {
+        justify-content: stretch;
+      }
+
+      .btn-cancel,
+      .btn-save {
+        width: 100%;
+        text-align: center;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
+
+  <div id="portal-screen" style="display: block;">
+    <header>
+      <div class="logo">
+        {% if request.user.unidade.sigla == "HSFVF" or request.user.unidade.sigla == "HSFMA" %}
+          <img src="{% static 'core/img/logo-sagrada-familia.png' %}" alt="Logo" class="header-unit-logo">
+        {% else %}
+          <img src="{% static 'core/img/logo-hsf.png' %}" alt="Logo" class="header-unit-logo">
+        {% endif %}
+
+        <div>
+          <span>Intranet Grupo São Francisco</span>
+          <span class="unit-tag">{{ request.user.unidade.nome }}</span>
+        </div>
+      </div>
+
+      <div class="header-right">
+        <a class="logout-btn" href="/portal/administracao/grupos/">Grupos</a>
+        <a class="logout-btn" href="/portal/">Voltar ao portal</a>
+        <button class="logout-btn" onclick="doLogout()">Sair</button>
+      </div>
+    </header>
+
+    <main class="form-page">
+
+      {% if messages %}
+        <div class="messages-box">
+          {% for message in messages %}
+            <div class="message-alert {{ message.tags }}">{{ message }}</div>
+          {% endfor %}
+        </div>
+      {% endif %}
+
+      <section class="form-hero">
+        <div>
+          <div class="form-eyebrow">Administração</div>
+          <h1>{{ titulo }}</h1>
+          <p>{{ subtitulo }}</p>
+        </div>
+
+        <a class="btn-link" href="/portal/administracao/grupos/">Voltar</a>
+      </section>
+
+      <section class="form-card">
+        <form method="post" action="{{ url_salvar }}">
+          {% csrf_token %}
+
+          <div class="field">
+            <label for="name">Nome do grupo *</label>
+            <input
+              type="text"
+              id="name"
+              name="name"
+              value="{{ form_data.name|default:'' }}"
+              placeholder="Ex: TI Suporte"
+              required
+            >
+          </div>
+
+          <div class="hint-box">
+            Use nomes claros, como Recepção, Enfermagem, Qualidade, TI Suporte, TI Administrador, Gestão, Diretoria.
+            Depois você pode vincular usuários a esse grupo pela tela de edição do usuário.
+          </div>
+
+          <div class="form-footer">
+            <a class="btn-cancel" href="/portal/administracao/grupos/">Cancelar</a>
+            <button class="btn-save" type="submit">Salvar grupo</button>
+          </div>
+        </form>
+      </section>
+
+    </main>
+  </div>
+
+  <script src="{% static 'core/js/home.js' %}"></script>
+</body>
+</html>

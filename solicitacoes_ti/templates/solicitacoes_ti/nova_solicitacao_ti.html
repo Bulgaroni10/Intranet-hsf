@@ -1,0 +1,282 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>Nova Solicitação de TI | Intranet</title>
+
+  <link rel="stylesheet" href="{% static 'core/css/home.css' %}">
+
+  <style>
+    body { background: #111111; color: #f8fafc; margin: 0; font-family: Arial, sans-serif; }
+    .page { max-width: 980px; margin: 0 auto; padding: 28px 24px 50px; }
+    .top-actions { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 24px; }
+
+    .btn-link, .btn-submit {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 10px 14px;
+      border-radius: 10px;
+      border: 1px solid rgba(148, 163, 184, 0.3);
+      background: rgba(15, 23, 42, 0.75);
+      color: #e5e7eb;
+      text-decoration: none;
+      font-size: 13px;
+      font-weight: 800;
+      cursor: pointer;
+    }
+
+    .btn-link:hover { border-color: #2dd4bf; color: #2dd4bf; }
+    .btn-submit { background: #2dd4bf; color: #06201d; border-color: #2dd4bf; width: 230px; }
+    .btn-submit:hover { filter: brightness(1.05); }
+
+    .hero-main, .form-card, .notice {
+      background: rgba(31, 31, 31, 0.96);
+      border: 1px solid rgba(148, 163, 184, 0.2);
+      border-radius: 16px;
+      padding: 22px;
+    }
+
+    .hero-main { margin-bottom: 22px; }
+
+    .eyebrow {
+      color: #2dd4bf;
+      font-size: 12px;
+      font-weight: 900;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      margin-bottom: 8px;
+    }
+
+    h1 { margin: 0 0 10px; font-size: 32px; color: #ffffff; }
+    p { color: #cbd5e1; line-height: 1.5; }
+
+    .notice {
+      border-color: rgba(248, 113, 113, 0.35);
+      background: rgba(127, 29, 29, 0.25);
+      margin-bottom: 18px;
+    }
+
+    .notice h3 { margin: 0 0 6px; color: #fecaca; }
+
+    .form-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 16px;
+    }
+
+    .form-group.full { grid-column: 1 / -1; }
+
+    .form-group label {
+      display: block;
+      color: #cbd5e1;
+      font-size: 12px;
+      font-weight: 800;
+      text-transform: uppercase;
+      margin-bottom: 7px;
+    }
+
+    .form-group input, .form-group select, .form-group textarea {
+      width: 100%;
+      box-sizing: border-box;
+      border: 1px solid rgba(148, 163, 184, 0.28);
+      background: #2a2a2a;
+      color: #ffffff;
+      border-radius: 10px;
+      padding: 12px;
+      outline: none;
+      font-family: Arial, sans-serif;
+    }
+
+    .form-group textarea { resize: vertical; }
+
+    .form-group input:focus, .form-group select:focus, .form-group textarea:focus {
+      border-color: #2dd4bf;
+      box-shadow: 0 0 0 2px rgba(45, 212, 191, 0.15);
+    }
+
+    .help-text { margin-top: 6px; color: #94a3b8; font-size: 12px; }
+    .form-actions { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 20px; }
+
+    .footer {
+      border-top: 1px solid rgba(148, 163, 184, 0.16);
+      margin-top: 26px;
+      padding-top: 14px;
+      display: flex;
+      justify-content: space-between;
+      color: #94a3b8;
+      font-size: 12px;
+    }
+
+    @media (max-width: 800px) {
+      .form-grid { grid-template-columns: 1fr; }
+      .btn-submit { width: 100%; }
+    }
+  </style>
+</head>
+
+<body>
+
+  <header>
+    <div class="logo">
+      {% if request.user.unidade %}
+        {% if request.user.unidade.sigla == "HSFVF" or request.user.unidade.sigla == "HSFMA" %}
+          <img src="{% static 'core/img/logo-sagrada-familia.png' %}" alt="Logo" class="header-unit-logo">
+        {% else %}
+          <img src="{% static 'core/img/logo-hsf.png' %}" alt="Logo" class="header-unit-logo">
+        {% endif %}
+      {% else %}
+        <img src="{% static 'core/img/logo-hsf.png' %}" alt="Logo" class="header-unit-logo">
+      {% endif %}
+
+      <div>
+        <span>Intranet Grupo São Francisco</span>
+        <span class="unit-tag">
+          {% if request.user.unidade %}
+            {{ request.user.unidade.nome }}
+          {% else %}
+            Sem unidade vinculada
+          {% endif %}
+        </span>
+      </div>
+    </div>
+
+    <div class="header-right">
+      <a class="logout-btn" href="/portal/modulos/solicitacoes-ti/">Solicitações</a>
+      <a class="logout-btn" href="/portal/">Portal</a>
+      <button class="logout-btn" onclick="doLogout()">Sair</button>
+    </div>
+  </header>
+
+  <main class="page">
+
+    <div class="top-actions">
+      <a class="btn-link" href="/portal/modulos/solicitacoes-ti/">← Voltar para solicitações</a>
+      <a class="btn-link" href="/portal/">Voltar ao portal</a>
+    </div>
+
+    <section class="hero-main">
+      <div class="eyebrow">Nova solicitação</div>
+      <h1>Abrir solicitação interna de TI</h1>
+      <p>
+        Descreva a necessidade com o máximo de informações possível para agilizar o atendimento.
+      </p>
+    </section>
+
+    {% if erro %}
+      <section class="notice">
+        <h3>Atenção</h3>
+        <p>{{ erro }}</p>
+      </section>
+    {% endif %}
+
+    <section class="form-card">
+      <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+
+        <div class="form-grid">
+
+          <div class="form-group full">
+            <label>Título</label>
+            <input
+              type="text"
+              name="titulo"
+              placeholder="Ex: Liberar acesso ao MV para novo colaborador"
+              required
+            >
+          </div>
+
+          <div class="form-group">
+            <label>Tipo</label>
+            <select name="tipo" required>
+              <option value="">Selecione</option>
+              {% for valor, nome in tipos %}
+                <option value="{{ valor }}">{{ nome }}</option>
+              {% endfor %}
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label>Prioridade</label>
+            <select name="prioridade" required>
+              {% for valor, nome in prioridades %}
+                <option value="{{ valor }}" {% if valor == "normal" %}selected{% endif %}>{{ nome }}</option>
+              {% endfor %}
+            </select>
+          </div>
+
+          {% if pode_gerenciar %}
+            <div class="form-group">
+              <label>Unidade</label>
+              <select name="unidade">
+                <option value="">Usar minha unidade</option>
+                {% for unidade in unidades %}
+                  <option value="{{ unidade.id }}">{{ unidade.sigla }} - {{ unidade.nome }}</option>
+                {% endfor %}
+              </select>
+            </div>
+          {% endif %}
+
+          <div class="form-group">
+            <label>Setor</label>
+            <select name="setor">
+              <option value="">Selecione, se aplicável</option>
+              {% for setor in setores %}
+                <option value="{{ setor.id }}">{{ setor.nome }}</option>
+              {% endfor %}
+            </select>
+          </div>
+
+          <div class="form-group full">
+            <label>Equipamento / referência</label>
+            <input
+              type="text"
+              name="equipamento"
+              placeholder="Ex: P000500, impressora recepção, ramal 1234, usuário João, IP 172.30..."
+            >
+            <div class="help-text">
+              Campo opcional, mas ajuda a TI a localizar o recurso.
+            </div>
+          </div>
+
+          <div class="form-group full">
+            <label>Descrição da solicitação</label>
+            <textarea
+              name="descricao"
+              rows="7"
+              placeholder="Descreva o problema, necessidade, sistema envolvido, usuário impactado e urgência."
+              required
+            ></textarea>
+          </div>
+
+          <div class="form-group full">
+            <label>Anexo</label>
+            <input type="file" name="anexo">
+            <div class="help-text">
+              Opcional. Use para anexar print do erro, documento ou evidência.
+            </div>
+          </div>
+
+        </div>
+
+        <div class="form-actions">
+          <button type="submit" class="btn-submit">Abrir solicitação</button>
+          <a class="btn-link" href="/portal/modulos/solicitacoes-ti/">Cancelar</a>
+        </div>
+      </form>
+    </section>
+
+    <footer class="footer">
+      <span>Solicitações Internas de TI • Nova solicitação</span>
+      <span>Tecnologia da Informação • Ambiente interno</span>
+    </footer>
+
+  </main>
+
+  <script src="{% static 'core/js/home.js' %}"></script>
+</body>
+</html>

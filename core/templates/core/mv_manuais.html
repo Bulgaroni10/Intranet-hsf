@@ -1,0 +1,351 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>Manuais MV | Intranet</title>
+
+  <link rel="stylesheet" href="{% static 'core/css/home.css' %}">
+
+  <style>
+    body {
+      background: #111111;
+      color: #f8fafc;
+      margin: 0;
+      font-family: Arial, sans-serif;
+    }
+
+    .page {
+      max-width: 1180px;
+      margin: 0 auto;
+      padding: 28px 24px 50px;
+    }
+
+    .top-actions {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-bottom: 24px;
+    }
+
+    .btn-link,
+    .btn-submit {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 10px 14px;
+      border-radius: 10px;
+      border: 1px solid rgba(148, 163, 184, 0.3);
+      background: rgba(15, 23, 42, 0.75);
+      color: #e5e7eb;
+      text-decoration: none;
+      font-size: 13px;
+      font-weight: 800;
+      cursor: pointer;
+    }
+
+    .btn-link:hover {
+      border-color: #2dd4bf;
+      color: #2dd4bf;
+    }
+
+    .btn-submit {
+      background: #2dd4bf;
+      color: #06201d;
+      border-color: #2dd4bf;
+      width: 100%;
+    }
+
+    .hero-box {
+      display: grid;
+      grid-template-columns: 1fr 330px;
+      gap: 18px;
+      margin-bottom: 26px;
+    }
+
+    .hero-main,
+    .hero-side,
+    .manual-card,
+    .empty-card {
+      background: rgba(31, 31, 31, 0.96);
+      border: 1px solid rgba(148, 163, 184, 0.2);
+      border-radius: 16px;
+      padding: 22px;
+    }
+
+    .eyebrow {
+      color: #2dd4bf;
+      font-size: 12px;
+      font-weight: 900;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      margin-bottom: 8px;
+    }
+
+    h1 {
+      margin: 0 0 10px;
+      font-size: 32px;
+      color: #ffffff;
+    }
+
+    h2 {
+      margin: 0 0 6px;
+      font-size: 20px;
+      color: #ffffff;
+    }
+
+    h3 {
+      margin: 0 0 6px;
+      color: #ffffff;
+    }
+
+    p {
+      color: #cbd5e1;
+      line-height: 1.5;
+    }
+
+    .form-group {
+      margin-bottom: 10px;
+    }
+
+    .form-group label {
+      display: block;
+      color: #cbd5e1;
+      font-size: 12px;
+      font-weight: 800;
+      text-transform: uppercase;
+      margin-bottom: 7px;
+    }
+
+    .form-group input,
+    .form-group select {
+      width: 100%;
+      box-sizing: border-box;
+      border: 1px solid rgba(148, 163, 184, 0.28);
+      background: #2a2a2a;
+      color: #ffffff;
+      border-radius: 10px;
+      padding: 12px;
+      outline: none;
+    }
+
+    .section-header {
+      margin-bottom: 14px;
+    }
+
+    .manual-list {
+      display: grid;
+      gap: 14px;
+    }
+
+    .manual-card {
+      display: grid;
+      grid-template-columns: 52px 1fr;
+      gap: 16px;
+    }
+
+    .manual-icon {
+      width: 46px;
+      height: 46px;
+      border-radius: 14px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(45, 212, 191, 0.12);
+      border: 1px solid rgba(45, 212, 191, 0.22);
+      font-size: 22px;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      padding: 7px 10px;
+      border-radius: 999px;
+      font-size: 11px;
+      font-weight: 900;
+      text-transform: uppercase;
+      color: #2dd4bf;
+      background: rgba(45, 212, 191, 0.12);
+      border: 1px solid rgba(45, 212, 191, 0.25);
+      margin-right: 6px;
+      margin-top: 8px;
+      text-decoration: none;
+    }
+
+    .empty-card {
+      text-align: center;
+      color: #cbd5e1;
+      border-style: dashed;
+    }
+
+    .footer {
+      border-top: 1px solid rgba(148, 163, 184, 0.16);
+      margin-top: 26px;
+      padding-top: 14px;
+      display: flex;
+      justify-content: space-between;
+      color: #94a3b8;
+      font-size: 12px;
+    }
+
+    @media (max-width: 900px) {
+      .hero-box,
+      .manual-card {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <header>
+    <div class="logo">
+      {% if request.user.unidade %}
+        {% if request.user.unidade.sigla == "HSFVF" or request.user.unidade.sigla == "HSFMA" %}
+          <img src="{% static 'core/img/logo-sagrada-familia.png' %}" alt="Logo" class="header-unit-logo">
+        {% else %}
+          <img src="{% static 'core/img/logo-hsf.png' %}" alt="Logo" class="header-unit-logo">
+        {% endif %}
+      {% else %}
+        <img src="{% static 'core/img/logo-hsf.png' %}" alt="Logo" class="header-unit-logo">
+      {% endif %}
+
+      <div>
+        <span>Intranet Grupo São Francisco</span>
+        <span class="unit-tag">
+          {% if request.user.unidade %}
+            {{ request.user.unidade.nome }}
+          {% else %}
+            Sem unidade vinculada
+          {% endif %}
+        </span>
+      </div>
+    </div>
+
+    <div class="header-right">
+      <a class="logout-btn" href="/portal/modulos/mv/">Voltar ao MV</a>
+      <a class="logout-btn" href="/portal/">Portal</a>
+      <button class="logout-btn" onclick="doLogout()">Sair</button>
+    </div>
+  </header>
+
+  <main class="page">
+
+    <div class="top-actions">
+      <a class="btn-link" href="/portal/modulos/mv/">← Voltar ao MV</a>
+      <a class="btn-link" href="/portal/modulos/mv/convenios/">Convênios MV</a>
+      <a class="btn-link" href="/portal/">Voltar ao portal</a>
+    </div>
+
+    <section class="hero-box">
+      <div class="hero-main">
+        <div class="eyebrow">MV / Sistema Hospitalar</div>
+        <h1>Manuais do MV</h1>
+        <p>
+          Consulte manuais, orientações e documentos operacionais relacionados ao sistema MV.
+        </p>
+      </div>
+
+      <aside class="hero-side">
+        <h3>Filtros</h3>
+        <p>Use a busca para localizar documentos por título, descrição ou unidade.</p>
+
+        <form method="get">
+          <div class="form-group">
+            <label>Buscar</label>
+            <input
+              type="text"
+              name="busca"
+              value="{{ busca }}"
+              placeholder="Ex: recepção, atendimento, cadastro..."
+            >
+          </div>
+
+          <div class="form-group">
+            <label>Unidade</label>
+            <select name="unidade">
+              <option value="">Todas disponíveis para meu acesso</option>
+              <option value="geral" {% if unidade_id == "geral" %}selected{% endif %}>Geral / Todas</option>
+
+              {% for unidade in unidades %}
+                <option value="{{ unidade.id }}" {% if unidade_id == unidade.id|stringformat:"s" %}selected{% endif %}>
+                  {{ unidade.nome }}
+                </option>
+              {% endfor %}
+            </select>
+          </div>
+
+          <button type="submit" class="btn-submit">Filtrar</button>
+
+          <div style="margin-top:10px;">
+            <a href="/portal/modulos/mv/manuais/" class="btn-link">Limpar filtros</a>
+          </div>
+        </form>
+      </aside>
+    </section>
+
+    <section>
+      <div class="section-header">
+        <h2>Manuais disponíveis</h2>
+        <p>
+          Resultado conforme sua unidade, grupo de acesso e permissões cadastradas.
+        </p>
+      </div>
+
+      <div class="manual-list">
+        {% for item in conteudos %}
+          <article class="manual-card">
+            <div class="manual-icon">📘</div>
+
+            <div>
+              <h3>{{ item.titulo }}</h3>
+
+              {% if item.descricao %}
+                <p>{{ item.descricao }}</p>
+              {% else %}
+                <p>Sem descrição cadastrada.</p>
+              {% endif %}
+
+              {% if item.unidade %}
+                <span class="badge">{{ item.unidade.sigla }}</span>
+              {% else %}
+                <span class="badge">Todas as unidades</span>
+              {% endif %}
+
+              <span class="badge">Manual</span>
+
+              {% if item.arquivo %}
+                <a href="{{ item.arquivo.url }}" target="_blank" class="badge">Abrir arquivo</a>
+              {% endif %}
+
+              {% if item.link_externo %}
+                <a href="{{ item.link_externo }}" target="_blank" class="badge">Abrir link</a>
+              {% endif %}
+
+              {% if not item.arquivo and not item.link_externo %}
+                <span class="badge">Sem arquivo/link</span>
+              {% endif %}
+            </div>
+          </article>
+        {% empty %}
+          <div class="empty-card">
+            Nenhum manual encontrado para os filtros informados ou para seu grupo de acesso.
+          </div>
+        {% endfor %}
+      </div>
+    </section>
+
+    <footer class="footer">
+      <span>Manuais MV • Intranet Grupo São Francisco</span>
+      <span>Tecnologia da Informação • Ambiente interno</span>
+    </footer>
+
+  </main>
+
+  <script src="{% static 'core/js/home.js' %}"></script>
+</body>
+</html>

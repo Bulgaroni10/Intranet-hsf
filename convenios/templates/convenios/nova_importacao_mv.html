@@ -1,0 +1,137 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>Nova Importação MV | Intranet</title>
+  <link rel="stylesheet" href="{% static 'core/css/home.css' %}">
+
+  <style>
+    body { background:#111; color:#f8fafc; margin:0; font-family:Arial,sans-serif; }
+    .page { max-width:980px; margin:0 auto; padding:28px 24px 50px; }
+    .top-actions { display:flex; gap:10px; flex-wrap:wrap; margin-bottom:24px; }
+    .btn-link,.btn-submit { display:inline-flex; align-items:center; justify-content:center; padding:10px 14px; border-radius:10px; border:1px solid rgba(148,163,184,.3); background:rgba(15,23,42,.75); color:#e5e7eb; text-decoration:none; font-size:13px; font-weight:800; cursor:pointer; }
+    .btn-link:hover { border-color:#2dd4bf; color:#2dd4bf; }
+    .btn-submit { background:#2dd4bf; color:#06201d; border-color:#2dd4bf; min-width:260px; }
+    .hero-main,.form-card,.help-card,.message-item { background:rgba(31,31,31,.96); border:1px solid rgba(148,163,184,.2); border-radius:16px; padding:22px; }
+    .hero-main { margin-bottom:22px; }
+    .eyebrow { color:#2dd4bf; font-size:12px; font-weight:900; text-transform:uppercase; letter-spacing:.08em; margin-bottom:8px; }
+    h1 { margin:0 0 10px; font-size:32px; color:#fff; }
+    h2 { margin:0 0 8px; color:#fff; }
+    p,li { color:#cbd5e1; line-height:1.5; }
+    .messages-box { display:grid; gap:10px; margin-bottom:18px; }
+    .message-item { padding:12px 14px; font-size:13px; font-weight:700; }
+    .message-error { border-color:rgba(248,113,113,.35); background:rgba(127,29,29,.22); color:#fecaca; }
+    .layout { display:grid; grid-template-columns:1fr 340px; gap:18px; }
+    .form-group { margin-bottom:16px; }
+    .form-group label { display:block; color:#cbd5e1; font-size:12px; font-weight:800; text-transform:uppercase; margin-bottom:7px; }
+    .form-group input,.form-group select { width:100%; box-sizing:border-box; border:1px solid rgba(148,163,184,.28); background:#2a2a2a; color:#fff; border-radius:10px; padding:12px; outline:none; }
+    .form-group input:focus,.form-group select:focus { border-color:#2dd4bf; box-shadow:0 0 0 2px rgba(45,212,191,.15); }
+    .help-links { display:grid; gap:10px; margin-top:12px; }
+    .footer { border-top:1px solid rgba(148,163,184,.16); margin-top:26px; padding-top:14px; display:flex; justify-content:space-between; color:#94a3b8; font-size:12px; }
+    @media(max-width:900px){ .layout{grid-template-columns:1fr;} .btn-submit{width:100%;} }
+  </style>
+</head>
+
+<body>
+  <header>
+    <div class="logo">
+      {% if request.user.unidade %}
+        {% if request.user.unidade.sigla == "HSFVF" or request.user.unidade.sigla == "HSFMA" %}
+          <img src="{% static 'core/img/logo-sagrada-familia.png' %}" alt="Logo" class="header-unit-logo">
+        {% else %}
+          <img src="{% static 'core/img/logo-hsf.png' %}" alt="Logo" class="header-unit-logo">
+        {% endif %}
+      {% else %}
+        <img src="{% static 'core/img/logo-hsf.png' %}" alt="Logo" class="header-unit-logo">
+      {% endif %}
+
+      <div>
+        <span>Intranet Grupo São Francisco</span>
+        <span class="unit-tag">
+          {% if request.user.unidade %}{{ request.user.unidade.nome }}{% else %}Sem unidade vinculada{% endif %}
+        </span>
+      </div>
+    </div>
+
+    <div class="header-right">
+      <a class="logout-btn" href="/portal/modulos/mv/importacoes/">Importações</a>
+      <a class="logout-btn" href="/portal/modulos/mv/">MV</a>
+      <button class="logout-btn" onclick="doLogout()">Sair</button>
+    </div>
+  </header>
+
+  <main class="page">
+    <div class="top-actions">
+      <a class="btn-link" href="/portal/modulos/mv/importacoes/">← Voltar às importações</a>
+      <a class="btn-link" href="/portal/modulos/mv/convenios/">Convênios MV</a>
+    </div>
+
+    <section class="hero-main">
+      <div class="eyebrow">MV / Importações</div>
+      <h1>Nova importação MV</h1>
+      <p>Selecione o tipo de importação e envie um arquivo CSV ou XLSX.</p>
+    </section>
+
+    {% if messages %}
+      <div class="messages-box">
+        {% for message in messages %}
+          <div class="message-item {% if message.tags == 'error' %}message-error{% endif %}">
+            {{ message }}
+          </div>
+        {% endfor %}
+      </div>
+    {% endif %}
+
+    <section class="layout">
+      <article class="form-card">
+        <form method="post" enctype="multipart/form-data">
+          {% csrf_token %}
+
+          <div class="form-group">
+            <label>Tipo de importação</label>
+            <select name="tipo" required>
+              <option value="">Selecione</option>
+              {% for valor, nome in tipos_importacao %}
+                <option value="{{ valor }}">{{ nome }}</option>
+              {% endfor %}
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label>Arquivo CSV ou XLSX</label>
+            <input type="file" name="arquivo" accept=".csv,.xlsx,.xlsm" required>
+          </div>
+
+          <button type="submit" class="btn-submit">
+            Processar importação
+          </button>
+        </form>
+      </article>
+
+      <aside class="help-card">
+        <h2>Modelos</h2>
+        <p>Baixe o modelo antes de preencher os dados.</p>
+
+        <div class="help-links">
+          <a class="btn-link" href="/portal/modulos/mv/importacoes/modelo/convenios_planos/">Modelo Convênios/Planos</a>
+          <a class="btn-link" href="/portal/modulos/mv/importacoes/modelo/procedimentos_proibidos/">Modelo Procedimentos</a>
+          <a class="btn-link" href="/portal/modulos/mv/importacoes/modelo/regras_atendimento/">Modelo Regras</a>
+        </div>
+
+        <p style="margin-top:18px;">
+          A primeira linha do arquivo deve conter exatamente os nomes das colunas do modelo.
+        </p>
+      </aside>
+    </section>
+
+    <footer class="footer">
+      <span>Importações MV • Nova importação</span>
+      <span>Tecnologia da Informação</span>
+    </footer>
+  </main>
+
+  <script src="{% static 'core/js/home.js' %}"></script>
+</body>
+</html>

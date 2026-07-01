@@ -1,0 +1,1025 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>Portal | Intranet</title>
+
+  <link rel="stylesheet" href="{% static 'core/css/home.css' %}">
+
+  <style>
+    .portal-dashboard {
+      width: min(1180px, calc(100% - 32px));
+      margin: 0 auto;
+      padding: 28px 0 36px;
+    }
+
+    .dashboard-hero {
+      display: grid;
+      grid-template-columns: minmax(0, 1.4fr) 360px;
+      gap: 20px;
+      margin-bottom: 26px;
+    }
+
+    .dashboard-hero-main,
+    .dashboard-side-card,
+    .dashboard-card,
+    .portal-module-card,
+    .mini-item,
+    .aviso-dashboard-card,
+    .doc-dashboard-card {
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid rgba(255, 255, 255, 0.10);
+      border-radius: 22px;
+      box-shadow: 0 14px 34px rgba(0, 0, 0, 0.20);
+    }
+
+    .dashboard-hero-main {
+      padding: 28px;
+    }
+
+    .dashboard-eyebrow {
+      color: #2dd4bf;
+      font-size: 12px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      margin-bottom: 10px;
+    }
+
+    .dashboard-hero-main h1 {
+      color: #ffffff;
+      font-size: 34px;
+      line-height: 1.15;
+      margin: 0 0 12px 0;
+    }
+
+    .dashboard-hero-main p {
+      color: rgba(255, 255, 255, 0.72);
+      font-size: 15px;
+      line-height: 1.6;
+      margin: 0;
+      max-width: 720px;
+    }
+
+    .dashboard-side-card {
+      padding: 22px;
+    }
+
+    .dashboard-side-card h3 {
+      color: #ffffff;
+      font-size: 16px;
+      margin: 0 0 14px 0;
+    }
+
+    .side-info-grid {
+      display: grid;
+      gap: 10px;
+    }
+
+    .side-info-item {
+      background: rgba(45, 212, 191, 0.08);
+      border: 1px solid rgba(45, 212, 191, 0.20);
+      border-radius: 16px;
+      padding: 12px;
+    }
+
+    .side-info-item span {
+      display: block;
+      color: rgba(255, 255, 255, 0.58);
+      font-size: 11px;
+      text-transform: uppercase;
+      font-weight: 800;
+      letter-spacing: 0.06em;
+      margin-bottom: 4px;
+    }
+
+    .side-info-item strong {
+      color: #2dd4bf;
+      font-size: 14px;
+    }
+
+    .quick-actions {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-top: 20px;
+    }
+
+    .quick-action {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      text-decoration: none;
+      border-radius: 999px;
+      border: 1px solid rgba(45, 212, 191, 0.24);
+      background: rgba(45, 212, 191, 0.10);
+      color: #2dd4bf;
+      padding: 10px 14px;
+      font-size: 13px;
+      font-weight: 800;
+      transition: 0.2s ease;
+    }
+
+    .quick-action:hover {
+      background: rgba(45, 212, 191, 0.18);
+      transform: translateY(-1px);
+    }
+
+    .quick-action.admin-action {
+      border-color: rgba(251, 191, 36, 0.35);
+      background: rgba(251, 191, 36, 0.10);
+      color: #fbbf24;
+    }
+
+    .quick-action.admin-action:hover {
+      background: rgba(251, 191, 36, 0.17);
+      border-color: rgba(251, 191, 36, 0.55);
+    }
+
+    .top-chat-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      text-decoration: none;
+      border-radius: 999px;
+      border: 1px solid rgba(45, 212, 191, 0.32);
+      background: rgba(45, 212, 191, 0.10);
+      color: #2dd4bf;
+      padding: 9px 13px;
+      font-size: 12px;
+      font-weight: 800;
+      transition: 0.2s ease;
+    }
+
+    .top-chat-btn:hover {
+      background: rgba(45, 212, 191, 0.18);
+      border-color: rgba(45, 212, 191, 0.55);
+      transform: translateY(-1px);
+    }
+
+    .portal-section {
+      margin-top: 24px;
+    }
+
+    .portal-section-header {
+      margin-bottom: 14px;
+    }
+
+    .portal-section-header h2 {
+      color: #ffffff;
+      font-size: 20px;
+      margin: 0 0 4px 0;
+    }
+
+    .portal-section-header p {
+      color: rgba(255, 255, 255, 0.62);
+      font-size: 13px;
+      margin: 0;
+    }
+
+    .dashboard-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+      gap: 16px;
+    }
+
+    .dashboard-card {
+      padding: 18px;
+      transition: 0.2s ease;
+    }
+
+    .dashboard-card:hover {
+      transform: translateY(-2px);
+      border-color: rgba(45, 212, 191, 0.55);
+      background: rgba(45, 212, 191, 0.08);
+    }
+
+    .dashboard-card h3 {
+      color: #ffffff;
+      font-size: 14px;
+      margin: 0 0 8px 0;
+    }
+
+    .dashboard-number {
+      color: #2dd4bf;
+      font-size: 32px;
+      font-weight: 900;
+      margin-bottom: 4px;
+    }
+
+    .dashboard-card p {
+      color: rgba(255, 255, 255, 0.68);
+      font-size: 13px;
+      margin: 0;
+      line-height: 1.5;
+    }
+
+    .portal-two-columns {
+      display: grid;
+      grid-template-columns: 1.2fr 1fr;
+      gap: 18px;
+    }
+
+    .mini-list {
+      display: grid;
+      gap: 12px;
+    }
+
+    .mini-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      padding: 14px;
+      color: inherit;
+      text-decoration: none;
+      transition: 0.2s ease;
+    }
+
+    .mini-item:hover {
+      border-color: rgba(45, 212, 191, 0.55);
+      background: rgba(45, 212, 191, 0.08);
+      transform: translateY(-1px);
+    }
+
+    .mini-icon {
+      width: 38px;
+      height: 38px;
+      border-radius: 13px;
+      background: rgba(45, 212, 191, 0.12);
+      border: 1px solid rgba(45, 212, 191, 0.22);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex: 0 0 auto;
+      font-size: 18px;
+    }
+
+    .mini-item h3 {
+      color: #ffffff;
+      font-size: 14px;
+      margin: 0 0 4px 0;
+    }
+
+    .mini-item p {
+      color: rgba(255, 255, 255, 0.68);
+      font-size: 12px;
+      margin: 0;
+      line-height: 1.4;
+    }
+
+    .mini-badge {
+      display: inline-flex;
+      margin-top: 8px;
+      color: #2dd4bf;
+      background: rgba(45, 212, 191, 0.10);
+      border: 1px solid rgba(45, 212, 191, 0.22);
+      border-radius: 999px;
+      padding: 5px 9px;
+      font-size: 11px;
+      font-weight: 800;
+      text-decoration: none;
+    }
+
+    .mini-badge.red {
+      color: #fecaca;
+      background: rgba(239, 68, 68, 0.18);
+      border-color: rgba(239, 68, 68, 0.35);
+    }
+
+    .mini-badge.orange {
+      color: #fed7aa;
+      background: rgba(249, 115, 22, 0.16);
+      border-color: rgba(249, 115, 22, 0.32);
+    }
+
+    .aviso-dashboard-grid,
+    .doc-dashboard-grid {
+      display: grid;
+      gap: 12px;
+    }
+
+    .aviso-dashboard-card,
+    .doc-dashboard-card {
+      padding: 16px;
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      transition: 0.2s ease;
+    }
+
+    .aviso-dashboard-card:hover,
+    .doc-dashboard-card:hover {
+      transform: translateY(-1px);
+      border-color: rgba(45, 212, 191, 0.55);
+      background: rgba(45, 212, 191, 0.08);
+    }
+
+    .aviso-dashboard-icon,
+    .doc-dashboard-icon {
+      width: 40px;
+      height: 40px;
+      border-radius: 14px;
+      background: rgba(45, 212, 191, 0.12);
+      border: 1px solid rgba(45, 212, 191, 0.22);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex: 0 0 auto;
+      font-size: 20px;
+    }
+
+    .aviso-dashboard-card h3,
+    .doc-dashboard-card h3 {
+      color: #ffffff;
+      font-size: 15px;
+      margin: 0 0 5px 0;
+      line-height: 1.3;
+    }
+
+    .aviso-dashboard-card p,
+    .doc-dashboard-card p {
+      color: rgba(255, 255, 255, 0.70);
+      font-size: 13px;
+      line-height: 1.5;
+      margin: 0;
+    }
+
+    .portal-modules-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 16px;
+    }
+
+    .portal-module-card {
+      display: block;
+      padding: 18px;
+      color: inherit;
+      text-decoration: none;
+      transition: 0.2s ease;
+      min-height: 168px;
+    }
+
+    .portal-module-card:hover {
+      transform: translateY(-2px);
+      border-color: rgba(45, 212, 191, 0.55);
+      background: rgba(45, 212, 191, 0.08);
+      box-shadow: 0 14px 34px rgba(0, 0, 0, 0.25);
+    }
+
+    .portal-module-topline {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 14px;
+      gap: 12px;
+    }
+
+    .portal-module-icon {
+      width: 42px;
+      height: 42px;
+      border-radius: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(45, 212, 191, 0.12);
+      border: 1px solid rgba(45, 212, 191, 0.22);
+      font-size: 21px;
+    }
+
+    .portal-module-tag {
+      color: #2dd4bf;
+      background: rgba(45, 212, 191, 0.10);
+      border: 1px solid rgba(45, 212, 191, 0.22);
+      border-radius: 999px;
+      padding: 6px 10px;
+      font-size: 11px;
+      font-weight: 800;
+      text-transform: uppercase;
+    }
+
+    .portal-module-card h3 {
+      color: #ffffff;
+      font-size: 17px;
+      line-height: 1.3;
+      margin: 0 0 8px 0;
+    }
+
+    .portal-module-card p {
+      color: rgba(255, 255, 255, 0.70);
+      font-size: 13px;
+      line-height: 1.5;
+      margin: 0;
+    }
+
+    .portal-module-footer {
+      margin-top: 18px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      color: #2dd4bf;
+      font-size: 13px;
+      font-weight: 800;
+    }
+
+    .portal-footer {
+      margin-top: 34px;
+      padding-top: 18px;
+      border-top: 1px solid rgba(255, 255, 255, 0.10);
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap;
+      color: rgba(255, 255, 255, 0.50);
+      font-size: 12px;
+    }
+
+    @media (max-width: 900px) {
+      .dashboard-hero,
+      .portal-two-columns {
+        grid-template-columns: 1fr;
+      }
+
+      .dashboard-hero-main h1 {
+        font-size: 28px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
+
+  <div id="portal-screen" style="display: block;">
+    <header>
+      <div class="logo">
+        {% if request.user.unidade.sigla == "HSFVF" or request.user.unidade.sigla == "HSFMA" %}
+          <img src="{% static 'core/img/logo-sagrada-familia.png' %}" alt="Logo" class="header-unit-logo">
+        {% else %}
+          <img src="{% static 'core/img/logo-hsf.png' %}" alt="Logo" class="header-unit-logo">
+        {% endif %}
+
+        <div>
+          <span>Intranet Grupo São Francisco</span>
+          <span class="unit-tag">{{ request.user.unidade.nome }}</span>
+        </div>
+      </div>
+
+      <div class="header-right">
+        <a class="top-chat-btn" href="/conversas/">
+          💬 Conversas
+        </a>
+
+        <button class="logout-btn" onclick="doLogout()">Sair</button>
+      </div>
+    </header>
+
+    <main class="portal-dashboard">
+
+      <section class="dashboard-hero">
+        <div class="dashboard-hero-main">
+          <div class="dashboard-eyebrow">Portal interno</div>
+
+          <h1>Olá, {{ request.user.get_full_name|default:request.user.username }}</h1>
+
+          <p>
+            Acesse módulos, comunicados, links internos, manuais, ramais e informações operacionais da sua unidade.
+          </p>
+
+          <div class="quick-actions">
+            <a class="quick-action" href="/conversas/">
+              💬 Conversas
+            </a>
+
+            {% if acessos_botoes_rapidos.avisos %}
+              <a class="quick-action" href="/portal/modulos/avisos/">
+                📢 Avisos
+              </a>
+            {% endif %}
+
+            {% if acessos_botoes_rapidos.documentos %}
+              <a class="quick-action" href="/portal/modulos/documentos/">
+                📑 Documentos ONA
+              </a>
+            {% endif %}
+
+            {% if acessos_botoes_rapidos.status_sistemas %}
+              <a class="quick-action" href="/portal/modulos/status-sistemas/">
+                📡 Status dos Sistemas
+              </a>
+            {% endif %}
+
+            {% if acessos_botoes_rapidos.links_uteis %}
+              <a class="quick-action" href="/portal/modulos/links-uteis/">
+                🔗 Links Úteis
+              </a>
+            {% endif %}
+
+            {% if acessos_botoes_rapidos.manuais %}
+              <a class="quick-action" href="/portal/modulos/manuais-procedimentos/">
+                📚 Manuais
+              </a>
+            {% endif %}
+
+            {% if acessos_botoes_rapidos.ramais %}
+              <a class="quick-action" href="/portal/modulos/ramais-contatos/">
+                ☎️ Ramais
+              </a>
+            {% endif %}
+
+            {% if pode_acessar_administracao %}
+              <a class="quick-action admin-action" href="/portal/administracao/">
+                ⚙️ Administração
+              </a>
+            {% endif %}
+          </div>
+        </div>
+
+        <aside class="dashboard-side-card">
+          <h3>Resumo do acesso</h3>
+
+          <div class="side-info-grid">
+            <div class="side-info-item">
+              <span>Unidade</span>
+              <strong>{{ request.user.unidade.sigla }}</strong>
+            </div>
+
+            <div class="side-info-item">
+              <span>Setor</span>
+              <strong>
+                {% if request.user.setor %}
+                  {{ request.user.setor.nome }}
+                {% else %}
+                  Não informado
+                {% endif %}
+              </strong>
+            </div>
+          </div>
+        </aside>
+      </section>
+
+      <section class="portal-section">
+        <div class="portal-section-header">
+          <h2>Visão geral</h2>
+          <p>Resumo rápido dos recursos disponíveis para seu perfil.</p>
+        </div>
+
+        <div class="dashboard-grid">
+          <div class="dashboard-card">
+            <h3>Módulos disponíveis</h3>
+            <div class="dashboard-number">{{ total_modulos }}</div>
+            <p>Áreas liberadas para seu usuário.</p>
+          </div>
+
+          <div class="dashboard-card">
+            <h3>Avisos ativos</h3>
+            <div class="dashboard-number">{{ total_avisos }}</div>
+            <p>Comunicados ativos exibidos no dashboard.</p>
+          </div>
+
+          <div class="dashboard-card">
+            <h3>Documentos em atenção</h3>
+            <div class="dashboard-number">{{ total_documentos_alerta }}</div>
+            <p>Vencidos, próximos do vencimento ou em revisão.</p>
+          </div>
+
+          <div class="dashboard-card">
+            <h3>Ocorrências ativas</h3>
+            <div class="dashboard-number">{{ total_ocorrencias }}</div>
+            <p>Comunicados ativos para sua unidade ou gerais.</p>
+          </div>
+
+          <div class="dashboard-card">
+            <h3>Links rápidos</h3>
+            <div class="dashboard-number">{{ total_links }}</div>
+            <p>Atalhos úteis disponíveis no portal.</p>
+          </div>
+
+          <div class="dashboard-card">
+            <h3>Manuais recentes</h3>
+            <div class="dashboard-number">{{ total_manuais }}</div>
+            <p>Últimos documentos cadastrados.</p>
+          </div>
+        </div>
+      </section>
+
+      <section class="portal-section">
+        <div class="portal-section-header">
+          <h2>Documentos em atenção</h2>
+          <p>Documentos vencidos, próximos do vencimento ou marcados como em revisão.</p>
+        </div>
+
+        <div class="doc-dashboard-grid">
+          {% for documento in documentos_dashboard %}
+            <div class="doc-dashboard-card">
+              <div class="doc-dashboard-icon">
+                {% if documento.esta_vencido %}
+                  ❌
+                {% elif documento.proximo_do_vencimento %}
+                  ⚠️
+                {% elif documento.status == "em_revisao" %}
+                  📝
+                {% else %}
+                  📑
+                {% endif %}
+              </div>
+
+              <div>
+                <h3>
+                  {% if documento.codigo %}
+                    {{ documento.codigo }} -
+                  {% endif %}
+                  {{ documento.titulo }}
+                </h3>
+
+                <p>
+                  {{ documento.get_tipo_display }} • {{ documento.get_categoria_display }}
+
+                  {% if documento.unidade %}
+                    • {{ documento.unidade.sigla }}
+                  {% else %}
+                    • Geral
+                  {% endif %}
+
+                  {% if documento.setor %}
+                    • {{ documento.setor.nome }}
+                  {% endif %}
+                </p>
+
+                <div style="display:flex; gap:8px; flex-wrap:wrap;">
+                  {% if documento.esta_vencido %}
+                    <span class="mini-badge red">Vencido</span>
+                  {% elif documento.proximo_do_vencimento %}
+                    <span class="mini-badge orange">
+                      Vence em {{ documento.dias_para_vencer }} dia(s)
+                    </span>
+                  {% endif %}
+
+                  {% if documento.status == "em_revisao" %}
+                    <span class="mini-badge orange">Em revisão</span>
+                  {% else %}
+                    <span class="mini-badge">{{ documento.get_status_display }}</span>
+                  {% endif %}
+
+                  {% if documento.data_validade %}
+                    <span class="mini-badge">
+                      Validade {{ documento.data_validade|date:"d/m/Y" }}
+                    </span>
+                  {% endif %}
+
+                  {% if acessos_botoes_rapidos.documentos %}
+                    <a class="mini-badge" href="/portal/modulos/documentos/">
+                      Ver documentos
+                    </a>
+                  {% endif %}
+                </div>
+              </div>
+            </div>
+          {% empty %}
+            <div class="doc-dashboard-card">
+              <div class="doc-dashboard-icon">✅</div>
+
+              <div>
+                <h3>Nenhum documento em atenção</h3>
+                <p>
+                  No momento não há documentos vencidos, próximos do vencimento ou em revisão no dashboard.
+                </p>
+                <span class="mini-badge">Controle documental sem alerta</span>
+              </div>
+            </div>
+          {% endfor %}
+        </div>
+      </section>
+
+      <section class="portal-section">
+        <div class="portal-section-header">
+          <h2>Avisos e comunicados</h2>
+          <p>Comunicados importantes publicados para sua unidade ou de forma geral.</p>
+        </div>
+
+        <div class="aviso-dashboard-grid">
+          {% for aviso in avisos_dashboard %}
+            <div class="aviso-dashboard-card">
+              <div class="aviso-dashboard-icon">
+                {% if aviso.tipo == "manutencao" %}
+                  🛠️
+                {% elif aviso.tipo == "indisponibilidade" %}
+                  ❌
+                {% elif aviso.tipo == "orientacao" %}
+                  📌
+                {% elif aviso.tipo == "mudanca_fluxo" %}
+                  🔁
+                {% elif aviso.tipo == "urgente" %}
+                  🚨
+                {% else %}
+                  📢
+                {% endif %}
+              </div>
+
+              <div>
+                <h3>{{ aviso.titulo }}</h3>
+
+                {% if aviso.resumo %}
+                  <p>{{ aviso.resumo }}</p>
+                {% else %}
+                  <p>{{ aviso.mensagem|truncatechars:180 }}</p>
+                {% endif %}
+
+                <div style="display:flex; gap:8px; flex-wrap:wrap;">
+                  <span class="mini-badge">{{ aviso.get_tipo_display }}</span>
+                  <span class="mini-badge">{{ aviso.get_prioridade_display }}</span>
+
+                  {% if aviso.unidade %}
+                    <span class="mini-badge">{{ aviso.unidade.sigla }}</span>
+                  {% else %}
+                    <span class="mini-badge">Geral</span>
+                  {% endif %}
+
+                  {% if acessos_botoes_rapidos.avisos %}
+                    <a class="mini-badge" href="/portal/modulos/avisos/">
+                      Ver avisos
+                    </a>
+                  {% endif %}
+                </div>
+              </div>
+            </div>
+          {% empty %}
+            <div class="aviso-dashboard-card">
+              <div class="aviso-dashboard-icon">✅</div>
+
+              <div>
+                <h3>Nenhum aviso ativo</h3>
+                <p>No momento não há avisos ou comunicados ativos para sua unidade.</p>
+                <span class="mini-badge">Sem comunicados no dashboard</span>
+              </div>
+            </div>
+          {% endfor %}
+        </div>
+      </section>
+
+      <section class="portal-section">
+        <div class="portal-two-columns">
+
+          <div>
+            <div class="portal-section-header">
+              <h2>Ocorrências ativas</h2>
+              <p>Status e comunicados importantes da Tecnologia da Informação.</p>
+            </div>
+
+            <div class="mini-list">
+              {% for ocorrencia in ocorrencias_ativas %}
+                {% if acessos_botoes_rapidos.status_sistemas %}
+                  <a class="mini-item" href="/portal/modulos/status-sistemas/">
+                {% else %}
+                  <div class="mini-item">
+                {% endif %}
+
+                  <div class="mini-icon">
+                    {% if ocorrencia.status == "operacional" %}
+                      ✅
+                    {% elif ocorrencia.status == "instavel" %}
+                      ⚠️
+                    {% elif ocorrencia.status == "indisponivel" %}
+                      ❌
+                    {% else %}
+                      🛠️
+                    {% endif %}
+                  </div>
+
+                  <div>
+                    <h3>{{ ocorrencia.titulo }}</h3>
+
+                    <p>
+                      {{ ocorrencia.sistema.nome }} • {{ ocorrencia.get_status_display }}
+                      {% if ocorrencia.unidade %}
+                        • {{ ocorrencia.unidade.sigla }}
+                      {% else %}
+                        • Geral
+                      {% endif %}
+                    </p>
+
+                    <span class="mini-badge">
+                      Atualizado {{ ocorrencia.atualizado_em|date:"d/m/Y H:i" }}
+                    </span>
+                  </div>
+
+                {% if acessos_botoes_rapidos.status_sistemas %}
+                  </a>
+                {% else %}
+                  </div>
+                {% endif %}
+              {% empty %}
+                <div class="mini-item">
+                  <div class="mini-icon">✅</div>
+
+                  <div>
+                    <h3>Nenhuma ocorrência ativa</h3>
+                    <p>No momento não há comunicados ativos para sua unidade.</p>
+                    <span class="mini-badge">Ambiente sem alerta cadastrado</span>
+                  </div>
+                </div>
+              {% endfor %}
+            </div>
+          </div>
+
+          <div>
+            <div class="portal-section-header">
+              <h2>Links rápidos</h2>
+              <p>Acessos úteis cadastrados para seu perfil.</p>
+            </div>
+
+            <div class="mini-list">
+              {% for link in links_rapidos %}
+                <a class="mini-item" href="{{ link.link_externo }}" target="_blank" rel="noopener noreferrer">
+                  <div class="mini-icon">
+                    {% if "mv" in link.titulo|lower %}
+                      🏥
+                    {% elif "pep" in link.titulo|lower %}
+                      📋
+                    {% elif "idce" in link.titulo|lower %}
+                      🩺
+                    {% elif "zabbix" in link.titulo|lower %}
+                      📊
+                    {% elif "chamado" in link.titulo|lower or "glpi" in link.titulo|lower %}
+                      🎫
+                    {% elif "bookstack" in link.titulo|lower or "wiki" in link.titulo|lower %}
+                      📚
+                    {% else %}
+                      🔗
+                    {% endif %}
+                  </div>
+
+                  <div>
+                    <h3>{{ link.titulo }}</h3>
+
+                    {% if link.descricao %}
+                      <p>{{ link.descricao }}</p>
+                    {% else %}
+                      <p>Acessar sistema interno.</p>
+                    {% endif %}
+
+                    <span class="mini-badge">
+                      Abrir link ↗
+                    </span>
+                  </div>
+                </a>
+              {% empty %}
+                <div class="mini-item">
+                  <div class="mini-icon">🔎</div>
+
+                  <div>
+                    <h3>Nenhum link rápido</h3>
+                    <p>Ainda não há links cadastrados para seu perfil.</p>
+
+                    {% if acessos_botoes_rapidos.links_uteis %}
+                      <span class="mini-badge">Cadastrar em Conteúdos dos módulos</span>
+                    {% else %}
+                      <span class="mini-badge">Sem links disponíveis para seu perfil</span>
+                    {% endif %}
+                  </div>
+                </div>
+              {% endfor %}
+            </div>
+          </div>
+
+        </div>
+      </section>
+
+      <section class="portal-section">
+        <div class="portal-section-header">
+          <h2>Últimos manuais e procedimentos</h2>
+          <p>Documentos recentes disponíveis para sua unidade e perfil.</p>
+        </div>
+
+        <div class="mini-list">
+          {% for conteudo in ultimos_manuais %}
+            <div class="mini-item">
+              <div class="mini-icon">
+                {% if conteudo.tipo == "manual" %}
+                  📘
+                {% elif conteudo.tipo == "contingencia" %}
+                  🛟
+                {% elif conteudo.tipo == "link" %}
+                  🔗
+                {% else %}
+                  📄
+                {% endif %}
+              </div>
+
+              <div>
+                <h3>{{ conteudo.titulo }}</h3>
+
+                {% if conteudo.descricao %}
+                  <p>{{ conteudo.descricao }}</p>
+                {% else %}
+                  <p>{{ conteudo.get_tipo_display }}</p>
+                {% endif %}
+
+                <div style="display:flex; gap:8px; flex-wrap:wrap;">
+                  {% if conteudo.arquivo %}
+                    <a class="mini-badge" href="{{ conteudo.arquivo.url }}" target="_blank">
+                      Abrir arquivo
+                    </a>
+                  {% endif %}
+
+                  {% if conteudo.link_externo %}
+                    <a class="mini-badge" href="{{ conteudo.link_externo }}" target="_blank">
+                      Abrir link
+                    </a>
+                  {% endif %}
+
+                  <span class="mini-badge">
+                    {{ conteudo.get_tipo_display }}
+                  </span>
+                </div>
+              </div>
+            </div>
+          {% empty %}
+            <div class="mini-item">
+              <div class="mini-icon">📚</div>
+
+              <div>
+                <h3>Nenhum manual recente</h3>
+                <p>Ainda não há manuais ou procedimentos recentes cadastrados para seu perfil.</p>
+
+                {% if acessos_botoes_rapidos.manuais %}
+                  <span class="mini-badge">Cadastrar em Conteúdos dos módulos</span>
+                {% else %}
+                  <span class="mini-badge">Sem manuais disponíveis para seu perfil</span>
+                {% endif %}
+              </div>
+            </div>
+          {% endfor %}
+        </div>
+      </section>
+
+      {% for categoria in categorias %}
+        <section class="portal-section">
+          <div class="portal-section-header">
+            <h2>{{ categoria.nome }}</h2>
+            <p>Módulos disponíveis para seu perfil de acesso.</p>
+          </div>
+
+          <div class="portal-modules-grid">
+            {% for modulo in categoria.modulos %}
+              <a class="portal-module-card" href="{{ modulo.link }}">
+                <div class="portal-module-topline">
+                  <div class="portal-module-icon">
+                    {{ modulo.icone }}
+                  </div>
+
+                  {% if modulo.tag %}
+                    <span class="portal-module-tag">{{ modulo.tag }}</span>
+                  {% else %}
+                    <span class="portal-module-tag">Intranet</span>
+                  {% endif %}
+                </div>
+
+                <h3>{{ modulo.nome }}</h3>
+
+                {% if modulo.descricao %}
+                  <p>{{ modulo.descricao }}</p>
+                {% else %}
+                  <p>Acessar módulo da intranet.</p>
+                {% endif %}
+
+                <div class="portal-module-footer">
+                  <span>Acessar</span>
+                  <span>→</span>
+                </div>
+              </a>
+            {% endfor %}
+          </div>
+        </section>
+      {% empty %}
+        <section class="portal-section">
+          <div class="mini-item">
+            <div class="mini-icon">🔒</div>
+
+            <div>
+              <h3>Nenhum módulo disponível</h3>
+              <p>
+                Seu usuário ainda não possui módulos liberados.
+                Procure a Tecnologia da Informação.
+              </p>
+            </div>
+          </div>
+        </section>
+      {% endfor %}
+
+      <footer class="portal-footer">
+        <span>Portal • Intranet Grupo São Francisco</span>
+        <span>Tecnologia da Informação • Ambiente interno</span>
+      </footer>
+
+    </main>
+  </div>
+
+  <script src="{% static 'core/js/home.js' %}"></script>
+</body>
+</html>

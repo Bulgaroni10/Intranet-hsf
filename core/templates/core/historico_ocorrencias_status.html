@@ -1,0 +1,567 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>Histórico de Ocorrências | Intranet</title>
+
+  <link rel="stylesheet" href="{% static 'core/css/home.css' %}">
+
+  <style>
+    body {
+      background: #111111;
+      color: #f8fafc;
+      margin: 0;
+      font-family: Arial, sans-serif;
+    }
+
+    .page {
+      max-width: 1180px;
+      margin: 0 auto;
+      padding: 28px 24px 50px;
+    }
+
+    .top-actions {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-bottom: 24px;
+    }
+
+    .btn-link,
+    .btn-export {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 10px 14px;
+      border-radius: 10px;
+      border: 1px solid rgba(148, 163, 184, 0.3);
+      background: rgba(15, 23, 42, 0.75);
+      color: #e5e7eb;
+      text-decoration: none;
+      font-size: 13px;
+      font-weight: 800;
+    }
+
+    .btn-link:hover {
+      border-color: #2dd4bf;
+      color: #2dd4bf;
+    }
+
+    .btn-export {
+      background: #2dd4bf;
+      color: #06201d;
+      border-color: #2dd4bf;
+      font-weight: 900;
+    }
+
+    .btn-export:hover {
+      filter: brightness(1.05);
+    }
+
+    .hero-box {
+      display: grid;
+      grid-template-columns: 1fr 280px;
+      gap: 18px;
+      margin-bottom: 26px;
+    }
+
+    .hero-main,
+    .hero-side,
+    .filter-card,
+    .history-card,
+    .empty-card {
+      background: rgba(31, 31, 31, 0.96);
+      border: 1px solid rgba(148, 163, 184, 0.2);
+      border-radius: 16px;
+      padding: 22px;
+    }
+
+    .eyebrow {
+      color: #2dd4bf;
+      font-size: 12px;
+      font-weight: 900;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      margin-bottom: 8px;
+    }
+
+    h1 {
+      margin: 0 0 10px;
+      font-size: 32px;
+      color: #ffffff;
+    }
+
+    h2 {
+      margin: 0 0 6px;
+      font-size: 20px;
+      color: #ffffff;
+    }
+
+    h3 {
+      margin: 0 0 6px;
+      color: #ffffff;
+    }
+
+    p {
+      color: #cbd5e1;
+      line-height: 1.5;
+    }
+
+    .counter {
+      display: inline-flex;
+      margin-top: 8px;
+      padding: 8px 12px;
+      border-radius: 999px;
+      color: #2dd4bf;
+      background: rgba(45, 212, 191, 0.12);
+      border: 1px solid rgba(45, 212, 191, 0.25);
+      font-weight: 900;
+      font-size: 13px;
+    }
+
+    .filter-card {
+      margin-bottom: 26px;
+    }
+
+    .filter-title {
+      margin-bottom: 14px;
+    }
+
+    .filter-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 14px;
+    }
+
+    .form-group label {
+      display: block;
+      color: #cbd5e1;
+      font-size: 12px;
+      font-weight: 800;
+      text-transform: uppercase;
+      margin-bottom: 7px;
+    }
+
+    .form-group input,
+    .form-group select {
+      width: 100%;
+      box-sizing: border-box;
+      border: 1px solid rgba(148, 163, 184, 0.28);
+      background: #2a2a2a;
+      color: #ffffff;
+      border-radius: 10px;
+      padding: 12px;
+      outline: none;
+    }
+
+    .form-group input:focus,
+    .form-group select:focus {
+      border-color: #2dd4bf;
+      box-shadow: 0 0 0 2px rgba(45, 212, 191, 0.15);
+    }
+
+    .btn-submit {
+      width: 100%;
+      border: none;
+      border-radius: 10px;
+      padding: 13px 16px;
+      background: #2dd4bf;
+      color: #06201d;
+      font-weight: 900;
+      cursor: pointer;
+    }
+
+    .btn-submit:hover {
+      filter: brightness(1.05);
+    }
+
+    .actions-row {
+      display: flex;
+      gap: 14px;
+      flex-wrap: wrap;
+      margin-top: 14px;
+    }
+
+    .actions-row a {
+      color: #2dd4bf;
+      text-decoration: none;
+      font-weight: 800;
+      font-size: 13px;
+    }
+
+    .section-header {
+      margin-bottom: 14px;
+    }
+
+    .history-card {
+      margin-bottom: 16px;
+    }
+
+    .history-top {
+      display: flex;
+      justify-content: space-between;
+      gap: 16px;
+      margin-bottom: 14px;
+    }
+
+    .history-title p {
+      margin: 0;
+      color: #94a3b8;
+      font-size: 13px;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      padding: 8px 12px;
+      border-radius: 999px;
+      border: 1px solid rgba(45, 212, 191, 0.25);
+      background: rgba(45, 212, 191, 0.12);
+      color: #2dd4bf;
+      font-size: 12px;
+      font-weight: 900;
+      white-space: nowrap;
+    }
+
+    .info-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 12px;
+      margin-bottom: 14px;
+    }
+
+    .info-box {
+      background: rgba(15, 23, 42, 0.55);
+      border: 1px solid rgba(148, 163, 184, 0.14);
+      border-radius: 12px;
+      padding: 12px;
+    }
+
+    .info-box span {
+      display: block;
+      color: #94a3b8;
+      font-size: 12px;
+      margin-bottom: 4px;
+    }
+
+    .info-box strong {
+      display: block;
+      color: #ffffff;
+      font-size: 14px;
+    }
+
+    .detail {
+      border-top: 1px solid rgba(148, 163, 184, 0.16);
+      padding-top: 12px;
+      margin-top: 12px;
+    }
+
+    .detail h4 {
+      color: #2dd4bf;
+      margin: 0 0 6px;
+      font-size: 13px;
+    }
+
+    .detail p {
+      margin: 0;
+      white-space: pre-wrap;
+      font-size: 14px;
+    }
+
+    .empty-card {
+      text-align: center;
+      color: #cbd5e1;
+      border-style: dashed;
+    }
+
+    .footer {
+      border-top: 1px solid rgba(148, 163, 184, 0.16);
+      margin-top: 26px;
+      padding-top: 14px;
+      display: flex;
+      justify-content: space-between;
+      color: #94a3b8;
+      font-size: 12px;
+    }
+
+    @media (max-width: 900px) {
+      .hero-box,
+      .filter-grid,
+      .info-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .history-top {
+        flex-direction: column;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <header>
+    <div class="logo">
+      {% if request.user.unidade %}
+        {% if request.user.unidade.sigla == "HSFVF" or request.user.unidade.sigla == "HSFMA" %}
+          <img src="{% static 'core/img/logo-sagrada-familia.png' %}" alt="Logo" class="header-unit-logo">
+        {% else %}
+          <img src="{% static 'core/img/logo-hsf.png' %}" alt="Logo" class="header-unit-logo">
+        {% endif %}
+      {% else %}
+        <img src="{% static 'core/img/logo-hsf.png' %}" alt="Logo" class="header-unit-logo">
+      {% endif %}
+
+      <div>
+        <span>Intranet Grupo São Francisco</span>
+        <span class="unit-tag">
+          {% if request.user.unidade %}
+            {{ request.user.unidade.nome }}
+          {% else %}
+            Sem unidade vinculada
+          {% endif %}
+        </span>
+      </div>
+    </div>
+
+    <div class="header-right">
+      <a class="logout-btn" href="/portal/modulos/status-sistemas/">Status dos Sistemas</a>
+      <a class="logout-btn" href="/portal/">Portal</a>
+      <button class="logout-btn" onclick="doLogout()">Sair</button>
+    </div>
+  </header>
+
+  <main class="page">
+
+    <div class="top-actions">
+      <a class="btn-link" href="/portal/modulos/status-sistemas/">← Voltar ao Status dos Sistemas</a>
+      <a class="btn-link" href="/portal/">Voltar ao portal</a>
+
+      {% if query_string %}
+        <a class="btn-export" href="/portal/modulos/status-sistemas/historico/exportar-csv/?{{ query_string }}">Exportar CSV</a>
+      {% else %}
+        <a class="btn-export" href="/portal/modulos/status-sistemas/historico/exportar-csv/">Exportar CSV</a>
+      {% endif %}
+    </div>
+
+    <section class="hero-box">
+      <div class="hero-main">
+        <div class="eyebrow">Histórico</div>
+        <h1>Histórico de ocorrências encerradas</h1>
+        <p>
+          Consulte incidentes encerrados por sistema, unidade, impacto, período, causa raiz e solução aplicada.
+        </p>
+        <span class="counter">{{ total_ocorrencias }} ocorrência(s) encontrada(s)</span>
+      </div>
+
+      <aside class="hero-side">
+        <h3>Base de incidentes</h3>
+        <p>
+          Esta tela exibe somente ocorrências encerradas no módulo Status dos Sistemas.
+        </p>
+      </aside>
+    </section>
+
+    <section class="filter-card">
+      <div class="filter-title">
+        <h2>Filtros</h2>
+        <p>Localize ocorrências por sistema, unidade, status, impacto ou período.</p>
+      </div>
+
+      <form method="get">
+        <div class="filter-grid">
+
+          <div class="form-group">
+            <label>Busca geral</label>
+            <input
+              type="text"
+              name="busca"
+              value="{{ busca }}"
+              placeholder="Título, sistema, causa raiz..."
+            >
+          </div>
+
+          <div class="form-group">
+            <label>Sistema</label>
+            <select name="sistema">
+              <option value="">Todos</option>
+              {% for sistema in sistemas %}
+                <option value="{{ sistema.id }}" {% if sistema_id == sistema.id|stringformat:"s" %}selected{% endif %}>
+                  {{ sistema.nome }}
+                </option>
+              {% endfor %}
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label>Unidade</label>
+            <select name="unidade">
+              <option value="">Todas</option>
+              <option value="geral" {% if unidade_id == "geral" %}selected{% endif %}>Geral / Todas</option>
+              {% for unidade in unidades %}
+                <option value="{{ unidade.id }}" {% if unidade_id == unidade.id|stringformat:"s" %}selected{% endif %}>
+                  {{ unidade.sigla }} - {{ unidade.nome }}
+                </option>
+              {% endfor %}
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label>Status</label>
+            <select name="status">
+              <option value="">Todos</option>
+              {% for valor, nome in status_choices %}
+                <option value="{{ valor }}" {% if status == valor %}selected{% endif %}>
+                  {{ nome }}
+                </option>
+              {% endfor %}
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label>Impacto</label>
+            <select name="impacto">
+              <option value="">Todos</option>
+              {% for valor, nome in impacto_choices %}
+                <option value="{{ valor }}" {% if impacto == valor %}selected{% endif %}>
+                  {{ nome }}
+                </option>
+              {% endfor %}
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label>Encerrado de</label>
+            <input type="date" name="data_inicio" value="{{ data_inicio }}">
+          </div>
+
+          <div class="form-group">
+            <label>Encerrado até</label>
+            <input type="date" name="data_fim" value="{{ data_fim }}">
+          </div>
+
+          <div class="form-group">
+            <label>&nbsp;</label>
+            <button type="submit" class="btn-submit">Consultar</button>
+          </div>
+
+        </div>
+
+        <div class="actions-row">
+          <a href="/portal/modulos/status-sistemas/historico/">Limpar filtros</a>
+          <a href="/portal/modulos/status-sistemas/">Voltar ao status atual</a>
+
+          {% if query_string %}
+            <a href="/portal/modulos/status-sistemas/historico/exportar-csv/?{{ query_string }}">Exportar resultado filtrado</a>
+          {% else %}
+            <a href="/portal/modulos/status-sistemas/historico/exportar-csv/">Exportar todos</a>
+          {% endif %}
+        </div>
+      </form>
+    </section>
+
+    <section>
+      <div class="section-header">
+        <h2>Ocorrências encerradas</h2>
+        <p>Exibindo até 300 registros mais recentes.</p>
+      </div>
+
+      {% if ocorrencias %}
+        {% for ocorrencia in ocorrencias %}
+          <article class="history-card">
+
+            <div class="history-top">
+              <div class="history-title">
+                <h3>{{ ocorrencia.titulo }}</h3>
+                <p>
+                  {{ ocorrencia.sistema.nome }}
+                  {% if ocorrencia.unidade %}
+                    • {{ ocorrencia.unidade.sigla }}
+                  {% else %}
+                    • Geral / Todas
+                  {% endif %}
+                </p>
+              </div>
+
+              <span class="badge">
+                {{ ocorrencia.get_status_display }}
+              </span>
+            </div>
+
+            <div class="info-grid">
+              <div class="info-box">
+                <span>Impacto</span>
+                <strong>{{ ocorrencia.get_impacto_display }}</strong>
+              </div>
+
+              <div class="info-box">
+                <span>Aberta em</span>
+                <strong>{{ ocorrencia.aberto_em|date:"d/m/Y H:i" }}</strong>
+              </div>
+
+              <div class="info-box">
+                <span>Encerrada em</span>
+                <strong>
+                  {% if ocorrencia.encerrado_em %}
+                    {{ ocorrencia.encerrado_em|date:"d/m/Y H:i" }}
+                  {% else %}
+                    Não informado
+                  {% endif %}
+                </strong>
+              </div>
+            </div>
+
+            {% if ocorrencia.mensagem %}
+              <div class="detail">
+                <h4>Mensagem inicial</h4>
+                <p>{{ ocorrencia.mensagem }}</p>
+              </div>
+            {% endif %}
+
+            {% if ocorrencia.acao_ti %}
+              <div class="detail">
+                <h4>Ação da TI durante a ocorrência</h4>
+                <p>{{ ocorrencia.acao_ti }}</p>
+              </div>
+            {% endif %}
+
+            <div class="detail">
+              <h4>Causa raiz</h4>
+              <p>{{ ocorrencia.causa_raiz|default:"Não informada" }}</p>
+            </div>
+
+            <div class="detail">
+              <h4>Solução aplicada</h4>
+              <p>{{ ocorrencia.solucao_aplicada|default:"Não informada" }}</p>
+            </div>
+
+            {% if ocorrencia.observacao_encerramento %}
+              <div class="detail">
+                <h4>Observação final</h4>
+                <p>{{ ocorrencia.observacao_encerramento }}</p>
+              </div>
+            {% endif %}
+
+          </article>
+        {% endfor %}
+      {% else %}
+        <div class="empty-card">
+          Nenhuma ocorrência encerrada encontrada para os filtros selecionados.
+        </div>
+      {% endif %}
+    </section>
+
+    <footer class="footer">
+      <span>Status dos Sistemas • Histórico de ocorrências</span>
+      <span>Tecnologia da Informação • Ambiente interno</span>
+    </footer>
+
+  </main>
+
+  <script src="{% static 'core/js/home.js' %}"></script>
+</body>
+</html>

@@ -1,0 +1,635 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>Permissões por Módulo | Administração</title>
+
+  <link rel="stylesheet" href="{% static 'core/css/home.css' %}">
+
+  <style>
+    .admin-page {
+      width: min(1280px, calc(100% - 32px));
+      margin: 0 auto;
+      padding: 28px 0 36px;
+      color: #ffffff;
+    }
+
+    .admin-hero {
+      background:
+        radial-gradient(circle at top left, rgba(45, 212, 191, 0.14), transparent 34%),
+        rgba(255, 255, 255, 0.04);
+      border: 1px solid rgba(255, 255, 255, 0.10);
+      border-radius: 24px;
+      padding: 24px;
+      box-shadow: 0 14px 34px rgba(0, 0, 0, 0.20);
+      margin-bottom: 18px;
+    }
+
+    .admin-hero-top {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+
+    .admin-eyebrow {
+      color: #2dd4bf;
+      font-size: 12px;
+      font-weight: 900;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      margin-bottom: 8px;
+    }
+
+    .admin-hero h1 {
+      margin: 0 0 8px 0;
+      color: #ffffff;
+      font-size: 30px;
+      line-height: 1.15;
+    }
+
+    .admin-hero p {
+      margin: 0;
+      color: rgba(255, 255, 255, 0.68);
+      font-size: 14px;
+      line-height: 1.55;
+      max-width: 760px;
+    }
+
+    .admin-actions {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .admin-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 7px;
+      border-radius: 999px;
+      padding: 10px 14px;
+      border: 1px solid rgba(45, 212, 191, 0.28);
+      background: rgba(45, 212, 191, 0.10);
+      color: #2dd4bf;
+      text-decoration: none;
+      font-size: 13px;
+      font-weight: 900;
+      cursor: pointer;
+      transition: 0.2s ease;
+      white-space: nowrap;
+    }
+
+    .admin-btn:hover {
+      background: rgba(45, 212, 191, 0.18);
+      border-color: rgba(45, 212, 191, 0.52);
+      transform: translateY(-1px);
+    }
+
+    .messages-box {
+      display: grid;
+      gap: 8px;
+      margin-bottom: 16px;
+    }
+
+    .message-alert {
+      border-radius: 16px;
+      padding: 12px 14px;
+      font-size: 13px;
+      font-weight: 800;
+      border: 1px solid rgba(255, 255, 255, 0.12);
+    }
+
+    .message-alert.success {
+      color: #2dd4bf;
+      background: rgba(45, 212, 191, 0.10);
+      border-color: rgba(45, 212, 191, 0.28);
+    }
+
+    .message-alert.error {
+      color: #fecaca;
+      background: rgba(239, 68, 68, 0.14);
+      border-color: rgba(239, 68, 68, 0.30);
+    }
+
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+      gap: 12px;
+      margin-top: 20px;
+    }
+
+    .stat-card {
+      background: rgba(0, 0, 0, 0.18);
+      border: 1px solid rgba(255, 255, 255, 0.09);
+      border-radius: 18px;
+      padding: 16px;
+    }
+
+    .stat-card span {
+      display: block;
+      color: rgba(255, 255, 255, 0.52);
+      font-size: 11px;
+      text-transform: uppercase;
+      font-weight: 900;
+      letter-spacing: 0.07em;
+      margin-bottom: 6px;
+    }
+
+    .stat-card strong {
+      color: #2dd4bf;
+      font-size: 28px;
+      line-height: 1;
+    }
+
+    .filters-card {
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid rgba(255, 255, 255, 0.10);
+      border-radius: 22px;
+      padding: 18px;
+      box-shadow: 0 14px 34px rgba(0, 0, 0, 0.16);
+      margin-bottom: 18px;
+    }
+
+    .filters-grid {
+      display: grid;
+      grid-template-columns: minmax(220px, 1fr) 190px 160px 170px auto;
+      gap: 10px;
+      align-items: end;
+    }
+
+    .field label {
+      display: block;
+      color: rgba(255, 255, 255, 0.62);
+      font-size: 12px;
+      font-weight: 800;
+      margin-bottom: 6px;
+    }
+
+    .field input,
+    .field select {
+      width: 100%;
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      background: rgba(0, 0, 0, 0.24);
+      color: #ffffff;
+      border-radius: 14px;
+      padding: 11px 12px;
+      outline: none;
+      font-size: 13px;
+      box-sizing: border-box;
+    }
+
+    .field input:focus,
+    .field select:focus {
+      border-color: rgba(45, 212, 191, 0.60);
+      box-shadow: 0 0 0 3px rgba(45, 212, 191, 0.10);
+    }
+
+    .field select option {
+      color: #111827;
+    }
+
+    .filter-submit {
+      border: 0;
+      background: #2dd4bf;
+      color: #06211d;
+      border-radius: 14px;
+      padding: 12px 16px;
+      font-size: 13px;
+      font-weight: 950;
+      cursor: pointer;
+      transition: 0.2s ease;
+      min-height: 42px;
+    }
+
+    .filter-submit:hover {
+      filter: brightness(1.08);
+      transform: translateY(-1px);
+    }
+
+    .table-card {
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid rgba(255, 255, 255, 0.10);
+      border-radius: 22px;
+      overflow: hidden;
+      box-shadow: 0 14px 34px rgba(0, 0, 0, 0.16);
+    }
+
+    .table-header {
+      padding: 16px 18px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .table-header h2 {
+      margin: 0;
+      font-size: 18px;
+      color: #ffffff;
+    }
+
+    .table-header span {
+      color: rgba(255, 255, 255, 0.54);
+      font-size: 12px;
+      font-weight: 800;
+    }
+
+    .table-wrap {
+      overflow-x: auto;
+    }
+
+    .admin-table {
+      width: 100%;
+      border-collapse: collapse;
+      min-width: 1100px;
+    }
+
+    .admin-table th,
+    .admin-table td {
+      padding: 13px 14px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+      text-align: left;
+      vertical-align: middle;
+    }
+
+    .admin-table th {
+      color: rgba(255, 255, 255, 0.48);
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.07em;
+      font-weight: 950;
+      background: rgba(0, 0, 0, 0.14);
+    }
+
+    .admin-table td {
+      color: rgba(255, 255, 255, 0.78);
+      font-size: 13px;
+    }
+
+    .module-main {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      min-width: 270px;
+    }
+
+    .module-icon {
+      width: 40px;
+      height: 40px;
+      border-radius: 14px;
+      background: rgba(45, 212, 191, 0.13);
+      border: 1px solid rgba(45, 212, 191, 0.24);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #2dd4bf;
+      font-size: 18px;
+      font-weight: 950;
+      flex: 0 0 auto;
+    }
+
+    .module-name {
+      color: #ffffff;
+      font-weight: 900;
+      margin-bottom: 3px;
+    }
+
+    .module-link {
+      color: rgba(255, 255, 255, 0.46);
+      font-size: 12px;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 999px;
+      padding: 6px 9px;
+      font-size: 11px;
+      font-weight: 900;
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      background: rgba(255, 255, 255, 0.06);
+      color: rgba(255, 255, 255, 0.76);
+      white-space: nowrap;
+      margin: 2px;
+    }
+
+    .badge.green {
+      color: #2dd4bf;
+      background: rgba(45, 212, 191, 0.10);
+      border-color: rgba(45, 212, 191, 0.28);
+    }
+
+    .badge.red {
+      color: #fecaca;
+      background: rgba(239, 68, 68, 0.15);
+      border-color: rgba(239, 68, 68, 0.32);
+    }
+
+    .badge.orange {
+      color: #fed7aa;
+      background: rgba(249, 115, 22, 0.14);
+      border-color: rgba(249, 115, 22, 0.30);
+    }
+
+    .row-action {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 999px;
+      border: 1px solid rgba(45, 212, 191, 0.24);
+      background: rgba(45, 212, 191, 0.08);
+      color: #2dd4bf;
+      text-decoration: none;
+      padding: 7px 10px;
+      font-size: 11px;
+      font-weight: 900;
+      white-space: nowrap;
+      transition: 0.2s ease;
+    }
+
+    .row-action:hover {
+      background: rgba(45, 212, 191, 0.16);
+      border-color: rgba(45, 212, 191, 0.50);
+      transform: translateY(-1px);
+    }
+
+    .empty-state {
+      padding: 32px 18px;
+      text-align: center;
+      color: rgba(255, 255, 255, 0.58);
+      font-size: 14px;
+      line-height: 1.5;
+    }
+
+    .empty-state strong {
+      color: #2dd4bf;
+      display: block;
+      margin-bottom: 6px;
+      font-size: 16px;
+    }
+
+    @media (max-width: 1100px) {
+      .filters-grid {
+        grid-template-columns: 1fr 1fr;
+      }
+
+      .filter-submit {
+        grid-column: span 2;
+      }
+    }
+
+    @media (max-width: 620px) {
+      .admin-page {
+        width: calc(100% - 20px);
+        padding-top: 16px;
+      }
+
+      .admin-hero h1 {
+        font-size: 24px;
+      }
+
+      .filters-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .filter-submit {
+        grid-column: auto;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
+
+  <div id="portal-screen" style="display: block;">
+    <header>
+      <div class="logo">
+        {% if request.user.unidade.sigla == "HSFVF" or request.user.unidade.sigla == "HSFMA" %}
+          <img src="{% static 'core/img/logo-sagrada-familia.png' %}" alt="Logo" class="header-unit-logo">
+        {% else %}
+          <img src="{% static 'core/img/logo-hsf.png' %}" alt="Logo" class="header-unit-logo">
+        {% endif %}
+
+        <div>
+          <span>Intranet Grupo São Francisco</span>
+          <span class="unit-tag">{{ request.user.unidade.nome }}</span>
+        </div>
+      </div>
+
+      <div class="header-right">
+        <a class="logout-btn" href="/conversas/">💬 Conversas</a>
+        <a class="logout-btn" href="/portal/administracao/usuarios/">Usuários</a>
+        <a class="logout-btn" href="/portal/">Voltar ao portal</a>
+        <button class="logout-btn" onclick="doLogout()">Sair</button>
+      </div>
+    </header>
+
+    <main class="admin-page">
+
+      {% if messages %}
+        <div class="messages-box">
+          {% for message in messages %}
+            <div class="message-alert {{ message.tags }}">
+              {{ message }}
+            </div>
+          {% endfor %}
+        </div>
+      {% endif %}
+
+      <section class="admin-hero">
+        <div class="admin-hero-top">
+          <div>
+            <div class="admin-eyebrow">Administração</div>
+            <h1>Permissões por módulo</h1>
+            <p>
+              Defina quais grupos podem visualizar e acessar cada módulo da intranet.
+              Quando um módulo estiver restrito, ele só aparece para os grupos liberados.
+            </p>
+          </div>
+
+          <div class="admin-actions">
+            <a class="admin-btn" href="/portal/administracao/usuarios/">
+              Usuários e grupos
+            </a>
+
+            <a class="admin-btn" href="/portal/">
+              Voltar ao portal
+            </a>
+          </div>
+        </div>
+
+        <div class="stats-grid">
+          <div class="stat-card">
+            <span>Total filtrado</span>
+            <strong>{{ total_modulos }}</strong>
+          </div>
+
+          <div class="stat-card">
+            <span>Ativos</span>
+            <strong>{{ total_ativos }}</strong>
+          </div>
+
+          <div class="stat-card">
+            <span>Restritos</span>
+            <strong>{{ total_restritos }}</strong>
+          </div>
+
+          <div class="stat-card">
+            <span>Liberados</span>
+            <strong>{{ total_livres }}</strong>
+          </div>
+        </div>
+      </section>
+
+      <section class="filters-card">
+        <form method="get" action="/portal/administracao/permissoes-modulos/">
+          <div class="filters-grid">
+            <div class="field">
+              <label for="busca">Buscar</label>
+              <input
+                type="text"
+                id="busca"
+                name="busca"
+                value="{{ busca }}"
+                placeholder="Buscar por módulo, link ou descrição"
+              >
+            </div>
+
+            <div class="field">
+              <label for="categoria">Categoria</label>
+              <select id="categoria" name="categoria">
+                <option value="">Todas</option>
+                {% for valor, texto in categorias %}
+                  <option value="{{ valor }}" {% if categoria == valor %}selected{% endif %}>
+                    {{ texto }}
+                  </option>
+                {% endfor %}
+              </select>
+            </div>
+
+            <div class="field">
+              <label for="status">Status</label>
+              <select id="status" name="status">
+                <option value="">Todos</option>
+                <option value="ativo" {% if status == "ativo" %}selected{% endif %}>Ativos</option>
+                <option value="inativo" {% if status == "inativo" %}selected{% endif %}>Inativos</option>
+              </select>
+            </div>
+
+            <div class="field">
+              <label for="acesso">Acesso</label>
+              <select id="acesso" name="acesso">
+                <option value="">Todos</option>
+                <option value="livre" {% if acesso == "livre" %}selected{% endif %}>Liberado para todos</option>
+                <option value="restrito" {% if acesso == "restrito" %}selected{% endif %}>Restrito por grupo</option>
+              </select>
+            </div>
+
+            <button class="filter-submit" type="submit">
+              Filtrar
+            </button>
+          </div>
+        </form>
+      </section>
+
+      <section class="table-card">
+        <div class="table-header">
+          <h2>Módulos configurados</h2>
+          <span>{{ total_modulos }} registro(s)</span>
+        </div>
+
+        <div class="table-wrap">
+          {% if modulos %}
+            <table class="admin-table">
+              <thead>
+                <tr>
+                  <th>Módulo</th>
+                  <th>Categoria</th>
+                  <th>Status</th>
+                  <th>Acesso</th>
+                  <th>Grupos permitidos</th>
+                  <th>Ações</th>
+                </tr>
+              </thead>
+
+              <tbody>
+                {% for modulo in modulos %}
+                  <tr>
+                    <td>
+                      <div class="module-main">
+                        <div class="module-icon">
+                          {{ modulo.icone|default:"📦" }}
+                        </div>
+
+                        <div>
+                          <div class="module-name">{{ modulo.nome }}</div>
+                          <div class="module-link">{{ modulo.link }}</div>
+                        </div>
+                      </div>
+                    </td>
+
+                    <td>
+                      <span class="badge">{{ modulo.get_categoria_display }}</span>
+                    </td>
+
+                    <td>
+                      {% if modulo.ativo %}
+                        <span class="badge green">Ativo</span>
+                      {% else %}
+                        <span class="badge red">Inativo</span>
+                      {% endif %}
+                    </td>
+
+                    <td>
+                      {% if modulo.grupos_permitidos.all %}
+                        <span class="badge orange">Restrito</span>
+                      {% else %}
+                        <span class="badge green">Todos</span>
+                      {% endif %}
+                    </td>
+
+                    <td>
+                      {% if modulo.grupos_permitidos.all %}
+                        {% for grupo in modulo.grupos_permitidos.all %}
+                          <span class="badge">{{ grupo.name }}</span>
+                        {% endfor %}
+                      {% else %}
+                        <span class="badge green">Liberado para todos</span>
+                      {% endif %}
+                    </td>
+
+                    <td>
+                      <a class="row-action" href="/portal/administracao/permissoes-modulos/editar/{{ modulo.id }}/">
+                        Editar permissões
+                      </a>
+                    </td>
+                  </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          {% else %}
+            <div class="empty-state">
+              <strong>Nenhum módulo encontrado</strong>
+              Ajuste os filtros ou limpe a busca para visualizar os módulos.
+            </div>
+          {% endif %}
+        </div>
+      </section>
+
+    </main>
+  </div>
+
+  <script src="{% static 'core/js/home.js' %}"></script>
+</body>
+</html>

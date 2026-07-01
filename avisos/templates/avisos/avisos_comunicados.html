@@ -1,0 +1,518 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>Avisos e Comunicados | Intranet</title>
+
+  <link rel="stylesheet" href="{% static 'core/css/home.css' %}">
+
+  <style>
+    .avisos-grid {
+      display: grid;
+      gap: 16px;
+    }
+
+    .aviso-card {
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid rgba(255, 255, 255, 0.10);
+      border-radius: 18px;
+      padding: 18px;
+      transition: all 0.2s ease;
+    }
+
+    .aviso-card.inativo {
+      opacity: 0.60;
+      border-color: rgba(239, 68, 68, 0.22);
+    }
+
+    .aviso-card:hover {
+      transform: translateY(-2px);
+      border-color: rgba(45, 212, 191, 0.55);
+      background: rgba(45, 212, 191, 0.08);
+      box-shadow: 0 14px 34px rgba(0, 0, 0, 0.25);
+    }
+
+    .aviso-top {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-bottom: 12px;
+    }
+
+    .aviso-title-line {
+      display: flex;
+      gap: 12px;
+      align-items: flex-start;
+    }
+
+    .aviso-icon {
+      width: 42px;
+      height: 42px;
+      border-radius: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(45, 212, 191, 0.12);
+      border: 1px solid rgba(45, 212, 191, 0.22);
+      font-size: 22px;
+      flex: 0 0 auto;
+    }
+
+    .aviso-card h3 {
+      color: #ffffff;
+      font-size: 18px;
+      margin: 0 0 6px 0;
+      line-height: 1.3;
+    }
+
+    .aviso-meta {
+      color: rgba(255, 255, 255, 0.62);
+      font-size: 12px;
+      line-height: 1.5;
+    }
+
+    .aviso-badges {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+    }
+
+    .aviso-badge {
+      font-size: 11px;
+      font-weight: 800;
+      text-transform: uppercase;
+      color: #2dd4bf;
+      background: rgba(45, 212, 191, 0.10);
+      border: 1px solid rgba(45, 212, 191, 0.22);
+      border-radius: 999px;
+      padding: 6px 10px;
+    }
+
+    .aviso-badge.critica {
+      color: #fecaca;
+      background: rgba(239, 68, 68, 0.18);
+      border-color: rgba(239, 68, 68, 0.35);
+    }
+
+    .aviso-badge.alta {
+      color: #fed7aa;
+      background: rgba(249, 115, 22, 0.16);
+      border-color: rgba(249, 115, 22, 0.32);
+    }
+
+    .aviso-badge.inativo {
+      color: #fecaca;
+      background: rgba(239, 68, 68, 0.18);
+      border-color: rgba(239, 68, 68, 0.35);
+    }
+
+    .aviso-badge.expirado {
+      color: #fed7aa;
+      background: rgba(249, 115, 22, 0.16);
+      border-color: rgba(249, 115, 22, 0.32);
+    }
+
+    .aviso-texto {
+      color: rgba(255, 255, 255, 0.76);
+      font-size: 14px;
+      line-height: 1.6;
+      margin-top: 12px;
+      white-space: pre-line;
+    }
+
+    .aviso-actions {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-top: 14px;
+    }
+
+    .aviso-action,
+    .aviso-action-danger {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 999px;
+      border: 1px solid rgba(45, 212, 191, 0.24);
+      background: rgba(45, 212, 191, 0.10);
+      color: #2dd4bf;
+      padding: 8px 12px;
+      font-size: 12px;
+      font-weight: 800;
+      text-decoration: none;
+      cursor: pointer;
+    }
+
+    .aviso-action-danger {
+      color: #fecaca;
+      background: rgba(239, 68, 68, 0.12);
+      border-color: rgba(239, 68, 68, 0.28);
+    }
+
+    .contador-box {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      color: #2dd4bf;
+      background: rgba(45, 212, 191, 0.10);
+      border: 1px solid rgba(45, 212, 191, 0.22);
+      border-radius: 999px;
+      padding: 8px 12px;
+      font-size: 12px;
+      font-weight: 800;
+      margin-top: 10px;
+    }
+
+    .stats-row {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-top: 12px;
+    }
+
+    .stat-pill {
+      color: rgba(255, 255, 255, 0.78);
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid rgba(255, 255, 255, 0.10);
+      border-radius: 999px;
+      padding: 7px 10px;
+      font-size: 11px;
+      font-weight: 800;
+    }
+
+    .grupo-lista {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-top: 8px;
+    }
+
+    .grupo-pill {
+      color: rgba(255, 255, 255, 0.70);
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid rgba(255, 255, 255, 0.10);
+      border-radius: 999px;
+      padding: 5px 8px;
+      font-size: 11px;
+      font-weight: 800;
+    }
+  </style>
+</head>
+
+<body>
+
+  <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
+
+  <div id="portal-screen" style="display: block;">
+    <header>
+      <div class="logo">
+        {% if request.user.unidade %}
+          {% if request.user.unidade.sigla == "HSFVF" or request.user.unidade.sigla == "HSFMA" %}
+            <img src="{% static 'core/img/logo-sagrada-familia.png' %}" alt="Logo" class="header-unit-logo">
+          {% else %}
+            <img src="{% static 'core/img/logo-hsf.png' %}" alt="Logo" class="header-unit-logo">
+          {% endif %}
+        {% else %}
+          <img src="{% static 'core/img/logo-hsf.png' %}" alt="Logo" class="header-unit-logo">
+        {% endif %}
+
+        <div>
+          <span>Intranet Grupo São Francisco</span>
+          <span class="unit-tag">
+            {% if request.user.unidade %}
+              {{ request.user.unidade.nome }}
+            {% else %}
+              Sem unidade vinculada
+            {% endif %}
+          </span>
+        </div>
+      </div>
+
+      <div class="header-right">
+        {% if pode_gerenciar_avisos %}
+          <a class="logout-btn" href="/portal/modulos/avisos/novo/">Novo aviso</a>
+        {% endif %}
+
+        <a class="logout-btn" href="/portal/">Voltar ao portal</a>
+        <button class="logout-btn" onclick="doLogout()">Sair</button>
+      </div>
+    </header>
+
+    <main class="portal-shell">
+
+      <section class="hero">
+        <div class="hero-main">
+          <div class="hero-eyebrow">Comunicação interna</div>
+
+          <h1>Avisos e Comunicados</h1>
+
+          <p class="welcome-sub">
+            Consulte comunicados internos, manutenções, mudanças de fluxo e orientações operacionais.
+          </p>
+
+          <div class="contador-box">
+            {{ total_avisos }} aviso(s) encontrado(s)
+          </div>
+
+          <div class="stats-row">
+            <span class="stat-pill">Ativos: {{ total_ativos }}</span>
+            <span class="stat-pill">Inativos: {{ total_inativos }}</span>
+            <span class="stat-pill">Gerais: {{ total_gerais }}</span>
+            <span class="stat-pill">Expirados: {{ total_expirados }}</span>
+          </div>
+        </div>
+
+        <aside class="support-card">
+          <h3>Orientação</h3>
+
+          <p>
+            Avisos críticos ou fixados aparecem primeiro. Comunicados expirados deixam de aparecer automaticamente para usuários comuns.
+          </p>
+        </aside>
+      </section>
+
+      <section class="category-section">
+        <div class="category-header">
+          <h2>Filtros</h2>
+          <p>Localize comunicados por unidade, tipo, prioridade, status ou palavra-chave.</p>
+        </div>
+
+        <div class="panel-box">
+          <form method="get">
+            <div class="grid-section">
+
+              <div class="form-group">
+                <label>Busca</label>
+                <input
+                  type="text"
+                  name="busca"
+                  value="{{ busca }}"
+                  placeholder="Ex: manutenção, MV, link, agendamento..."
+                >
+              </div>
+
+              <div class="form-group">
+                <label>Unidade</label>
+                <select name="unidade">
+                  <option value="">Minha unidade + Geral</option>
+                  <option value="geral" {% if unidade_id == "geral" %}selected{% endif %}>
+                    Geral / Todas as unidades
+                  </option>
+
+                  {% for unidade in unidades %}
+                    <option value="{{ unidade.id }}" {% if unidade_id == unidade.id|stringformat:"s" %}selected{% endif %}>
+                      {{ unidade.nome }}
+                    </option>
+                  {% endfor %}
+                </select>
+              </div>
+
+              <div class="form-group">
+                <label>Tipo</label>
+                <select name="tipo">
+                  <option value="">Todos</option>
+
+                  {% for valor, nome in tipos %}
+                    <option value="{{ valor }}" {% if tipo == valor %}selected{% endif %}>
+                      {{ nome }}
+                    </option>
+                  {% endfor %}
+                </select>
+              </div>
+
+              <div class="form-group">
+                <label>Prioridade</label>
+                <select name="prioridade">
+                  <option value="">Todas</option>
+
+                  {% for valor, nome in prioridades %}
+                    <option value="{{ valor }}" {% if prioridade == valor %}selected{% endif %}>
+                      {{ nome }}
+                    </option>
+                  {% endfor %}
+                </select>
+              </div>
+
+              {% if pode_gerenciar_avisos %}
+                <div class="form-group">
+                  <label>Status</label>
+                  <select name="status">
+                    <option value="">Todos</option>
+                    <option value="ativo" {% if status == "ativo" %}selected{% endif %}>Ativos</option>
+                    <option value="inativo" {% if status == "inativo" %}selected{% endif %}>Inativos</option>
+                    <option value="expirado" {% if status == "expirado" %}selected{% endif %}>Expirados</option>
+                  </select>
+                </div>
+              {% endif %}
+
+            </div>
+
+            <div style="display:flex; gap:10px; flex-wrap:wrap; margin-top: 12px;">
+              <button type="submit" class="btn-login" style="max-width: 180px;">
+                Consultar
+              </button>
+
+              <a href="/portal/modulos/avisos/" class="logout-btn" style="text-decoration:none; display:flex; align-items:center;">
+                Limpar filtros
+              </a>
+            </div>
+          </form>
+        </div>
+      </section>
+
+      <section class="category-section">
+        <div class="category-header">
+          <h2>Comunicados disponíveis</h2>
+          <p>Avisos liberados para sua unidade e perfil.</p>
+        </div>
+
+        <div class="avisos-grid">
+          {% for aviso in avisos %}
+            <div class="aviso-card {% if not aviso.ativo %}inativo{% endif %}">
+              <div class="aviso-top">
+                <div class="aviso-title-line">
+                  <div class="aviso-icon">
+                    {% if aviso.tipo == "manutencao" %}
+                      🛠️
+                    {% elif aviso.tipo == "indisponibilidade" %}
+                      ❌
+                    {% elif aviso.tipo == "orientacao" %}
+                      📌
+                    {% elif aviso.tipo == "mudanca_fluxo" %}
+                      🔁
+                    {% elif aviso.tipo == "urgente" %}
+                      🚨
+                    {% else %}
+                      📢
+                    {% endif %}
+                  </div>
+
+                  <div>
+                    <h3>{{ aviso.titulo }}</h3>
+
+                    <div class="aviso-meta">
+                      Publicado em {{ aviso.publicado_em|date:"d/m/Y H:i" }}
+
+                      {% if aviso.unidade %}
+                        • {{ aviso.unidade.nome }}
+                      {% else %}
+                        • Geral / Todas as unidades
+                      {% endif %}
+
+                      {% if aviso.unidades_compartilhadas.all %}
+                        • Compartilhado com:
+                        {% for unidade in aviso.unidades_compartilhadas.all %}
+                          {{ unidade.sigla }}{% if not forloop.last %}, {% endif %}
+                        {% endfor %}
+                      {% endif %}
+
+                      {% if aviso.expira_em %}
+                        • Expira em {{ aviso.expira_em|date:"d/m/Y H:i" }}
+                      {% endif %}
+                    </div>
+
+                    {% if aviso.grupos_permitidos.all %}
+                      <div class="grupo-lista">
+                        {% for grupo in aviso.grupos_permitidos.all %}
+                          <span class="grupo-pill">{{ grupo.name }}</span>
+                        {% endfor %}
+                      </div>
+                    {% endif %}
+                  </div>
+                </div>
+
+                <div class="aviso-badges">
+                  {% if not aviso.ativo %}
+                    <span class="aviso-badge inativo">Inativo</span>
+                  {% endif %}
+
+                  {% if aviso.esta_expirado %}
+                    <span class="aviso-badge expirado">Expirado</span>
+                  {% endif %}
+
+                  {% if aviso.fixar_no_topo %}
+                    <span class="aviso-badge">Fixado</span>
+                  {% endif %}
+
+                  <span class="aviso-badge">{{ aviso.get_tipo_display }}</span>
+
+                  <span class="aviso-badge {{ aviso.prioridade }}">
+                    {{ aviso.get_prioridade_display }}
+                  </span>
+                </div>
+              </div>
+
+              {% if aviso.resumo %}
+                <div class="aviso-texto">{{ aviso.resumo }}</div>
+              {% endif %}
+
+              <div class="aviso-texto">{{ aviso.mensagem }}</div>
+
+              <div class="aviso-actions">
+                {% if aviso.link_externo %}
+                  <a class="aviso-action" href="{{ aviso.link_externo }}" target="_blank">
+                    Abrir link
+                  </a>
+                {% endif %}
+
+                {% if aviso.arquivo %}
+                  <a class="aviso-action" href="{{ aviso.arquivo.url }}" target="_blank">
+                    Abrir anexo
+                  </a>
+                {% endif %}
+
+                {% if pode_gerenciar_avisos %}
+                  <a class="aviso-action" href="/portal/modulos/avisos/editar/{{ aviso.id }}/">
+                    Editar
+                  </a>
+
+                  {% if aviso.ativo %}
+                    <form method="post" action="/portal/modulos/avisos/inativar/{{ aviso.id }}/" style="display:inline;">
+                      {% csrf_token %}
+                      <button type="submit" class="aviso-action-danger">
+                        Inativar
+                      </button>
+                    </form>
+                  {% else %}
+                    <form method="post" action="/portal/modulos/avisos/reativar/{{ aviso.id }}/" style="display:inline;">
+                      {% csrf_token %}
+                      <button type="submit" class="aviso-action">
+                        Reativar
+                      </button>
+                    </form>
+                  {% endif %}
+                {% endif %}
+              </div>
+            </div>
+          {% empty %}
+            <div class="notice">
+              <div class="notice-icon">🔎</div>
+
+              <div>
+                <h3>Nenhum comunicado encontrado</h3>
+                <p>
+                  Não há avisos cadastrados para os filtros informados ou para seu perfil de acesso.
+                </p>
+              </div>
+            </div>
+          {% endfor %}
+        </div>
+      </section>
+
+      <footer class="footer">
+        <span>Avisos e Comunicados • Intranet Grupo São Francisco</span>
+        <span>Tecnologia da Informação • Ambiente interno</span>
+      </footer>
+
+    </main>
+  </div>
+
+  <script src="{% static 'core/js/home.js' %}"></script>
+</body>
+</html>

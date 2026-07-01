@@ -1,0 +1,339 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>{{ titulo_pagina }} | Intranet</title>
+
+  <link rel="stylesheet" href="{% static 'core/css/home.css' %}">
+
+  <style>
+    .checks-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 8px;
+      margin-top: 8px;
+    }
+
+    .check-card {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      color: rgba(255, 255, 255, 0.76);
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid rgba(255, 255, 255, 0.10);
+      border-radius: 14px;
+      padding: 10px;
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    .info-help {
+      color: #fed7aa;
+      background: rgba(249, 115, 22, 0.10);
+      border: 1px solid rgba(249, 115, 22, 0.28);
+      border-radius: 16px;
+      padding: 12px 14px;
+      font-size: 13px;
+      line-height: 1.5;
+      margin-bottom: 16px;
+    }
+
+    .arquivo-atual {
+      color: rgba(255, 255, 255, 0.72);
+      background: rgba(45, 212, 191, 0.08);
+      border: 1px solid rgba(45, 212, 191, 0.20);
+      border-radius: 14px;
+      padding: 10px;
+      font-size: 13px;
+      margin-top: 8px;
+    }
+
+    .arquivo-atual a {
+      color: #2dd4bf;
+      font-weight: 800;
+      text-decoration: none;
+    }
+  </style>
+</head>
+
+<body>
+
+  <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
+
+  <div id="portal-screen" style="display: block;">
+    <header>
+      <div class="logo">
+        {% if request.user.unidade %}
+          {% if request.user.unidade.sigla == "HSFVF" or request.user.unidade.sigla == "HSFMA" %}
+            <img src="{% static 'core/img/logo-sagrada-familia.png' %}" alt="Logo" class="header-unit-logo">
+          {% else %}
+            <img src="{% static 'core/img/logo-hsf.png' %}" alt="Logo" class="header-unit-logo">
+          {% endif %}
+        {% else %}
+          <img src="{% static 'core/img/logo-hsf.png' %}" alt="Logo" class="header-unit-logo">
+        {% endif %}
+
+        <div>
+          <span>Intranet Grupo São Francisco</span>
+          <span class="unit-tag">
+            {% if request.user.unidade %}
+              {{ request.user.unidade.nome }}
+            {% else %}
+              Sem unidade vinculada
+            {% endif %}
+          </span>
+        </div>
+      </div>
+
+      <div class="header-right">
+        <a class="logout-btn" href="/portal/modulos/avisos/">Voltar aos avisos</a>
+        <a class="logout-btn" href="/portal/">Portal</a>
+        <button class="logout-btn" onclick="doLogout()">Sair</button>
+      </div>
+    </header>
+
+    <main class="portal-shell">
+
+      <section class="hero">
+        <div class="hero-main">
+          <div class="hero-eyebrow">Comunicação interna</div>
+
+          <h1>{{ titulo_pagina }}</h1>
+
+          <p class="welcome-sub">
+            {{ subtitulo_pagina }}
+          </p>
+        </div>
+
+        <aside class="support-card">
+          <h3>Orientação</h3>
+
+          <p>
+            Para aviso geral, deixe a unidade em branco. Para compartilhar entre unidades específicas,
+            selecione uma unidade principal e marque as unidades adicionais.
+          </p>
+        </aside>
+      </section>
+
+      <section class="category-section">
+        <div class="category-header">
+          <h2>Dados do comunicado</h2>
+          <p>Título, tipo, prioridade e mensagem são obrigatórios.</p>
+        </div>
+
+        <div class="panel-box">
+          {% if erro %}
+            <div class="notice" style="margin-bottom: 16px;">
+              <div class="notice-icon">⚠️</div>
+              <div>
+                <h3>Atenção</h3>
+                <p>{{ erro }}</p>
+              </div>
+            </div>
+          {% endif %}
+
+          <div class="info-help">
+            <strong>Regra de unidade:</strong>
+            se a unidade ficar em branco, o aviso será geral para todas as unidades.
+            Se escolher uma unidade, ele aparecerá somente para ela e para as unidades marcadas como compartilhadas.
+          </div>
+
+          <form method="post" enctype="multipart/form-data" action="{{ url_salvar }}">
+            {% csrf_token %}
+
+            <div class="grid-section">
+
+              <div class="form-group" style="grid-column: 1 / -1;">
+                <label>Título</label>
+                <input
+                  type="text"
+                  name="titulo"
+                  value="{{ form_data.titulo }}"
+                  placeholder="Ex: Manutenção programada no MV"
+                  required
+                >
+              </div>
+
+              <div class="form-group">
+                <label>Tipo</label>
+                <select name="tipo" required>
+                  {% for valor, nome in tipos %}
+                    <option value="{{ valor }}" {% if form_data.tipo == valor %}selected{% endif %}>
+                      {{ nome }}
+                    </option>
+                  {% endfor %}
+                </select>
+              </div>
+
+              <div class="form-group">
+                <label>Prioridade</label>
+                <select name="prioridade" required>
+                  {% for valor, nome in prioridades %}
+                    <option value="{{ valor }}" {% if form_data.prioridade == valor %}selected{% endif %}>
+                      {{ nome }}
+                    </option>
+                  {% endfor %}
+                </select>
+              </div>
+
+              <div class="form-group">
+                <label>Unidade principal</label>
+                <select name="unidade">
+                  <option value="">Geral / Todas as unidades</option>
+
+                  {% for unidade in unidades %}
+                    <option value="{{ unidade.id }}" {% if form_data.unidade == unidade.id|stringformat:"s" %}selected{% endif %}>
+                      {{ unidade.nome }}
+                    </option>
+                  {% endfor %}
+                </select>
+              </div>
+
+              <div class="form-group" style="grid-column: 1 / -1;">
+                <label>Compartilhar também com estas unidades</label>
+
+                <div class="checks-grid">
+                  {% for unidade in unidades %}
+                    <label class="check-card">
+                      <input
+                        type="checkbox"
+                        name="unidades_compartilhadas"
+                        value="{{ unidade.id }}"
+                        {% if unidade.id|stringformat:"s" in form_data.unidades_compartilhadas %}checked{% endif %}
+                      >
+                      {{ unidade.nome }}
+                    </label>
+                  {% endfor %}
+                </div>
+              </div>
+
+              <div class="form-group" style="grid-column: 1 / -1;">
+                <label>Grupos permitidos</label>
+
+                <div class="checks-grid">
+                  {% for grupo in grupos %}
+                    <label class="check-card">
+                      <input
+                        type="checkbox"
+                        name="grupos_permitidos"
+                        value="{{ grupo.id }}"
+                        {% if grupo.id|stringformat:"s" in form_data.grupos_permitidos %}checked{% endif %}
+                      >
+                      {{ grupo.name }}
+                    </label>
+                  {% endfor %}
+                </div>
+
+                <p style="color: rgba(255,255,255,0.56); font-size: 12px; margin-top: 8px;">
+                  Se não selecionar nenhum grupo, o aviso ficará disponível para todos os usuários que tiverem acesso ao módulo Avisos.
+                </p>
+              </div>
+
+              <div class="form-group" style="grid-column: 1 / -1;">
+                <label>Resumo</label>
+                <input
+                  type="text"
+                  name="resumo"
+                  value="{{ form_data.resumo }}"
+                  placeholder="Resumo curto para aparecer no dashboard"
+                >
+              </div>
+
+              <div class="form-group" style="grid-column: 1 / -1;">
+                <label>Mensagem</label>
+                <textarea
+                  name="mensagem"
+                  rows="7"
+                  placeholder="Digite a mensagem completa do comunicado..."
+                  required
+                >{{ form_data.mensagem }}</textarea>
+              </div>
+
+              <div class="form-group">
+                <label>Expira em</label>
+                <input
+                  type="datetime-local"
+                  name="expira_em"
+                  value="{{ form_data.expira_em }}"
+                >
+              </div>
+
+              <div class="form-group">
+                <label>Link externo</label>
+                <input
+                  type="url"
+                  name="link_externo"
+                  value="{{ form_data.link_externo }}"
+                  placeholder="https://..."
+                >
+              </div>
+
+              <div class="form-group">
+                <label>Anexo</label>
+                <input
+                  type="file"
+                  name="arquivo"
+                >
+
+                {% if aviso and aviso.arquivo %}
+                  <div class="arquivo-atual">
+                    Arquivo atual:
+                    <a href="{{ aviso.arquivo.url }}" target="_blank">
+                      Abrir anexo
+                    </a>
+
+                    <label style="display:flex; align-items:center; gap:8px; margin-top:8px;">
+                      <input type="checkbox" name="remover_arquivo">
+                      Remover anexo atual
+                    </label>
+                  </div>
+                {% endif %}
+              </div>
+
+              <div class="form-group" style="grid-column: 1 / -1;">
+                <label style="display:flex; align-items:center; gap:8px;">
+                  <input type="checkbox" name="fixar_no_topo" {% if form_data.fixar_no_topo %}checked{% endif %}>
+                  Fixar no topo
+                </label>
+
+                <label style="display:flex; align-items:center; gap:8px; margin-top:8px;">
+                  <input type="checkbox" name="exibir_no_dashboard" {% if form_data.exibir_no_dashboard %}checked{% endif %}>
+                  Exibir no dashboard
+                </label>
+
+                <label style="display:flex; align-items:center; gap:8px; margin-top:8px;">
+                  <input type="checkbox" name="ativo" {% if form_data.ativo %}checked{% endif %}>
+                  Ativo
+                </label>
+              </div>
+
+            </div>
+
+            <div style="display:flex; gap:10px; flex-wrap:wrap; margin-top: 16px;">
+              <button type="submit" class="btn-login" style="max-width: 220px;">
+                {{ botao_salvar }}
+              </button>
+
+              <a href="/portal/modulos/avisos/" class="logout-btn" style="text-decoration:none; display:flex; align-items:center;">
+                Cancelar
+              </a>
+            </div>
+          </form>
+        </div>
+      </section>
+
+      <footer class="footer">
+        <span>Avisos e Comunicados • {{ titulo_pagina }}</span>
+        <span>Tecnologia da Informação • Ambiente interno</span>
+      </footer>
+
+    </main>
+  </div>
+
+  <script src="{% static 'core/js/home.js' %}"></script>
+</body>
+</html>
