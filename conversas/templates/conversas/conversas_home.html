@@ -11,747 +11,228 @@
   <link rel="stylesheet" href="{% static 'core/css/home.css' %}">
 
   <style>
-    body {
-      overflow: hidden;
-    }
-
-    .chat-page {
-      width: min(1320px, calc(100% - 28px));
-      height: calc(100vh - 92px);
-      margin: 14px auto 0;
-      display: grid;
-      grid-template-columns: 360px minmax(0, 1fr);
-      gap: 14px;
-      color: #ffffff;
-    }
-
-    .chat-sidebar,
-    .chat-main {
-      background: rgba(8, 18, 24, 0.78);
-      border: 1px solid rgba(255, 255, 255, 0.10);
-      border-radius: 24px;
-      overflow: hidden;
-      box-shadow: 0 18px 48px rgba(0, 0, 0, 0.28);
-      backdrop-filter: blur(14px);
-    }
-
-    .chat-sidebar {
-      display: flex;
-      flex-direction: column;
-      min-height: 0;
-    }
-
-    .chat-sidebar-header {
-      padding: 20px 18px 16px;
-      background:
-        radial-gradient(circle at top left, rgba(45, 212, 191, 0.16), transparent 42%),
-        rgba(255, 255, 255, 0.02);
-      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-    }
-
-    .chat-title-line {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 10px;
-      margin-bottom: 10px;
-    }
-
-    .chat-sidebar-header h1 {
-      margin: 0;
-      font-size: 24px;
-      color: #ffffff;
-      letter-spacing: -0.02em;
-    }
-
-    .chat-title-badge {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      color: #2dd4bf;
-      background: rgba(45, 212, 191, 0.10);
-      border: 1px solid rgba(45, 212, 191, 0.25);
-      border-radius: 999px;
-      padding: 7px 10px;
-      font-size: 12px;
-      font-weight: 900;
-      white-space: nowrap;
-    }
-
-    .chat-sidebar-header p {
-      margin: 0 0 15px 0;
-      font-size: 12px;
-      line-height: 1.45;
-      color: rgba(255, 255, 255, 0.60);
-    }
-
-    .chat-search-wrap {
-      position: relative;
-    }
-
-    .chat-search-icon {
-      position: absolute;
-      top: 50%;
-      left: 13px;
-      transform: translateY(-50%);
-      color: rgba(255, 255, 255, 0.38);
-      font-size: 13px;
-      pointer-events: none;
-    }
-
-    .chat-search {
-      width: 100%;
-      border: 1px solid rgba(255, 255, 255, 0.12);
-      background: rgba(0, 0, 0, 0.25);
-      color: #ffffff;
-      border-radius: 16px;
-      padding: 12px 13px 12px 36px;
-      outline: none;
-      font-size: 13px;
-      box-sizing: border-box;
-      transition: 0.2s ease;
-    }
-
-    .chat-search::placeholder {
-      color: rgba(255, 255, 255, 0.38);
-    }
-
-    .chat-search:focus {
-      border-color: rgba(45, 212, 191, 0.62);
-      box-shadow: 0 0 0 3px rgba(45, 212, 191, 0.10);
-      background: rgba(0, 0, 0, 0.32);
-    }
-
-    .chat-tabs {
-      display: flex;
-      gap: 8px;
-      padding: 12px 14px;
-      background: rgba(0, 0, 0, 0.12);
-      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-    }
-
-    .chat-tab {
-      flex: 1;
-      border: 1px solid rgba(255, 255, 255, 0.10);
-      background: rgba(255, 255, 255, 0.04);
-      color: rgba(255, 255, 255, 0.66);
-      border-radius: 999px;
-      padding: 10px 10px;
-      font-size: 12px;
-      font-weight: 900;
-      cursor: pointer;
-      transition: 0.2s ease;
-    }
-
-    .chat-tab:hover {
-      background: rgba(255, 255, 255, 0.07);
-      color: rgba(255, 255, 255, 0.86);
-    }
-
-    .chat-tab.active {
-      color: #06211d;
-      background: #2dd4bf;
-      border-color: rgba(45, 212, 191, 0.75);
-      box-shadow: 0 8px 20px rgba(45, 212, 191, 0.14);
-    }
-
-    .chat-list {
-      overflow-y: auto;
-      padding: 10px;
-      min-height: 0;
-      scrollbar-width: thin;
-      scrollbar-color: rgba(45, 212, 191, 0.55) rgba(255, 255, 255, 0.04);
-    }
-
-    .chat-list::-webkit-scrollbar,
-    .chat-messages::-webkit-scrollbar {
-      width: 8px;
-    }
-
-    .chat-list::-webkit-scrollbar-track,
-    .chat-messages::-webkit-scrollbar-track {
-      background: rgba(255, 255, 255, 0.04);
-    }
-
-    .chat-list::-webkit-scrollbar-thumb,
-    .chat-messages::-webkit-scrollbar-thumb {
-      background: rgba(45, 212, 191, 0.45);
-      border-radius: 999px;
-    }
-
-    .chat-list-title {
-      padding: 9px 9px 7px;
-      color: rgba(255, 255, 255, 0.40);
-      font-size: 10px;
-      font-weight: 900;
-      text-transform: uppercase;
-      letter-spacing: 0.10em;
-    }
-
-    .chat-item {
-      width: 100%;
-      border: 1px solid transparent;
-      background: transparent;
-      color: inherit;
-      display: flex;
-      gap: 11px;
-      align-items: center;
-      padding: 11px;
-      border-radius: 18px;
-      cursor: pointer;
-      text-align: left;
-      transition: 0.2s ease;
-      margin-bottom: 3px;
-    }
-
-    .chat-item:hover {
-      background: rgba(255, 255, 255, 0.065);
-      border-color: rgba(255, 255, 255, 0.08);
-      transform: translateY(-1px);
-    }
-
-    .chat-item.active {
-      background: rgba(45, 212, 191, 0.13);
-      border-color: rgba(45, 212, 191, 0.34);
-      box-shadow: inset 3px 0 0 rgba(45, 212, 191, 0.85);
-    }
-
-    .chat-avatar {
-      width: 44px;
-      height: 44px;
-      border-radius: 16px;
-      background:
-        linear-gradient(135deg, rgba(45, 212, 191, 0.22), rgba(45, 212, 191, 0.06));
-      border: 1px solid rgba(45, 212, 191, 0.26);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      flex: 0 0 auto;
-      font-size: 18px;
-      font-weight: 950;
-      color: #2dd4bf;
-      box-shadow: 0 10px 18px rgba(0, 0, 0, 0.15);
-    }
-
-    .chat-item-body {
-      min-width: 0;
-      flex: 1;
-    }
-
-    .chat-item-top {
-      display: flex;
-      justify-content: space-between;
-      gap: 8px;
-      align-items: center;
-      margin-bottom: 5px;
-    }
-
-    .chat-name {
-      font-size: 13px;
-      font-weight: 950;
-      color: #ffffff;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
-    }
-
-    .chat-time {
-      color: rgba(255, 255, 255, 0.38);
-      font-size: 11px;
-      white-space: nowrap;
-    }
-
-    .chat-desc,
-    .chat-last {
-      color: rgba(255, 255, 255, 0.58);
-      font-size: 12px;
-      line-height: 1.35;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
-    }
-
-    .chat-unread-dot {
-      min-width: 19px;
-      height: 19px;
-      padding: 0 6px;
-      border-radius: 999px;
-      background: #ef4444;
-      color: #ffffff;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 11px;
-      font-weight: 950;
-      margin-left: 6px;
-      box-shadow: 0 0 0 2px rgba(8, 18, 24, 0.95);
-    }
-
-    .chat-empty-list {
-      color: rgba(255, 255, 255, 0.52);
-      font-size: 13px;
-      line-height: 1.5;
-      padding: 24px 12px;
-      text-align: center;
-    }
-
-    .chat-empty-list strong {
-      color: #2dd4bf;
-    }
-
-    .chat-main {
-      display: flex;
-      flex-direction: column;
-      min-width: 0;
-      min-height: 0;
-    }
-
-    .chat-main-header {
-      min-height: 76px;
-      padding: 14px 18px;
-      background:
-        radial-gradient(circle at top right, rgba(45, 212, 191, 0.13), transparent 34%),
-        rgba(255, 255, 255, 0.025);
-      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 12px;
-      box-sizing: border-box;
-    }
-
-    .chat-main-user {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      min-width: 0;
-    }
-
-    .chat-main-user h2 {
-      margin: 0 0 4px 0;
-      font-size: 18px;
-      color: #ffffff;
-      letter-spacing: -0.01em;
-    }
-
-    .chat-main-user p {
-      margin: 0;
-      color: rgba(255, 255, 255, 0.56);
-      font-size: 12px;
-    }
-
-    .chat-main-actions {
-      display: flex;
-      gap: 8px;
-      align-items: center;
-    }
-
-    .chat-small-btn {
-      border: 1px solid rgba(45, 212, 191, 0.28);
-      background: rgba(45, 212, 191, 0.08);
-      color: #2dd4bf;
-      border-radius: 999px;
-      padding: 9px 13px;
-      font-size: 12px;
-      font-weight: 900;
-      text-decoration: none;
-      cursor: pointer;
-      transition: 0.2s ease;
-      white-space: nowrap;
-    }
-
-    .chat-small-btn:hover {
-      background: rgba(45, 212, 191, 0.16);
-      border-color: rgba(45, 212, 191, 0.55);
-      transform: translateY(-1px);
-    }
-
-    .chat-messages {
-      flex: 1;
-      min-height: 0;
-      overflow-y: auto;
-      padding: 22px;
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-      background:
-        radial-gradient(circle at 15% 15%, rgba(45, 212, 191, 0.07), transparent 30%),
-        radial-gradient(circle at 90% 90%, rgba(45, 212, 191, 0.04), transparent 28%),
-        rgba(0, 0, 0, 0.12);
-      scrollbar-width: thin;
-      scrollbar-color: rgba(45, 212, 191, 0.55) rgba(255, 255, 255, 0.04);
-    }
-
-    .chat-start {
-      height: 100%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      text-align: center;
-      color: rgba(255, 255, 255, 0.62);
-      padding: 24px;
-    }
-
-    .chat-start-card {
-      max-width: 460px;
-      background: rgba(255, 255, 255, 0.045);
-      border: 1px solid rgba(255, 255, 255, 0.10);
-      border-radius: 26px;
-      padding: 32px;
-      box-shadow: 0 18px 36px rgba(0, 0, 0, 0.18);
-    }
-
-    .chat-start-card-icon {
-      width: 58px;
-      height: 58px;
-      border-radius: 20px;
-      margin: 0 auto 14px;
-      background: rgba(45, 212, 191, 0.12);
-      border: 1px solid rgba(45, 212, 191, 0.24);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 28px;
-    }
-
-    .chat-start-card strong {
-      display: block;
-      color: #2dd4bf;
-      font-size: 20px;
-      margin-bottom: 8px;
-    }
-
-    .chat-start-card div {
-      font-size: 13px;
-      line-height: 1.55;
-    }
-
-    .message-row {
-      display: flex;
-      width: 100%;
-      animation: messageIn 0.18s ease-out;
-    }
-
-    @keyframes messageIn {
-      from {
-        opacity: 0;
-        transform: translateY(4px);
-      }
-
-      to {
-        opacity: 1;
-        transform: translateY(0);
-      }
-    }
-
-    .message-row.mine {
-      justify-content: flex-end;
-    }
-
-    .message-row.theirs {
-      justify-content: flex-start;
-    }
-
-    .message-bubble {
-      max-width: min(700px, 76%);
-      border-radius: 20px;
-      padding: 11px 13px 8px;
-      border: 1px solid rgba(255, 255, 255, 0.08);
-      box-shadow: 0 10px 24px rgba(0, 0, 0, 0.16);
-      position: relative;
-    }
-
-    .message-row.mine .message-bubble {
-      background: linear-gradient(135deg, rgba(45, 212, 191, 0.24), rgba(45, 212, 191, 0.14));
-      border-color: rgba(45, 212, 191, 0.32);
-      border-bottom-right-radius: 7px;
-    }
-
-    .message-row.theirs .message-bubble {
-      background: rgba(255, 255, 255, 0.075);
-      border-bottom-left-radius: 7px;
-    }
-
-    .message-author {
-      color: #2dd4bf;
-      font-size: 11px;
-      font-weight: 950;
-      margin-bottom: 4px;
-    }
-
-    .message-text {
-      color: rgba(255, 255, 255, 0.93);
-      font-size: 14px;
-      line-height: 1.46;
-      white-space: pre-wrap;
-      overflow-wrap: anywhere;
-    }
-
-    .message-time {
-      color: rgba(255, 255, 255, 0.48);
-      font-size: 10px;
-      margin-top: 6px;
-      text-align: right;
-      font-weight: 700;
-    }
-
-    .chat-compose {
-      padding: 14px;
-      background: rgba(0, 0, 0, 0.16);
-      border-top: 1px solid rgba(255, 255, 255, 0.08);
-      display: flex;
-      gap: 10px;
-      align-items: flex-end;
-    }
-
-    .chat-compose textarea {
-      flex: 1;
-      min-height: 46px;
-      max-height: 130px;
-      resize: none;
-      border: 1px solid rgba(255, 255, 255, 0.12);
-      background: rgba(0, 0, 0, 0.28);
-      color: #ffffff;
-      border-radius: 18px;
-      padding: 13px 14px;
-      outline: none;
-      font-size: 14px;
-      line-height: 1.4;
-      box-sizing: border-box;
-      transition: 0.2s ease;
-    }
-
-    .chat-compose textarea::placeholder {
-      color: rgba(255, 255, 255, 0.38);
-    }
-
-    .chat-compose textarea:focus {
-      border-color: rgba(45, 212, 191, 0.62);
-      box-shadow: 0 0 0 3px rgba(45, 212, 191, 0.10);
-      background: rgba(0, 0, 0, 0.34);
-    }
-
-    .chat-send-btn {
-      border: 0;
-      background: #2dd4bf;
-      color: #06211d;
-      border-radius: 18px;
-      padding: 14px 20px;
-      min-height: 46px;
-      font-size: 13px;
-      font-weight: 950;
-      cursor: pointer;
-      transition: 0.2s ease;
-      box-shadow: 0 10px 22px rgba(45, 212, 191, 0.14);
-    }
-
-    .chat-send-btn:hover {
-      filter: brightness(1.08);
-      transform: translateY(-1px);
-    }
-
-    .chat-send-btn:disabled {
-      opacity: 0.45;
-      cursor: not-allowed;
-      transform: none;
-      box-shadow: none;
-    }
-
-    .chat-hidden {
-      display: none !important;
-    }
-
-    @media (max-width: 950px) {
-      body {
-        overflow: auto;
-      }
-
-      .chat-page {
-        height: auto;
-        min-height: calc(100vh - 94px);
-        grid-template-columns: 1fr;
-      }
-
-      .chat-sidebar {
-        height: 390px;
-      }
-
-      .chat-main {
-        height: 620px;
-      }
-
-      .message-bubble {
-        max-width: 88%;
-      }
-    }
-
-    @media (max-width: 620px) {
-      .chat-page {
-        width: calc(100% - 16px);
-        margin-top: 8px;
-      }
-
-      .chat-main-header {
-        align-items: flex-start;
-        flex-direction: column;
-      }
-
-      .chat-main-actions {
-        width: 100%;
-      }
-
-      .chat-small-btn {
-        width: 100%;
-        text-align: center;
-      }
-
-      .chat-compose {
-        padding: 10px;
-      }
-
-      .chat-send-btn {
-        padding: 14px 14px;
-      }
-    }
+    body { overflow:hidden; background:#071014; color:#fff; }
+    .chat-page { width:min(1320px, calc(100% - 28px)); height:calc(100vh - 92px); margin:14px auto 0; display:grid; grid-template-columns:360px minmax(0,1fr); gap:14px; color:#fff; }
+    .chat-sidebar, .chat-main { background:rgba(8,18,24,.86); border:1px solid rgba(255,255,255,.10); border-radius:24px; overflow:hidden; box-shadow:0 18px 48px rgba(0,0,0,.28); backdrop-filter:blur(14px); }
+    .chat-sidebar { display:flex; flex-direction:column; min-height:0; }
+    .chat-sidebar-header { padding:20px 18px 16px; background:radial-gradient(circle at top left, rgba(45,212,191,.16), transparent 42%), rgba(255,255,255,.02); border-bottom:1px solid rgba(255,255,255,.08); }
+    .chat-title-line { display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:10px; }
+    .chat-sidebar-header h1 { margin:0; font-size:24px; color:#fff; }
+    .chat-title-badge { color:#2dd4bf; background:rgba(45,212,191,.10); border:1px solid rgba(45,212,191,.25); border-radius:999px; padding:7px 10px; font-size:12px; font-weight:900; white-space:nowrap; }
+    .chat-sidebar-header p { margin:0 0 15px; font-size:12px; line-height:1.45; color:rgba(255,255,255,.60); }
+    .chat-search-wrap { position:relative; }
+    .chat-search-icon { position:absolute; top:50%; left:13px; transform:translateY(-50%); color:rgba(255,255,255,.38); font-size:13px; pointer-events:none; }
+    .chat-search { width:100%; border:1px solid rgba(255,255,255,.12); background:rgba(0,0,0,.25); color:#fff; border-radius:16px; padding:12px 13px 12px 36px; outline:none; font-size:13px; box-sizing:border-box; }
+    .chat-search::placeholder { color:rgba(255,255,255,.38); }
+    .chat-search:focus { border-color:rgba(45,212,191,.62); box-shadow:0 0 0 3px rgba(45,212,191,.10); }
+    .chat-tabs { display:flex; gap:8px; padding:12px 14px; background:rgba(0,0,0,.12); border-bottom:1px solid rgba(255,255,255,.08); }
+    .chat-tab { flex:1; border:1px solid rgba(255,255,255,.10); background:rgba(255,255,255,.04); color:rgba(255,255,255,.66); border-radius:999px; padding:10px; font-size:12px; font-weight:900; cursor:pointer; }
+    .chat-tab.active { color:#06211d; background:#2dd4bf; border-color:rgba(45,212,191,.75); }
+    .chat-action-row { display:flex; gap:8px; padding:10px 14px; border-bottom:1px solid rgba(255,255,255,.08); }
+    .chat-action-btn, .chat-small-btn { border:1px solid rgba(45,212,191,.28); background:rgba(45,212,191,.08); color:#2dd4bf; border-radius:999px; padding:9px 13px; font-size:12px; font-weight:900; text-decoration:none; cursor:pointer; white-space:nowrap; }
+    .chat-action-btn:hover, .chat-small-btn:hover { background:rgba(45,212,191,.16); }
+    .chat-list { overflow-y:auto; padding:10px; min-height:0; scrollbar-width:thin; scrollbar-color:rgba(45,212,191,.55) rgba(255,255,255,.04); }
+    .chat-list-title { padding:9px 9px 7px; color:rgba(255,255,255,.40); font-size:10px; font-weight:900; text-transform:uppercase; letter-spacing:.10em; }
+    .chat-item { width:100%; border:1px solid transparent; background:transparent; color:inherit; display:flex; gap:11px; align-items:center; padding:11px; border-radius:18px; cursor:pointer; text-align:left; margin-bottom:3px; }
+    .chat-item:hover { background:rgba(255,255,255,.065); border-color:rgba(255,255,255,.08); }
+    .chat-item.active { background:rgba(45,212,191,.13); border-color:rgba(45,212,191,.34); box-shadow:inset 3px 0 0 rgba(45,212,191,.85); }
+    .chat-avatar { width:44px; height:44px; border-radius:16px; background:linear-gradient(135deg, rgba(45,212,191,.22), rgba(45,212,191,.06)); border:1px solid rgba(45,212,191,.26); display:flex; align-items:center; justify-content:center; flex:0 0 auto; font-size:18px; font-weight:950; color:#2dd4bf; }
+    .chat-avatar.group { color:#fde68a; border-color:rgba(251,191,36,.32); background:rgba(251,191,36,.10); }
+    .chat-item-body { min-width:0; flex:1; }
+    .chat-item-top { display:flex; justify-content:space-between; gap:8px; align-items:center; margin-bottom:5px; }
+    .chat-name { font-size:13px; font-weight:950; color:#fff; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+    .chat-time { color:rgba(255,255,255,.38); font-size:11px; white-space:nowrap; }
+    .chat-desc, .chat-last { color:rgba(255,255,255,.58); font-size:12px; line-height:1.35; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+    .chat-unread-dot { min-width:19px; height:19px; padding:0 6px; border-radius:999px; background:#ef4444; color:#fff; display:inline-flex; align-items:center; justify-content:center; font-size:11px; font-weight:950; margin-left:6px; }
+    .chat-empty-list { color:rgba(255,255,255,.52); font-size:13px; line-height:1.5; padding:24px 12px; text-align:center; }
+    .chat-empty-list strong { color:#2dd4bf; }
+    .chat-main { display:flex; flex-direction:column; min-width:0; min-height:0; }
+    .chat-main-header { min-height:76px; padding:14px 18px; background:radial-gradient(circle at top right, rgba(45,212,191,.13), transparent 34%), rgba(255,255,255,.025); border-bottom:1px solid rgba(255,255,255,.08); display:flex; align-items:center; justify-content:space-between; gap:12px; box-sizing:border-box; }
+    .chat-main-user { display:flex; align-items:center; gap:12px; min-width:0; }
+    .chat-main-user h2 { margin:0 0 4px; font-size:18px; color:#fff; }
+    .chat-main-user p { margin:0; color:rgba(255,255,255,.56); font-size:12px; }
+    .chat-main-actions { display:flex; gap:8px; align-items:center; }
+    .chat-messages { flex:1; min-height:0; overflow-y:auto; padding:22px; display:flex; flex-direction:column; gap:10px; background:radial-gradient(circle at 15% 15%, rgba(45,212,191,.07), transparent 30%), radial-gradient(circle at 90% 90%, rgba(45,212,191,.04), transparent 28%), rgba(0,0,0,.12); }
+    .chat-start { height:100%; display:flex; align-items:center; justify-content:center; text-align:center; color:rgba(255,255,255,.62); padding:24px; }
+    .chat-start-card { max-width:460px; background:rgba(255,255,255,.045); border:1px solid rgba(255,255,255,.10); border-radius:26px; padding:32px; }
+    .chat-start-card-icon { width:58px; height:58px; border-radius:20px; margin:0 auto 14px; background:rgba(45,212,191,.12); border:1px solid rgba(45,212,191,.24); display:flex; align-items:center; justify-content:center; font-size:28px; }
+    .chat-start-card strong { display:block; color:#2dd4bf; font-size:20px; margin-bottom:8px; }
+    .message-row { display:flex; width:100%; }
+    .message-row.mine { justify-content:flex-end; }
+    .message-row.theirs { justify-content:flex-start; }
+    .message-bubble { max-width:min(700px, 76%); border-radius:20px; padding:11px 13px 8px; border:1px solid rgba(255,255,255,.08); box-shadow:0 10px 24px rgba(0,0,0,.16); }
+    .message-row.mine .message-bubble { background:linear-gradient(135deg, rgba(45,212,191,.24), rgba(45,212,191,.14)); border-color:rgba(45,212,191,.32); border-bottom-right-radius:7px; }
+    .message-row.theirs .message-bubble { background:rgba(255,255,255,.075); border-bottom-left-radius:7px; }
+    .message-author { color:#2dd4bf; font-size:11px; font-weight:950; margin-bottom:4px; }
+    .message-text { color:rgba(255,255,255,.93); font-size:14px; line-height:1.46; white-space:pre-wrap; overflow-wrap:anywhere; }
+    .message-time { color:rgba(255,255,255,.48); font-size:10px; margin-top:6px; text-align:right; font-weight:700; }
+    .message-seen { color:rgba(255,255,255,.62); font-size:10px; margin-top:4px; text-align:right; font-weight:800; }
+    .message-seen.ok { color:#2dd4bf; }
+    .chat-compose { padding:14px; background:rgba(0,0,0,.16); border-top:1px solid rgba(255,255,255,.08); display:flex; gap:10px; align-items:flex-end; }
+    .chat-compose textarea { flex:1; min-height:46px; max-height:130px; resize:none; border:1px solid rgba(255,255,255,.12); background:rgba(0,0,0,.28); color:#fff; border-radius:18px; padding:13px 14px; outline:none; font-size:14px; line-height:1.4; box-sizing:border-box; }
+    .chat-send-btn { border:0; background:#2dd4bf; color:#06211d; border-radius:18px; padding:14px 20px; min-height:46px; font-size:13px; font-weight:950; cursor:pointer; }
+    .chat-send-btn:disabled { opacity:.45; cursor:not-allowed; }
+    .chat-hidden { display:none !important; }
+    .modal-overlay { position:fixed; inset:0; background:rgba(0,0,0,.72); display:flex; align-items:center; justify-content:center; padding:20px; z-index:9999; }
+    .modal-card { width:min(560px, 100%); max-height:86vh; overflow:auto; background:#101b22; border:1px solid rgba(45,212,191,.25); border-radius:22px; padding:22px; box-shadow:0 24px 80px rgba(0,0,0,.5); }
+    .modal-card h2 { margin:0 0 8px; color:#fff; }
+    .modal-card p { margin:0 0 16px; color:rgba(255,255,255,.62); font-size:13px; }
+    .modal-input { width:100%; border:1px solid rgba(255,255,255,.14); background:rgba(0,0,0,.28); color:#fff; border-radius:14px; padding:12px; box-sizing:border-box; margin-bottom:14px; }
+    .modal-users { display:grid; gap:7px; max-height:260px; overflow:auto; margin-bottom:14px; }
+    .modal-user-item { display:flex; gap:9px; align-items:center; padding:9px; border:1px solid rgba(255,255,255,.08); border-radius:12px; color:rgba(255,255,255,.85); font-size:13px; }
+    .modal-actions { display:flex; justify-content:flex-end; gap:8px; }
+    .modal-error { color:#fecaca; background:rgba(127,29,29,.25); border:1px solid rgba(248,113,113,.25); padding:9px; border-radius:12px; margin-bottom:12px; font-size:13px; }
+    @media (max-width:950px) { body{overflow:auto;} .chat-page{height:auto; min-height:calc(100vh - 94px); grid-template-columns:1fr;} .chat-sidebar{height:430px;} .chat-main{height:620px;} .message-bubble{max-width:88%;} }
   </style>
 </head>
 
 <body>
-
   <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
+  <input type="hidden" id="abrir-conversa-id" value="{{ abrir_conversa_id }}">
 
-  <div id="portal-screen" style="display: block;">
-    <header>
-      <div class="logo">
+  <header>
+    <div class="logo">
+      {% if request.user.unidade %}
         {% if request.user.unidade.sigla == "HSFVF" or request.user.unidade.sigla == "HSFMA" %}
           <img src="{% static 'core/img/logo-sagrada-familia.png' %}" alt="Logo" class="header-unit-logo">
         {% else %}
           <img src="{% static 'core/img/logo-hsf.png' %}" alt="Logo" class="header-unit-logo">
         {% endif %}
+      {% else %}
+        <img src="{% static 'core/img/logo-hsf.png' %}" alt="Logo" class="header-unit-logo">
+      {% endif %}
 
-        <div>
-          <span>Intranet Grupo São Francisco</span>
-          <span class="unit-tag">{{ request.user.unidade.nome }}</span>
+      <div>
+        <span>Intranet Grupo São Francisco</span>
+        <span class="unit-tag">
+          {% if request.user.unidade %}{{ request.user.unidade.nome }}{% else %}Sem unidade vinculada{% endif %}
+        </span>
+      </div>
+    </div>
+
+    <div class="header-right">
+      <a class="logout-btn" href="/portal/">Voltar ao portal</a>
+      <button class="logout-btn" onclick="doLogout()">Sair</button>
+    </div>
+  </header>
+
+  <main class="chat-page">
+    <aside class="chat-sidebar">
+      <div class="chat-sidebar-header">
+        <div class="chat-title-line">
+          <h1>Conversas</h1>
+          <span class="chat-title-badge">Online</span>
+        </div>
+        <p>Converse com usuários e grupos da intranet sem atualizar a página.</p>
+        <div class="chat-search-wrap">
+          <span class="chat-search-icon">🔎</span>
+          <input id="chat-search" class="chat-search" type="text" placeholder="Buscar conversa ou usuário...">
         </div>
       </div>
 
-      <div class="header-right">
-        <a class="logout-btn" href="/portal/">Voltar ao portal</a>
-        <button class="logout-btn" onclick="doLogout()">Sair</button>
+      <div class="chat-tabs">
+        <button id="tab-conversas" class="chat-tab active" type="button">Conversas</button>
+        <button id="tab-usuarios" class="chat-tab" type="button">Usuários</button>
       </div>
-    </header>
 
-    <main class="chat-page">
+      <div class="chat-action-row">
+        <button id="btn-abrir-modal-grupo" class="chat-action-btn" type="button">+ Criar grupo</button>
+      </div>
 
-      <aside class="chat-sidebar">
-        <div class="chat-sidebar-header">
-          <div class="chat-title-line">
-            <h1>Conversas</h1>
-            <span class="chat-title-badge">Online</span>
-          </div>
+      <div id="lista-conversas" class="chat-list"></div>
 
-          <p>
-            Converse com usuários da intranet em tempo real, sem atualizar a página.
-          </p>
-
-          <div class="chat-search-wrap">
-            <span class="chat-search-icon">🔎</span>
-            <input id="chat-search" class="chat-search" type="text" placeholder="Buscar conversa ou usuário...">
-          </div>
-        </div>
-
-        <div class="chat-tabs">
-          <button id="tab-conversas" class="chat-tab active" type="button">Conversas</button>
-          <button id="tab-usuarios" class="chat-tab" type="button">Usuários</button>
-        </div>
-
-        <div id="lista-conversas" class="chat-list"></div>
-
-        <div id="lista-usuarios" class="chat-list chat-hidden">
-          <div class="chat-list-title">Usuários disponíveis</div>
-
-          {% for usuario in usuarios %}
-            <button
-              class="chat-item user-item"
-              type="button"
-              data-user-id="{{ usuario.id }}"
-              data-search="{{ usuario.get_full_name|default:usuario.username }} {{ usuario.username }} {{ usuario.email }} {% if usuario.unidade %}{{ usuario.unidade.sigla }} {{ usuario.unidade.nome }}{% endif %} {% if usuario.setor %}{{ usuario.setor.nome }}{% endif %}"
-            >
-              <div class="chat-avatar">
-                {{ usuario.get_full_name|default:usuario.username|slice:":1"|upper }}
+      <div id="lista-usuarios" class="chat-list chat-hidden">
+        <div class="chat-list-title">Usuários ativos</div>
+        {% for usuario in usuarios %}
+          <button class="chat-item user-item" type="button" data-user-id="{{ usuario.id }}" data-search="{{ usuario.get_full_name|default:usuario.username }} {{ usuario.username }} {{ usuario.email }} {% if usuario.setor %}{{ usuario.setor.nome }}{% endif %} {% if usuario.unidade %}{{ usuario.unidade.sigla }}{% endif %}">
+            <div class="chat-avatar">{{ usuario.get_full_name|default:usuario.username|slice:":1"|upper }}</div>
+            <div class="chat-item-body">
+              <div class="chat-item-top">
+                <div class="chat-name">{{ usuario.get_full_name|default:usuario.username }}</div>
               </div>
-
-              <div class="chat-item-body">
-                <div class="chat-item-top">
-                  <div class="chat-name">{{ usuario.get_full_name|default:usuario.username }}</div>
-                </div>
-
-                <div class="chat-desc">
-                  {% if usuario.setor %}
-                    {{ usuario.setor.nome }}
-                  {% endif %}
-
-                  {% if usuario.unidade %}
-                    {% if usuario.setor %} • {% endif %}
-                    {{ usuario.unidade.sigla }}
-                  {% endif %}
-
-                  {% if not usuario.setor and not usuario.unidade %}
-                    {{ usuario.email|default:usuario.username }}
-                  {% endif %}
-                </div>
+              <div class="chat-desc">
+                {% if usuario.setor %}{{ usuario.setor.nome }}{% endif %}
+                {% if usuario.setor and usuario.unidade %} • {% endif %}
+                {% if usuario.unidade %}{{ usuario.unidade.sigla }}{% endif %}
+                {% if not usuario.setor and not usuario.unidade %}{{ usuario.email|default:usuario.username }}{% endif %}
               </div>
-            </button>
-          {% empty %}
-            <div class="chat-empty-list">
-              Nenhum outro usuário ativo encontrado.
             </div>
+          </button>
+        {% empty %}
+          <div class="chat-empty-list">Nenhum outro usuário ativo encontrado.</div>
+        {% endfor %}
+      </div>
+    </aside>
+
+    <section class="chat-main">
+      <div class="chat-main-header">
+        <div id="chat-header-empty" class="chat-main-user">
+          <div class="chat-avatar">💬</div>
+          <div>
+            <h2>Selecione uma conversa</h2>
+            <p>Escolha alguém ou um grupo na lista para começar.</p>
+          </div>
+        </div>
+
+        <div id="chat-header-user" class="chat-main-user chat-hidden">
+          <div id="chat-header-avatar" class="chat-avatar">U</div>
+          <div>
+            <h2 id="chat-header-name">Usuário</h2>
+            <p id="chat-header-desc">Descrição</p>
+          </div>
+        </div>
+
+        <div class="chat-main-actions">
+          <a class="chat-small-btn" href="/portal/">Voltar ao portal</a>
+        </div>
+      </div>
+
+      <div id="chat-messages" class="chat-messages">
+        <div class="chat-start">
+          <div class="chat-start-card">
+            <div class="chat-start-card-icon">💬</div>
+            <strong>Mensagens internas</strong>
+            <div>Use a lista ao lado para abrir uma conversa existente, iniciar conversa com usuário ou criar um grupo.</div>
+          </div>
+        </div>
+      </div>
+
+      <form id="chat-compose" class="chat-compose">
+        <textarea id="chat-texto" placeholder="Digite sua mensagem..." disabled></textarea>
+        <button id="chat-send" class="chat-send-btn" type="submit" disabled>Enviar</button>
+      </form>
+    </section>
+  </main>
+
+  <div id="modal-grupo" class="modal-overlay chat-hidden">
+    <div class="modal-card">
+      <h2>Criar grupo</h2>
+      <p>Informe o nome do grupo e selecione os participantes.</p>
+
+      <div id="erro-grupo" class="modal-error chat-hidden"></div>
+
+      <form id="form-criar-grupo">
+        <input id="nome-grupo" name="nome_grupo" class="modal-input" type="text" placeholder="Nome do grupo. Ex: TI - Osasco">
+
+        <div class="modal-users">
+          {% for usuario in usuarios %}
+            <label class="modal-user-item">
+              <input type="checkbox" name="usuarios_ids" value="{{ usuario.id }}">
+              <span>
+                {{ usuario.get_full_name|default:usuario.username }}
+                {% if usuario.setor %} • {{ usuario.setor.nome }}{% endif %}
+                {% if usuario.unidade %} • {{ usuario.unidade.sigla }}{% endif %}
+              </span>
+            </label>
           {% endfor %}
         </div>
-      </aside>
 
-      <section class="chat-main">
-        <div class="chat-main-header">
-          <div id="chat-header-empty" class="chat-main-user">
-            <div class="chat-avatar">💬</div>
-            <div>
-              <h2>Selecione uma conversa</h2>
-              <p>Escolha alguém na lista para começar.</p>
-            </div>
-          </div>
-
-          <div id="chat-header-user" class="chat-main-user chat-hidden">
-            <div id="chat-header-avatar" class="chat-avatar">U</div>
-            <div>
-              <h2 id="chat-header-name">Usuário</h2>
-              <p id="chat-header-desc">Descrição</p>
-            </div>
-          </div>
-
-          <div class="chat-main-actions">
-            <a class="chat-small-btn" href="/portal/">Voltar ao portal</a>
-          </div>
+        <div class="modal-actions">
+          <button id="btn-cancelar-grupo" class="chat-action-btn" type="button">Cancelar</button>
+          <button class="chat-send-btn" type="submit">Criar grupo</button>
         </div>
-
-        <div id="chat-messages" class="chat-messages">
-          <div class="chat-start">
-            <div class="chat-start-card">
-              <div class="chat-start-card-icon">💬</div>
-              <strong>Mensagens internas</strong>
-              <div>
-                Use a lista ao lado para abrir uma conversa existente ou iniciar uma nova conversa com outro usuário.
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <form id="chat-compose" class="chat-compose">
-          <textarea id="chat-texto" placeholder="Digite sua mensagem..." disabled></textarea>
-          <button id="chat-send" class="chat-send-btn" type="submit" disabled>Enviar</button>
-        </form>
-      </section>
-
-    </main>
+      </form>
+    </div>
   </div>
 
   <script src="{% static 'core/js/home.js' %}"></script>
@@ -760,15 +241,11 @@
     let conversaAtualId = null;
     let carregandoMensagens = false;
     let abaAtual = 'conversas';
+    let primeiraAberturaConversaId = Number(document.getElementById('abrir-conversa-id').value || 0);
 
     function getCsrfTokenChat() {
       const csrfInput = document.querySelector('[name=csrfmiddlewaretoken]');
-
-      if (csrfInput) {
-        return csrfInput.value;
-      }
-
-      return '';
+      return csrfInput ? csrfInput.value : '';
     }
 
     function escapeHtml(value) {
@@ -782,12 +259,7 @@
 
     function primeiraLetra(nome) {
       const texto = String(nome || 'U').trim();
-
-      if (!texto) {
-        return 'U';
-      }
-
-      return texto.substring(0, 1).toUpperCase();
+      return texto ? texto.substring(0, 1).toUpperCase() : 'U';
     }
 
     function rolarMensagensParaBaixo() {
@@ -797,7 +269,6 @@
 
     function setAbaChat(aba) {
       abaAtual = aba;
-
       const tabConversas = document.getElementById('tab-conversas');
       const tabUsuarios = document.getElementById('tab-usuarios');
       const listaConversas = document.getElementById('lista-conversas');
@@ -814,7 +285,6 @@
         listaUsuarios.classList.remove('chat-hidden');
         listaConversas.classList.add('chat-hidden');
       }
-
       filtrarChat();
     }
 
@@ -827,34 +297,25 @@
 
       headerEmpty.classList.add('chat-hidden');
       headerUser.classList.remove('chat-hidden');
-
-      headerAvatar.textContent = primeiraLetra(conversa.usuario.nome);
-      headerName.textContent = conversa.usuario.nome;
-      headerDesc.textContent = conversa.usuario.descricao || conversa.usuario.username;
+      headerAvatar.textContent = conversa.tipo === 'grupo' ? '👥' : primeiraLetra(conversa.nome || conversa.usuario.nome);
+      headerAvatar.classList.toggle('group', conversa.tipo === 'grupo');
+      headerName.textContent = conversa.nome || conversa.usuario.nome;
+      headerDesc.textContent = conversa.descricao || conversa.usuario.descricao || conversa.usuario.username;
     }
 
     function habilitarComposicao(habilitar) {
       const texto = document.getElementById('chat-texto');
       const botao = document.getElementById('chat-send');
-
       texto.disabled = !habilitar;
       botao.disabled = !habilitar;
-
-      if (habilitar) {
-        texto.focus();
-      }
+      if (habilitar) texto.focus();
     }
 
     function renderizarListaConversas(conversas) {
       const lista = document.getElementById('lista-conversas');
 
       if (!conversas.length) {
-        lista.innerHTML = `
-          <div class="chat-empty-list">
-            Nenhuma conversa ainda.<br>
-            Clique em <strong>Usuários</strong> para iniciar uma nova conversa.
-          </div>
-        `;
+        lista.innerHTML = '<div class="chat-empty-list">Nenhuma conversa ainda.<br>Clique em <strong>Usuários</strong> para iniciar conversa ou crie um grupo.</div>';
         return;
       }
 
@@ -863,24 +324,21 @@
       conversas.forEach((conversa) => {
         const active = conversaAtualId === conversa.id ? 'active' : '';
         const naoLidas = Number(conversa.nao_lidas || 0);
+        const nome = conversa.nome || conversa.usuario.nome;
+        const descricao = conversa.ultima_mensagem || conversa.descricao || conversa.usuario.descricao || conversa.usuario.username;
+        const avatar = conversa.tipo === 'grupo' ? '👥' : primeiraLetra(nome);
+        const classeAvatar = conversa.tipo === 'grupo' ? 'group' : '';
 
         html += `
-          <button
-            class="chat-item conversation-item ${active}"
-            type="button"
-            data-conversa-id="${conversa.id}"
-            data-search="${escapeHtml(conversa.usuario.nome)} ${escapeHtml(conversa.usuario.username)} ${escapeHtml(conversa.ultima_mensagem)} ${escapeHtml(conversa.usuario.descricao)}"
-          >
-            <div class="chat-avatar">${escapeHtml(primeiraLetra(conversa.usuario.nome))}</div>
-
+          <button class="chat-item conversation-item ${active}" type="button" data-conversa-id="${conversa.id}" data-search="${escapeHtml(nome)} ${escapeHtml(descricao)}">
+            <div class="chat-avatar ${classeAvatar}">${escapeHtml(avatar)}</div>
             <div class="chat-item-body">
               <div class="chat-item-top">
-                <div class="chat-name">${escapeHtml(conversa.usuario.nome)}</div>
+                <div class="chat-name">${escapeHtml(nome)}</div>
                 <div class="chat-time">${escapeHtml(conversa.ultima_mensagem_hora || '')}</div>
               </div>
-
               <div class="chat-last">
-                ${escapeHtml(conversa.ultima_mensagem || conversa.usuario.descricao || conversa.usuario.username)}
+                ${escapeHtml(descricao)}
                 ${naoLidas > 0 ? `<span class="chat-unread-dot">${naoLidas > 99 ? '99+' : naoLidas}</span>` : ''}
               </div>
             </div>
@@ -903,16 +361,7 @@
       const container = document.getElementById('chat-messages');
 
       if (!mensagens.length) {
-        container.innerHTML = `
-          <div class="chat-start">
-            <div class="chat-start-card">
-              <div class="chat-start-card-icon">✍️</div>
-              <strong>Conversa iniciada</strong>
-              <div>Nenhuma mensagem ainda. Envie a primeira mensagem.</div>
-            </div>
-          </div>
-        `;
-
+        container.innerHTML = '<div class="chat-start"><div class="chat-start-card"><div class="chat-start-card-icon">✍️</div><strong>Conversa iniciada</strong><div>Nenhuma mensagem ainda. Envie a primeira mensagem.</div></div></div>';
         return;
       }
 
@@ -920,6 +369,8 @@
 
       mensagens.forEach((mensagem) => {
         const classe = mensagem.minha ? 'mine' : 'theirs';
+        const vistoClasse = mensagem.lida_destinatarios ? 'ok' : '';
+        const tooltipLeitores = (mensagem.lida_por_nomes || []).join(', ');
 
         html += `
           <div class="message-row ${classe}">
@@ -927,6 +378,7 @@
               ${!mensagem.minha ? `<div class="message-author">${escapeHtml(mensagem.remetente.nome)}</div>` : ''}
               <div class="message-text">${escapeHtml(mensagem.texto)}</div>
               <div class="message-time">${escapeHtml(mensagem.hora)}</div>
+              ${mensagem.minha ? `<div class="message-seen ${vistoClasse}" title="${escapeHtml(tooltipLeitores)}">${escapeHtml(mensagem.status_leitura)}</div>` : ''}
             </div>
           </div>
         `;
@@ -938,25 +390,12 @@
 
     async function carregarConversas() {
       try {
-        const response = await fetch('/conversas/api/listar/', {
-          method: 'GET',
-          headers: {
-            'X-Requested-With': 'XMLHttpRequest'
-          }
-        });
-
+        const response = await fetch('/conversas/api/listar/', { method:'GET', headers:{ 'X-Requested-With':'XMLHttpRequest' } });
         if (!response.ok) return;
-
         const data = await response.json();
-
         if (!data.ok) return;
-
         renderizarListaConversas(data.conversas || []);
-
-        if (typeof updateChatUnreadBadge === 'function') {
-          updateChatUnreadBadge(Number(data.total_nao_lidas || 0));
-        }
-
+        if (typeof updateChatUnreadBadge === 'function') updateChatUnreadBadge(Number(data.total_nao_lidas || 0));
       } catch (error) {
         console.error('Erro ao carregar conversas:', error);
       }
@@ -964,34 +403,19 @@
 
     async function abrirConversa(conversaId) {
       if (!conversaId || carregandoMensagens) return;
-
       conversaAtualId = conversaId;
       carregandoMensagens = true;
 
       try {
-        const response = await fetch(`/conversas/api/${conversaId}/mensagens/`, {
-          method: 'GET',
-          headers: {
-            'X-Requested-With': 'XMLHttpRequest'
-          }
-        });
-
+        const response = await fetch(`/conversas/api/${conversaId}/mensagens/`, { method:'GET', headers:{ 'X-Requested-With':'XMLHttpRequest' } });
         if (!response.ok) return;
-
         const data = await response.json();
-
         if (!data.ok) return;
-
         atualizarHeaderConversa(data.conversa);
         renderizarMensagens(data.mensagens || []);
         habilitarComposicao(true);
-
-        if (typeof updateChatUnreadBadge === 'function') {
-          updateChatUnreadBadge(Number(data.total_nao_lidas || 0));
-        }
-
+        if (typeof updateChatUnreadBadge === 'function') updateChatUnreadBadge(Number(data.total_nao_lidas || 0));
         await carregarConversas();
-
       } catch (error) {
         console.error('Erro ao abrir conversa:', error);
       } finally {
@@ -1001,73 +425,70 @@
 
     async function iniciarConversa(usuarioId) {
       if (!usuarioId) return;
-
       const formData = new FormData();
       formData.append('usuario_id', usuarioId);
 
       try {
-        const response = await fetch('/conversas/api/iniciar/', {
-          method: 'POST',
-          headers: {
-            'X-CSRFToken': getCsrfTokenChat(),
-            'X-Requested-With': 'XMLHttpRequest'
-          },
-          body: formData
-        });
-
+        const response = await fetch('/conversas/api/iniciar/', { method:'POST', headers:{ 'X-CSRFToken':getCsrfTokenChat(), 'X-Requested-With':'XMLHttpRequest' }, body:formData });
         const data = await response.json();
-
-        if (!response.ok || !data.ok) {
-          console.error(data.message || 'Não foi possível iniciar a conversa.');
-          return;
-        }
-
+        if (!response.ok || !data.ok) { console.error(data.message || 'Não foi possível iniciar a conversa.'); return; }
         setAbaChat('conversas');
         await carregarConversas();
         await abrirConversa(data.conversa.id);
-
       } catch (error) {
         console.error('Erro ao iniciar conversa:', error);
       }
     }
 
+    async function criarGrupo(event) {
+      event.preventDefault();
+      const erroGrupo = document.getElementById('erro-grupo');
+      erroGrupo.classList.add('chat-hidden');
+      erroGrupo.textContent = '';
+
+      const form = document.getElementById('form-criar-grupo');
+      const formData = new FormData(form);
+
+      try {
+        const response = await fetch('/conversas/api/grupos/criar/', { method:'POST', headers:{ 'X-CSRFToken':getCsrfTokenChat(), 'X-Requested-With':'XMLHttpRequest' }, body:formData });
+        const data = await response.json();
+
+        if (!response.ok || !data.ok) {
+          erroGrupo.textContent = data.message || 'Não foi possível criar o grupo.';
+          erroGrupo.classList.remove('chat-hidden');
+          return;
+        }
+
+        fecharModalGrupo();
+        form.reset();
+        setAbaChat('conversas');
+        await carregarConversas();
+        await abrirConversa(data.conversa.id);
+      } catch (error) {
+        erroGrupo.textContent = 'Erro ao criar grupo.';
+        erroGrupo.classList.remove('chat-hidden');
+        console.error('Erro ao criar grupo:', error);
+      }
+    }
+
     async function enviarMensagem(event) {
       event.preventDefault();
-
       const textarea = document.getElementById('chat-texto');
       const texto = textarea.value.trim();
-
-      if (!conversaAtualId || !texto) {
-        return;
-      }
+      if (!conversaAtualId || !texto) return;
 
       const formData = new FormData();
       formData.append('conversa_id', conversaAtualId);
       formData.append('texto', texto);
-
       textarea.value = '';
       textarea.focus();
 
       try {
-        const response = await fetch('/conversas/api/enviar/', {
-          method: 'POST',
-          headers: {
-            'X-CSRFToken': getCsrfTokenChat(),
-            'X-Requested-With': 'XMLHttpRequest'
-          },
-          body: formData
-        });
-
+        const response = await fetch('/conversas/api/enviar/', { method:'POST', headers:{ 'X-CSRFToken':getCsrfTokenChat(), 'X-Requested-With':'XMLHttpRequest' }, body:formData });
         const data = await response.json();
-
-        if (!response.ok || !data.ok) {
-          console.error(data.message || 'Não foi possível enviar a mensagem.');
-          return;
-        }
-
+        if (!response.ok || !data.ok) { console.error(data.message || 'Não foi possível enviar a mensagem.'); return; }
         await abrirConversa(conversaAtualId);
         await carregarConversas();
-
       } catch (error) {
         console.error('Erro ao enviar mensagem:', error);
       }
@@ -1076,32 +497,35 @@
     function filtrarChat() {
       const input = document.getElementById('chat-search');
       const termo = String(input.value || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
-
       const seletor = abaAtual === 'conversas' ? '.conversation-item' : '.user-item';
-
       document.querySelectorAll(seletor).forEach((item) => {
         const texto = String(item.dataset.search || item.textContent || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
         item.style.display = texto.includes(termo) ? '' : 'none';
       });
     }
 
-    document.addEventListener('DOMContentLoaded', function () {
-      document.getElementById('tab-conversas').addEventListener('click', function () {
-        setAbaChat('conversas');
-      });
+    function abrirModalGrupo() {
+      document.getElementById('modal-grupo').classList.remove('chat-hidden');
+      document.getElementById('nome-grupo').focus();
+    }
 
-      document.getElementById('tab-usuarios').addEventListener('click', function () {
-        setAbaChat('usuarios');
-      });
+    function fecharModalGrupo() {
+      document.getElementById('modal-grupo').classList.add('chat-hidden');
+    }
 
+    document.addEventListener('DOMContentLoaded', async function () {
+      document.getElementById('tab-conversas').addEventListener('click', function () { setAbaChat('conversas'); });
+      document.getElementById('tab-usuarios').addEventListener('click', function () { setAbaChat('usuarios'); });
       document.getElementById('chat-search').addEventListener('input', filtrarChat);
-
       document.getElementById('chat-compose').addEventListener('submit', enviarMensagem);
+      document.getElementById('btn-abrir-modal-grupo').addEventListener('click', abrirModalGrupo);
+      document.getElementById('btn-cancelar-grupo').addEventListener('click', fecharModalGrupo);
+      document.getElementById('form-criar-grupo').addEventListener('submit', criarGrupo);
 
       document.getElementById('chat-texto').addEventListener('keydown', function (event) {
         if (event.key === 'Enter' && !event.shiftKey) {
           event.preventDefault();
-          document.getElementById('chat-compose').dispatchEvent(new Event('submit', { cancelable: true }));
+          document.getElementById('chat-compose').dispatchEvent(new Event('submit', { cancelable:true }));
         }
       });
 
@@ -1111,14 +535,16 @@
         });
       });
 
-      carregarConversas();
+      await carregarConversas();
+
+      if (primeiraAberturaConversaId) {
+        await abrirConversa(primeiraAberturaConversaId);
+        primeiraAberturaConversaId = 0;
+      }
 
       setInterval(function () {
         carregarConversas();
-
-        if (conversaAtualId) {
-          abrirConversa(conversaAtualId);
-        }
+        if (conversaAtualId) abrirConversa(conversaAtualId);
       }, 5000);
     });
   </script>

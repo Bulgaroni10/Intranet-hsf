@@ -1,6 +1,6 @@
 from django.contrib.auth import get_user_model
 from django.contrib.auth.decorators import login_required
-from django.db.models import Count, Q
+from django.db.models import Q
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, render
 from django.utils import timezone
@@ -61,15 +61,63 @@ def usuario_para_json(usuario):
     }
 
 
+def remetente_id_igual(mensagem, usuario):
+    return mensagem.remetente_id == usuario.id
+
+
+def nomes_leitores_mensagem(mensagem, usuario_logado):
+    leitores = mensagem.lida_por.exclude(id=mensagem.remetente_id).order_by(
+        'first_name',
+        'last_name',
+        'username'
+    )
+
+    nomes = []
+
+    for leitor in leitores:
+        nomes.append(usuario_nome(leitor))
+
+    return nomes
+
+
+def mensagem_foi_lida_por_destinatarios(mensagem):
+    total_destinatarios = mensagem.conversa.participantes.exclude(
+        id=mensagem.remetente_id
+    ).count()
+
+    if total_destinatarios <= 0:
+        return True
+
+    total_leitores = mensagem.lida_por.exclude(
+        id=mensagem.remetente_id
+    ).count()
+
+    return total_leitores >= total_destinatarios
+
+
 def mensagem_para_json(mensagem, usuario_logado):
     remetente = mensagem.remetente
+    minha = remetente_id_igual(mensagem, usuario_logado)
+    lida_destinatarios = mensagem_foi_lida_por_destinatarios(mensagem)
+    leitores = nomes_leitores_mensagem(mensagem, usuario_logado)
+
+    if minha:
+        if lida_destinatarios:
+            status_leitura = 'Visto'
+        else:
+            status_leitura = 'Enviado'
+    else:
+        status_leitura = ''
 
     return {
         'id': mensagem.id,
         'texto': mensagem.texto,
         'criado_em': timezone.localtime(mensagem.criado_em).strftime('%d/%m/%Y %H:%M'),
         'hora': timezone.localtime(mensagem.criado_em).strftime('%H:%M'),
-        'minha': remetente_id_igual(mensagem, usuario_logado),
+        'minha': minha,
+        'lida_destinatarios': lida_destinatarios,
+        'status_leitura': status_leitura,
+        'lida_por_nomes': leitores,
         'remetente': {
             'id': remetente.id,
             'nome': usuario_nome(remetente),
@@ -78,14 +126,38 @@ def mensagem_para_json(mensagem, usuario_logado):
     }
 
 
-def remetente_id_igual(mensagem, usuario):
-    return mensagem.remetente_id == usuario.id
+def conversa_titulo_descricao(conversa, usuario_logado):
+    participantes = list(
+        conversa.participantes.exclude(id=usuario_logado.id).order_by(
+            'first_name',
+            'last_name',
+            'username'
+        )
+    )
+
+    if conversa.tipo == 'grupo':
+        nome = conversa.nome_grupo or f'Grupo #{conversa.id}'
+        nomes = [usuario_nome(usuario) for usuario in participantes[:4]]
+        descricao = f'{conversa.participantes.count()} participantes'
+
+        if nomes:
+            descricao = f'{descricao} • ' + ', '.join(nomes)
+
+        return {
+            'id': None,
+            'nome': nome,
+            'username': nome,
+            'descricao': descricao,
+            'email': '',
+            'unidade': '',
+            'setor': '',
+        }
+
+    outro_usuario = participantes[0] if participantes else usuario_logado
+    return usuario_para_json(outro_usuario)
 
 
 def conversa_para_json(conversa, usuario_logado):
-    participantes = list(conversa.participantes.exclude(id=usuario_logado.id))
-    outro_usuario = participantes[0] if participantes else usuario_logado
-
     ultima_mensagem = conversa.mensagens.order_by('-criado_em').first()
 
     nao_lidas = conversa.mensagens.exclude(
@@ -94,9 +166,14 @@ def conversa_para_json(conversa, usuario_logado):
         lida_por=usuario_logado
     ).count()
 
+    usuario_json = conversa_titulo_descricao(conversa, usuario_logado)
+
     return {
         'id': conversa.id,
-        'usuario': usuario_para_json(outro_usuario),
+        'tipo': conversa.tipo,
+        'nome': usuario_json['nome'],
+        'descricao': usuario_json['descricao'],
+        'usuario': usuario_json,
         'ultima_mensagem': ultima_mensagem.texto if ultima_mensagem else '',
         'ultima_mensagem_hora': timezone.localtime(ultima_mensagem.criado_em).strftime('%H:%M') if ultima_mensagem else '',
         'nao_lidas': nao_lidas,
@@ -123,6 +200,7 @@ def conversas_home(request):
 
     return render(request, 'conversas/conversas_home.html', {
         'usuarios': usuarios,
+        'abrir_conversa_id': request.GET.get('conversa_id', '').strip(),
     })
 
 
@@ -190,6 +268,7 @@ def api_iniciar_conversa(request):
 
     conversa = ConversaChat.objects.filter(
         ativo=True,
+        tipo='individual',
         participantes=request.user
     ).filter(
         participantes=usuario_destino
@@ -197,11 +276,83 @@ def api_iniciar_conversa(request):
 
     if not conversa:
         conversa = ConversaChat.objects.create(
-            ativo=True
+            tipo='individual',
+            ativo=True,
+            criado_por=request.user,
         )
 
         conversa.participantes.add(request.user)
         conversa.participantes.add(usuario_destino)
+
+    return JsonResponse({
+        'ok': True,
+        'conversa': conversa_para_json(conversa, request.user),
+    })
+
+
+@login_required(login_url='/login/')
+@require_POST
+def api_criar_grupo(request):
+    nome_grupo = request.POST.get('nome_grupo', '').strip()
+    usuarios_ids = request.POST.getlist('usuarios_ids')
+
+    if not nome_grupo:
+        return JsonResponse({
+            'ok': False,
+            'message': 'Informe o nome do grupo.'
+        }, status=400)
+
+    ids_limpos = []
+
+    for usuario_id in usuarios_ids:
+        try:
+            ids_limpos.append(int(usuario_id))
+        except (TypeError, ValueError):
+            pass
+
+    ids_limpos = list(set(ids_limpos))
+
+    if len(ids_limpos) < 1:
+        return JsonResponse({
+            'ok': False,
+            'message': 'Selecione pelo menos um participante além de você.'
+        }, status=400)
+
+    User = get_user_model()
+
+    participantes = list(
+        User.objects.filter(
+            is_active=True,
+            id__in=ids_limpos
+        ).exclude(
+            id=request.user.id
+        )
+    )
+
+    if not participantes:
+        return JsonResponse({
+            'ok': False,
+            'message': 'Nenhum participante válido selecionado.'
+        }, status=400)
+
+    conversa = ConversaChat.objects.create(
+        tipo='grupo',
+        nome_grupo=nome_grupo,
+        criado_por=request.user,
+        ativo=True,
+    )
+
+    conversa.participantes.add(request.user)
+
+    for participante in participantes:
+        conversa.participantes.add(participante)
+
+    mensagem = MensagemChat.objects.create(
+        conversa=conversa,
+        remetente=request.user,
+        texto=f'Grupo "{nome_grupo}" criado.'
+    )
+    mensagem.lida_por.add(request.user)
 
     return JsonResponse({
         'ok': True,
@@ -236,6 +387,9 @@ def api_mensagens_conversa(request, conversa_id):
 
     mensagens = conversa.mensagens.select_related(
         'remetente'
+    ).prefetch_related(
+        'lida_por',
+        'conversa__participantes'
     ).order_by(
         'criado_em'
     )

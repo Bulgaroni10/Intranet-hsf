@@ -4,9 +4,33 @@ from django.utils import timezone
 
 
 class ConversaChat(models.Model):
+    TIPO_CHOICES = [
+        ('individual', 'Individual'),
+        ('grupo', 'Grupo'),
+    ]
+
     participantes = models.ManyToManyField(
         settings.AUTH_USER_MODEL,
         related_name='conversas_chat'
+    )
+
+    tipo = models.CharField(
+        max_length=20,
+        choices=TIPO_CHOICES,
+        default='individual'
+    )
+
+    nome_grupo = models.CharField(
+        max_length=120,
+        blank=True
+    )
+
+    criado_por = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='conversas_chat_criadas'
     )
 
     criado_em = models.DateTimeField(default=timezone.now)
@@ -19,6 +43,9 @@ class ConversaChat(models.Model):
         ordering = ['-atualizado_em']
 
     def __str__(self):
+        if self.tipo == 'grupo':
+            return self.nome_grupo or f'Grupo #{self.id}'
+
         nomes = []
 
         for usuario in self.participantes.all()[:3]:
