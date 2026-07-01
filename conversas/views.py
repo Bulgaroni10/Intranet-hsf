@@ -167,6 +167,12 @@ def conversa_para_json(conversa, usuario_logado):
         lida_por=usuario_logado
     ).count()
 
+    pode_gerenciar_grupo = False
+
+    if conversa.tipo == 'grupo':
+        if conversa.criado_por_id == usuario_logado.id or usuario_logado.is_superuser:
+            pode_gerenciar_grupo = True
+
     return {
         'id': conversa.id,
         'tipo': conversa.tipo,
@@ -177,6 +183,7 @@ def conversa_para_json(conversa, usuario_logado):
         'ultima_mensagem_hora': timezone.localtime(ultima_mensagem.criado_em).strftime('%H:%M') if ultima_mensagem else '',
         'nao_lidas': nao_lidas,
         'atualizado_em': timezone.localtime(conversa.atualizado_em).strftime('%d/%m/%Y %H:%M'),
+        'pode_gerenciar_grupo': pode_gerenciar_grupo,
     }
 
 
@@ -366,6 +373,226 @@ def api_criar_grupo(request):
         'ok': True,
         'message': 'Grupo criado com sucesso.',
         'conversa': conversa_para_json(conversa, request.user),
+    })
+
+
+@login_required(login_url='/login/')
+@require_GET
+def api_detalhe_grupo(request, conversa_id):
+    conversa = get_object_or_404(
+        ConversaChat.objects.filter(
+            ativo=True,
+            tipo='grupo',
+            participantes=request.user
+        ).prefetch_related(
+            'participantes'
+        ),
+        id=conversa_id
+    )
+
+    pode_gerenciar = conversa.criado_por_id == request.user.id or request.user.is_superuser
+
+    participantes = []
+
+    for participante in conversa.participantes.select_related('unidade', 'setor').order_by('first_name', 'last_name', 'username'):
+        participantes.append(usuario_para_json(participante))
+
+    return JsonResponse({
+        'ok': True,
+        'grupo': {
+            'id': conversa.id,
+            'nome_grupo': conversa.nome_grupo,
+            'criado_por_id': conversa.criado_por_id,
+            'pode_gerenciar': pode_gerenciar,
+            'participantes': participantes,
+        }
+    })
+
+
+@login_required(login_url='/login/')
+@require_POST
+def api_atualizar_grupo(request):
+    conversa_id = request.POST.get('conversa_id')
+    nome_grupo = request.POST.get('nome_grupo', '').strip()
+
+    usuarios_ids = request.POST.getlist('usuarios_ids')
+
+    if not usuarios_ids:
+        usuarios_ids = request.POST.getlist('usuarios_ids[]')
+
+    if not conversa_id:
+        return JsonResponse({
+            'ok': False,
+            'message': 'Grupo não informado.'
+        }, status=400)
+
+    if not nome_grupo:
+        return JsonResponse({
+            'ok': False,
+            'message': 'Informe o nome do grupo.'
+        }, status=400)
+
+    conversa = get_object_or_404(
+        ConversaChat.objects.filter(
+            ativo=True,
+            tipo='grupo',
+            participantes=request.user
+        ),
+        id=conversa_id
+    )
+
+    if conversa.criado_por_id != request.user.id and not request.user.is_superuser:
+        return JsonResponse({
+            'ok': False,
+            'message': 'Você não tem permissão para editar este grupo.'
+        }, status=403)
+
+    ids_limpos = []
+
+    for usuario_id in usuarios_ids:
+        try:
+            usuario_id_int = int(usuario_id)
+
+            if usuario_id_int != request.user.id:
+                ids_limpos.append(usuario_id_int)
+
+        except (TypeError, ValueError):
+            pass
+
+    ids_limpos = list(set(ids_limpos))
+
+    if len(ids_limpos) < 1:
+        return JsonResponse({
+            'ok': False,
+            'message': 'O grupo precisa ter pelo menos um participante além de você.'
+        }, status=400)
+
+    User = get_user_model()
+
+    participantes = list(
+        User.objects.filter(
+            is_active=True,
+            id__in=ids_limpos
+        ).exclude(
+            id=request.user.id
+        )
+    )
+
+    if not participantes:
+        return JsonResponse({
+            'ok': False,
+            'message': 'Nenhum participante válido selecionado.'
+        }, status=400)
+
+    nome_anterior = conversa.nome_grupo
+    participantes_anteriores_ids = set(conversa.participantes.values_list('id', flat=True))
+
+    conversa.nome_grupo = nome_grupo
+    conversa.atualizado_em = timezone.now()
+    conversa.save()
+
+    conversa.participantes.clear()
+    conversa.participantes.add(request.user)
+
+    for participante in participantes:
+        conversa.participantes.add(participante)
+
+    participantes_novos_ids = set(conversa.participantes.values_list('id', flat=True))
+
+    mensagens_sistema = []
+
+    if nome_anterior != nome_grupo:
+        mensagens_sistema.append(f'Nome do grupo alterado de "{nome_anterior}" para "{nome_grupo}".')
+
+    adicionados = participantes_novos_ids - participantes_anteriores_ids
+    removidos = participantes_anteriores_ids - participantes_novos_ids
+
+    if adicionados:
+        nomes_adicionados = []
+        for usuario in User.objects.filter(id__in=adicionados).order_by('first_name', 'last_name', 'username'):
+            nomes_adicionados.append(usuario_nome(usuario))
+
+        mensagens_sistema.append('Participantes adicionados: ' + ', '.join(nomes_adicionados) + '.')
+
+    if removidos:
+        nomes_removidos = []
+        for usuario in User.objects.filter(id__in=removidos).order_by('first_name', 'last_name', 'username'):
+            nomes_removidos.append(usuario_nome(usuario))
+
+        mensagens_sistema.append('Participantes removidos: ' + ', '.join(nomes_removidos) + '.')
+
+    if mensagens_sistema:
+        mensagem = MensagemChat.objects.create(
+            conversa=conversa,
+            remetente=request.user,
+            texto='\n'.join(mensagens_sistema)
+        )
+
+        mensagem.lida_por.add(request.user)
+
+    return JsonResponse({
+        'ok': True,
+        'message': 'Grupo atualizado com sucesso.',
+        'conversa': conversa_para_json(conversa, request.user),
+    })
+
+
+@login_required(login_url='/login/')
+@require_POST
+def api_sair_grupo(request):
+    conversa_id = request.POST.get('conversa_id')
+
+    if not conversa_id:
+        return JsonResponse({
+            'ok': False,
+            'message': 'Grupo não informado.'
+        }, status=400)
+
+    conversa = get_object_or_404(
+        ConversaChat.objects.filter(
+            ativo=True,
+            tipo='grupo',
+            participantes=request.user
+        ),
+        id=conversa_id
+    )
+
+    nome_usuario = usuario_nome(request.user)
+
+    conversa.participantes.remove(request.user)
+
+    participantes_restantes = conversa.participantes.all().order_by('id')
+
+    if not participantes_restantes.exists():
+        conversa.ativo = False
+        conversa.atualizado_em = timezone.now()
+        conversa.save()
+
+        return JsonResponse({
+            'ok': True,
+            'message': 'Você saiu do grupo.',
+            'grupo_encerrado': True,
+        })
+
+    if conversa.criado_por_id == request.user.id:
+        novo_criador = participantes_restantes.first()
+        conversa.criado_por = novo_criador
+
+    conversa.atualizado_em = timezone.now()
+    conversa.save()
+
+    mensagem = MensagemChat.objects.create(
+        conversa=conversa,
+        remetente=participantes_restantes.first(),
+        texto=f'{nome_usuario} saiu do grupo.'
+    )
+
+    mensagem.lida_por.add(participantes_restantes.first())
+
+    return JsonResponse({
+        'ok': True,
+        'message': 'Você saiu do grupo.',
+        'grupo_encerrado': False,
     })
 
 

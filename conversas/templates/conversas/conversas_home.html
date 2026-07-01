@@ -137,6 +137,7 @@
       text-decoration: none;
       cursor: pointer;
       white-space: nowrap;
+      font-family: Arial, sans-serif;
     }
 
     .chat-list {
@@ -167,6 +168,7 @@
       cursor: pointer;
       text-align: left;
       margin-bottom: 3px;
+      font-family: Arial, sans-serif;
     }
 
     .chat-item:hover {
@@ -301,6 +303,8 @@
       display: flex;
       gap: 8px;
       align-items: center;
+      flex-wrap: wrap;
+      justify-content: flex-end;
     }
 
     .chat-messages {
@@ -454,6 +458,7 @@
       font-size: 13px;
       font-weight: 950;
       cursor: pointer;
+      font-family: Arial, sans-serif;
     }
 
     .chat-send-btn:disabled {
@@ -532,6 +537,7 @@
       display: flex;
       justify-content: flex-end;
       gap: 8px;
+      flex-wrap: wrap;
     }
 
     .modal-error {
@@ -685,6 +691,14 @@
         </div>
 
         <div class="chat-main-actions">
+          <button id="btn-gerenciar-grupo" class="chat-small-btn chat-hidden" type="button">
+            Gerenciar grupo
+          </button>
+
+          <button id="btn-sair-grupo" class="chat-small-btn chat-hidden" type="button">
+            Sair do grupo
+          </button>
+
           <a class="chat-small-btn" href="/portal/">Voltar ao portal</a>
         </div>
       </div>
@@ -747,6 +761,54 @@
 
           <button id="btn-criar-grupo" class="chat-send-btn" type="submit">
             Criar grupo
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div id="modal-gerenciar-grupo" class="modal-overlay chat-hidden">
+    <div class="modal-card">
+      <h2>Gerenciar grupo</h2>
+      <p>Edite o nome do grupo e os participantes.</p>
+
+      <div id="erro-gerenciar-grupo" class="modal-error chat-hidden"></div>
+      <div id="sucesso-gerenciar-grupo" class="modal-success chat-hidden"></div>
+
+      <form id="form-gerenciar-grupo">
+        {% csrf_token %}
+
+        <input type="hidden" id="gerenciar-conversa-id" name="conversa_id">
+
+        <input
+          id="gerenciar-nome-grupo"
+          name="nome_grupo"
+          class="modal-input"
+          type="text"
+          placeholder="Nome do grupo"
+          required
+        >
+
+        <div class="modal-users">
+          {% for usuario in usuarios %}
+            <label class="modal-user-item">
+              <input class="check-gerenciar-grupo" type="checkbox" name="usuarios_ids" value="{{ usuario.id }}">
+              <span>
+                {{ usuario.get_full_name|default:usuario.username }}
+                {% if usuario.setor %} • {{ usuario.setor.nome }}{% endif %}
+                {% if usuario.unidade %} • {{ usuario.unidade.sigla }}{% endif %}
+              </span>
+            </label>
+          {% endfor %}
+        </div>
+
+        <div class="modal-actions">
+          <button id="btn-cancelar-gerenciar-grupo" class="chat-action-btn" type="button">
+            Cancelar
+          </button>
+
+          <button id="btn-salvar-gerenciar-grupo" class="chat-send-btn" type="submit">
+            Salvar alterações
           </button>
         </div>
       </form>
@@ -828,6 +890,8 @@
       const headerAvatar = document.getElementById('chat-header-avatar');
       const headerName = document.getElementById('chat-header-name');
       const headerDesc = document.getElementById('chat-header-desc');
+      const btnGerenciarGrupo = document.getElementById('btn-gerenciar-grupo');
+      const btnSairGrupo = document.getElementById('btn-sair-grupo');
 
       const nome = conversa.nome || conversa.usuario.nome || 'Conversa';
       const descricao = conversa.descricao || conversa.usuario.descricao || '';
@@ -837,6 +901,19 @@
 
       headerName.textContent = nome;
       headerDesc.textContent = descricao;
+
+      if (conversa.tipo === 'grupo') {
+        btnSairGrupo.classList.remove('chat-hidden');
+
+        if (conversa.pode_gerenciar_grupo) {
+          btnGerenciarGrupo.classList.remove('chat-hidden');
+        } else {
+          btnGerenciarGrupo.classList.add('chat-hidden');
+        }
+      } else {
+        btnGerenciarGrupo.classList.add('chat-hidden');
+        btnSairGrupo.classList.add('chat-hidden');
+      }
     }
 
     function renderizarListaConversas(conversas) {
@@ -1121,6 +1198,186 @@
       }
     }
 
+    async function abrirModalGerenciarGrupo() {
+      if (!conversaAtualId) {
+        return;
+      }
+
+      const erro = document.getElementById('erro-gerenciar-grupo');
+      const sucesso = document.getElementById('sucesso-gerenciar-grupo');
+
+      erro.classList.add('chat-hidden');
+      sucesso.classList.add('chat-hidden');
+      erro.textContent = '';
+      sucesso.textContent = '';
+
+      try {
+        const response = await fetch(`/conversas/api/grupos/${conversaAtualId}/detalhe/`, {
+          method: 'GET',
+          headers: {
+            'X-Requested-With': 'XMLHttpRequest'
+          }
+        });
+
+        const data = await response.json();
+
+        if (!response.ok || !data.ok) {
+          alert(data.message || 'Não foi possível carregar o grupo.');
+          return;
+        }
+
+        document.getElementById('gerenciar-conversa-id').value = data.grupo.id;
+        document.getElementById('gerenciar-nome-grupo').value = data.grupo.nome_grupo || '';
+
+        const idsParticipantes = new Set();
+
+        data.grupo.participantes.forEach((participante) => {
+          idsParticipantes.add(Number(participante.id));
+        });
+
+        document.querySelectorAll('.check-gerenciar-grupo').forEach((check) => {
+          check.checked = idsParticipantes.has(Number(check.value));
+        });
+
+        document.getElementById('modal-gerenciar-grupo').classList.remove('chat-hidden');
+
+      } catch (error) {
+        console.error('Erro ao abrir gerenciamento do grupo:', error);
+        alert('Erro ao abrir gerenciamento do grupo.');
+      }
+    }
+
+    function fecharModalGerenciarGrupo() {
+      document.getElementById('modal-gerenciar-grupo').classList.add('chat-hidden');
+    }
+
+    async function salvarGerenciarGrupo(event) {
+      event.preventDefault();
+
+      const erro = document.getElementById('erro-gerenciar-grupo');
+      const sucesso = document.getElementById('sucesso-gerenciar-grupo');
+      const botao = document.getElementById('btn-salvar-gerenciar-grupo');
+      const form = document.getElementById('form-gerenciar-grupo');
+
+      erro.classList.add('chat-hidden');
+      sucesso.classList.add('chat-hidden');
+      erro.textContent = '';
+      sucesso.textContent = '';
+
+      const nomeGrupo = document.getElementById('gerenciar-nome-grupo').value.trim();
+      const selecionados = form.querySelectorAll('input[name="usuarios_ids"]:checked');
+
+      if (!nomeGrupo) {
+        erro.textContent = 'Informe o nome do grupo.';
+        erro.classList.remove('chat-hidden');
+        return;
+      }
+
+      if (selecionados.length < 1) {
+        erro.textContent = 'Selecione pelo menos um participante além de você.';
+        erro.classList.remove('chat-hidden');
+        return;
+      }
+
+      const formData = new FormData(form);
+
+      botao.disabled = true;
+      botao.textContent = 'Salvando...';
+
+      try {
+        const response = await fetch('/conversas/api/grupos/atualizar/', {
+          method: 'POST',
+          headers: {
+            'X-CSRFToken': getCsrfTokenChat(),
+            'X-Requested-With': 'XMLHttpRequest'
+          },
+          body: formData
+        });
+
+        const data = await response.json();
+
+        if (!response.ok || !data.ok) {
+          erro.textContent = data.message || 'Não foi possível atualizar o grupo.';
+          erro.classList.remove('chat-hidden');
+          return;
+        }
+
+        sucesso.textContent = 'Grupo atualizado com sucesso.';
+        sucesso.classList.remove('chat-hidden');
+
+        fecharModalGerenciarGrupo();
+
+        await carregarConversas();
+        await abrirConversa(conversaAtualId);
+
+      } catch (error) {
+        console.error('Erro ao salvar grupo:', error);
+        erro.textContent = 'Erro ao salvar grupo.';
+        erro.classList.remove('chat-hidden');
+      } finally {
+        botao.disabled = false;
+        botao.textContent = 'Salvar alterações';
+      }
+    }
+
+    async function sairDoGrupo() {
+      if (!conversaAtualId) {
+        return;
+      }
+
+      const confirmar = confirm('Tem certeza que deseja sair deste grupo?');
+
+      if (!confirmar) {
+        return;
+      }
+
+      const formData = new FormData();
+      formData.append('conversa_id', conversaAtualId);
+
+      try {
+        const response = await fetch('/conversas/api/grupos/sair/', {
+          method: 'POST',
+          headers: {
+            'X-CSRFToken': getCsrfTokenChat(),
+            'X-Requested-With': 'XMLHttpRequest'
+          },
+          body: formData
+        });
+
+        const data = await response.json();
+
+        if (!response.ok || !data.ok) {
+          alert(data.message || 'Não foi possível sair do grupo.');
+          return;
+        }
+
+        conversaAtualId = null;
+        habilitarComposicao(false);
+
+        document.getElementById('btn-gerenciar-grupo').classList.add('chat-hidden');
+        document.getElementById('btn-sair-grupo').classList.add('chat-hidden');
+        document.getElementById('chat-header-avatar').textContent = '💬';
+        document.getElementById('chat-header-name').textContent = 'Selecione uma conversa';
+        document.getElementById('chat-header-desc').textContent = 'Escolha uma conversa, usuário ou grupo.';
+
+        document.getElementById('chat-messages').innerHTML = `
+          <div class="chat-start">
+            <div class="chat-start-card">
+              <div class="chat-start-card-icon">💬</div>
+              <strong>Você saiu do grupo</strong>
+              <div>Selecione outra conversa ou crie um novo grupo.</div>
+            </div>
+          </div>
+        `;
+
+        await carregarConversas();
+
+      } catch (error) {
+        console.error('Erro ao sair do grupo:', error);
+        alert('Erro ao sair do grupo.');
+      }
+    }
+
     async function enviarMensagem(event) {
       event.preventDefault();
 
@@ -1203,6 +1460,11 @@
       document.getElementById('btn-abrir-modal-grupo').addEventListener('click', abrirModalGrupo);
       document.getElementById('btn-cancelar-grupo').addEventListener('click', fecharModalGrupo);
       document.getElementById('form-criar-grupo').addEventListener('submit', criarGrupo);
+
+      document.getElementById('btn-gerenciar-grupo').addEventListener('click', abrirModalGerenciarGrupo);
+      document.getElementById('btn-sair-grupo').addEventListener('click', sairDoGrupo);
+      document.getElementById('btn-cancelar-gerenciar-grupo').addEventListener('click', fecharModalGerenciarGrupo);
+      document.getElementById('form-gerenciar-grupo').addEventListener('submit', salvarGerenciarGrupo);
 
       document.getElementById('chat-texto').addEventListener('keydown', function (event) {
         if (event.key === 'Enter' && !event.shiftKey) {
