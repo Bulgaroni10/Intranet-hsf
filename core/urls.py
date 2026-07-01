@@ -21,6 +21,7 @@ urlpatterns = [
     path('conversas/contador-nao-lidas/', conversas_views.contador_mensagens_nao_lidas, name='contador_mensagens_nao_lidas'),
     path('conversas/api/listar/', conversas_views.api_listar_conversas, name='api_listar_conversas'),
     path('conversas/api/iniciar/', conversas_views.api_iniciar_conversa, name='api_iniciar_conversa'),
+    path('conversas/api/grupos/criar/', conversas_views.api_criar_grupo, name='api_criar_grupo_conversa'),
     path('conversas/api/<int:conversa_id>/mensagens/', conversas_views.api_mensagens_conversa, name='api_mensagens_conversa'),
     path('conversas/api/enviar/', conversas_views.api_enviar_mensagem, name='api_enviar_mensagem'),
 

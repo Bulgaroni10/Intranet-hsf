@@ -33,6 +33,18 @@ def usuario_descricao(usuario):
     return usuario.email or usuario.username
 
 
+def usuario_para_json(usuario):
+    return {
+        'id': usuario.id,
+        'nome': usuario_nome(usuario),
+        'username': usuario.username,
+        'descricao': usuario_descricao(usuario),
+        'email': usuario.email or '',
+        'unidade': usuario.unidade.sigla if getattr(usuario, 'unidade', None) else '',
+        'setor': usuario.setor.nome if getattr(usuario, 'setor', None) else '',
+    }
+
+
 def contar_conversas_nao_lidas(usuario):
     if not usuario.is_authenticated:
         return 0
@@ -47,37 +59,6 @@ def contar_conversas_nao_lidas(usuario):
     ).values(
         'conversa_id'
     ).distinct().count()
-
-
-def usuario_para_json(usuario):
-    return {
-        'id': usuario.id,
-        'nome': usuario_nome(usuario),
-        'username': usuario.username,
-        'descricao': usuario_descricao(usuario),
-        'email': usuario.email or '',
-        'unidade': usuario.unidade.sigla if getattr(usuario, 'unidade', None) else '',
-        'setor': usuario.setor.nome if getattr(usuario, 'setor', None) else '',
-    }
-
-
-def remetente_id_igual(mensagem, usuario):
-    return mensagem.remetente_id == usuario.id
-
-
-def nomes_leitores_mensagem(mensagem, usuario_logado):
-    leitores = mensagem.lida_por.exclude(id=mensagem.remetente_id).order_by(
-        'first_name',
-        'last_name',
-        'username'
-    )
-
-    nomes = []
-
-    for leitor in leitores:
-        nomes.append(usuario_nome(leitor))
-
-    return nomes
 
 
 def mensagem_foi_lida_por_destinatarios(mensagem):
@@ -95,19 +76,34 @@ def mensagem_foi_lida_por_destinatarios(mensagem):
     return total_leitores >= total_destinatarios
 
 
+def nomes_leitores_mensagem(mensagem):
+    leitores = mensagem.lida_por.exclude(
+        id=mensagem.remetente_id
+    ).order_by(
+        'first_name',
+        'last_name',
+        'username'
+    )
+
+    nomes = []
+
+    for leitor in leitores:
+        nomes.append(usuario_nome(leitor))
+
+    return nomes
+
+
 def mensagem_para_json(mensagem, usuario_logado):
-    remetente = mensagem.remetente
-    minha = remetente_id_igual(mensagem, usuario_logado)
+    minha = mensagem.remetente_id == usuario_logado.id
     lida_destinatarios = mensagem_foi_lida_por_destinatarios(mensagem)
-    leitores = nomes_leitores_mensagem(mensagem, usuario_logado)
+
+    status_leitura = ''
 
     if minha:
         if lida_destinatarios:
             status_leitura = 'Visto'
         else:
             status_leitura = 'Enviado'
-    else:
-        status_leitura = ''
 
     return {
         'id': mensagem.id,
@@ -117,18 +113,20 @@ def mensagem_para_json(mensagem, usuario_logado):
         'minha': minha,
         'lida_destinatarios': lida_destinatarios,
         'status_leitura': status_leitura,
-        'lida_por_nomes': leitores,
+        'lida_por_nomes': nomes_leitores_mensagem(mensagem),
         'remetente': {
-            'id': remetente.id,
-            'nome': usuario_nome(remetente),
-            'username': remetente.username,
+            'id': mensagem.remetente.id,
+            'nome': usuario_nome(mensagem.remetente),
+            'username': mensagem.remetente.username,
         },
     }
 
 
 def conversa_titulo_descricao(conversa, usuario_logado):
     participantes = list(
-        conversa.participantes.exclude(id=usuario_logado.id).order_by(
+        conversa.participantes.exclude(
+            id=usuario_logado.id
+        ).order_by(
             'first_name',
             'last_name',
             'username'
@@ -137,8 +135,9 @@ def conversa_titulo_descricao(conversa, usuario_logado):
 
     if conversa.tipo == 'grupo':
         nome = conversa.nome_grupo or f'Grupo #{conversa.id}'
-        nomes = [usuario_nome(usuario) for usuario in participantes[:4]]
         descricao = f'{conversa.participantes.count()} participantes'
+
+        nomes = [usuario_nome(usuario) for usuario in participantes[:4]]
 
         if nomes:
             descricao = f'{descricao} • ' + ', '.join(nomes)
@@ -154,19 +153,19 @@ def conversa_titulo_descricao(conversa, usuario_logado):
         }
 
     outro_usuario = participantes[0] if participantes else usuario_logado
+
     return usuario_para_json(outro_usuario)
 
 
 def conversa_para_json(conversa, usuario_logado):
     ultima_mensagem = conversa.mensagens.order_by('-criado_em').first()
+    usuario_json = conversa_titulo_descricao(conversa, usuario_logado)
 
     nao_lidas = conversa.mensagens.exclude(
         remetente=usuario_logado
     ).exclude(
         lida_por=usuario_logado
     ).count()
-
-    usuario_json = conversa_titulo_descricao(conversa, usuario_logado)
 
     return {
         'id': conversa.id,
@@ -230,10 +229,10 @@ def api_listar_conversas(request):
         '-atualizado_em'
     )
 
-    dados = [
-        conversa_para_json(conversa, request.user)
-        for conversa in conversas
-    ]
+    dados = []
+
+    for conversa in conversas:
+        dados.append(conversa_para_json(conversa, request.user))
 
     return JsonResponse({
         'ok': True,
@@ -294,7 +293,11 @@ def api_iniciar_conversa(request):
 @require_POST
 def api_criar_grupo(request):
     nome_grupo = request.POST.get('nome_grupo', '').strip()
+
     usuarios_ids = request.POST.getlist('usuarios_ids')
+
+    if not usuarios_ids:
+        usuarios_ids = request.POST.getlist('usuarios_ids[]')
 
     if not nome_grupo:
         return JsonResponse({
@@ -306,7 +309,11 @@ def api_criar_grupo(request):
 
     for usuario_id in usuarios_ids:
         try:
-            ids_limpos.append(int(usuario_id))
+            usuario_id_int = int(usuario_id)
+
+            if usuario_id_int != request.user.id:
+                ids_limpos.append(usuario_id_int)
+
         except (TypeError, ValueError):
             pass
 
@@ -352,10 +359,12 @@ def api_criar_grupo(request):
         remetente=request.user,
         texto=f'Grupo "{nome_grupo}" criado.'
     )
+
     mensagem.lida_por.add(request.user)
 
     return JsonResponse({
         'ok': True,
+        'message': 'Grupo criado com sucesso.',
         'conversa': conversa_para_json(conversa, request.user),
     })
 
