@@ -825,91 +825,6 @@ def buscar_dados_formularios_mv():
     }
 
 
-
-def usuario_pode_acessar_solicitacoes_ti(user):
-    return usuario_pode_acessar_modulo(user, 'Solicitações Internas de TI')
-
-
-def atualizar_sla_solicitacoes_dashboard(solicitacoes):
-    for solicitacao in solicitacoes:
-        if hasattr(solicitacao, 'atualizar_sla'):
-            solicitacao.atualizar_sla(salvar=True)
-
-
-def buscar_resumo_chamados_ti(user, limite=8, modulo_origem=None):
-    chamados_base = SolicitacaoTI.objects.filter(
-        ativo=True
-    )
-
-    if modulo_origem:
-        chamados_base = chamados_base.filter(
-            modulo_origem=modulo_origem
-        )
-
-    if not usuario_eh_admin_ti(user):
-        chamados_base = chamados_base.filter(
-            solicitante=user
-        )
-
-    chamados_para_atualizar_sla = chamados_base.exclude(
-        status__in=['resolvido', 'cancelado']
-    ).order_by(
-        '-criado_em'
-    )[:100]
-
-    atualizar_sla_solicitacoes_dashboard(chamados_para_atualizar_sla)
-
-    chamados_base = SolicitacaoTI.objects.filter(
-        ativo=True
-    )
-
-    if modulo_origem:
-        chamados_base = chamados_base.filter(
-            modulo_origem=modulo_origem
-        )
-
-    if not usuario_eh_admin_ti(user):
-        chamados_base = chamados_base.filter(
-            solicitante=user
-        )
-
-    chamados_abertos_base = chamados_base.exclude(
-        status__in=['resolvido', 'cancelado']
-    )
-
-    ultimos_chamados = chamados_base.select_related(
-        'unidade',
-        'setor',
-        'solicitante',
-        'responsavel_ti'
-    ).order_by(
-        '-criado_em'
-    )[:limite]
-
-    return {
-        'total_chamados_ti': chamados_base.count(),
-        'total_chamados_ti_abertos': chamados_base.filter(status='aberto').count(),
-        'total_chamados_ti_atendimento': chamados_base.filter(status='em_atendimento').count(),
-        'total_chamados_ti_aguardando': chamados_base.filter(
-            Q(status='aguardando_usuario') |
-            Q(status='aguardando_terceiro')
-        ).count(),
-        'total_chamados_ti_resolvidos': chamados_base.filter(status='resolvido').count(),
-        'total_chamados_ti_sla_alerta': chamados_abertos_base.filter(
-            sla_status='proximo_vencimento'
-        ).count(),
-        'total_chamados_ti_sla_estourado': chamados_abertos_base.filter(
-            sla_status='estourado'
-        ).count(),
-        'total_chamados_ti_sem_responsavel': chamados_abertos_base.filter(
-            responsavel_ti__isnull=True
-        ).count(),
-        'total_chamados_ti_criticos': chamados_abertos_base.filter(
-            prioridade='critica'
-        ).count(),
-        'ultimos_chamados_ti': ultimos_chamados,
-    }
-
 def home(request):
     if request.user.is_authenticated:
         return redirect('portal')
@@ -1006,24 +921,6 @@ def portal(request):
     except Modulo.DoesNotExist:
         pass
 
-
-    pode_acessar_solicitacoes_ti = usuario_pode_acessar_solicitacoes_ti(user)
-
-    resumo_chamados_ti = {
-        'total_chamados_ti': 0,
-        'total_chamados_ti_abertos': 0,
-        'total_chamados_ti_atendimento': 0,
-        'total_chamados_ti_aguardando': 0,
-        'total_chamados_ti_resolvidos': 0,
-        'total_chamados_ti_sla_alerta': 0,
-        'total_chamados_ti_sla_estourado': 0,
-        'total_chamados_ti_sem_responsavel': 0,
-        'total_chamados_ti_criticos': 0,
-        'ultimos_chamados_ti': SolicitacaoTI.objects.none(),
-    }
-
-    if pode_acessar_solicitacoes_ti:
-        resumo_chamados_ti = buscar_resumo_chamados_ti(user)
     return render(request, 'core/portal.html', {
         'categorias': categorias,
         'ocorrencias_ativas': ocorrencias_ativas,
@@ -1038,8 +935,6 @@ def portal(request):
         'total_links': len(links_rapidos),
         'total_manuais': len(ultimos_manuais),
         'acessos_botoes_rapidos': montar_acessos_botoes_rapidos(user),
-        'pode_acessar_solicitacoes_ti': pode_acessar_solicitacoes_ti,
-        **resumo_chamados_ti,
         'pode_acessar_administracao': usuario_pode_acessar_administracao(user),
     })
 
@@ -1242,21 +1137,6 @@ def mv_convenios(request):
         'descricao_procedimento',
     )
 
-
-    resumo_chamados_mv = buscar_resumo_chamados_ti(
-        request.user,
-        limite=8,
-        modulo_origem='mv'
-    )
-
-    chamados_mv = resumo_chamados_mv['ultimos_chamados_ti']
-    total_chamados_mv_abertos = (
-        resumo_chamados_mv['total_chamados_ti_abertos'] +
-        resumo_chamados_mv['total_chamados_ti_atendimento'] +
-        resumo_chamados_mv['total_chamados_ti_aguardando']
-    )
-    total_chamados_mv_atendimento = resumo_chamados_mv['total_chamados_ti_atendimento']
-    total_chamados_mv_resolvidos = resumo_chamados_mv['total_chamados_ti_resolvidos']
     return render(request, 'core/mv_convenios.html', {
         'regras': regras,
         'proibicoes': proibicoes,
@@ -3282,4 +3162,3 @@ def logout_intranet(request):
         'message': 'Logout realizado com sucesso.',
         'redirect_url': '/'
     })
-
