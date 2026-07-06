@@ -1,4 +1,4 @@
-import csv
+﻿import csv
 import json
 
 from django.contrib import messages
@@ -25,6 +25,7 @@ from status_sistemas.models import SistemaMonitorado, OcorrenciaSistema
 from avisos.models import AvisoComunicado
 from documentos.models import DocumentoProtocolo
 from auditoria.models import RegistroAuditoria
+from solicitacoes_ti.models import SolicitacaoTI
 
 
 def usuario_pode_acessar_modulo(user, nome_modulo):
@@ -964,10 +965,45 @@ def modulo_mv(request):
     total_regras_ativas = RegraAtendimentoConvenio.objects.filter(ativo=True).count()
     total_procedimentos_proibidos = ProcedimentoProibidoPlano.objects.filter(ativo=True).count()
 
+    chamados_mv_base = SolicitacaoTI.objects.filter(
+        ativo=True,
+        modulo_origem='mv'
+    )
+
+    if not usuario_eh_admin_ti(request.user):
+        chamados_mv_base = chamados_mv_base.filter(
+            solicitante=request.user
+        )
+
+    chamados_mv = chamados_mv_base.select_related(
+        'unidade',
+        'setor',
+        'solicitante',
+        'responsavel_ti'
+    ).order_by(
+        '-criado_em'
+    )[:8]
+
+    total_chamados_mv_abertos = chamados_mv_base.exclude(
+        status__in=['resolvido', 'cancelado']
+    ).count()
+
+    total_chamados_mv_atendimento = chamados_mv_base.filter(
+        status='em_atendimento'
+    ).count()
+
+    total_chamados_mv_resolvidos = chamados_mv_base.filter(
+        status='resolvido'
+    ).count()
+
     return render(request, 'core/modulo_mv.html', {
         'modulo': modulo,
         'conteudos_por_tipo': conteudos_por_tipo,
         'pode_gerenciar_mv': pode_gerenciar_mv,
+        'chamados_mv': chamados_mv,
+        'total_chamados_mv_abertos': total_chamados_mv_abertos,
+        'total_chamados_mv_atendimento': total_chamados_mv_atendimento,
+        'total_chamados_mv_resolvidos': total_chamados_mv_resolvidos,
         'total_convenios': total_convenios,
         'total_convenios_ativos': total_convenios_ativos,
         'total_planos': total_planos,
@@ -1122,6 +1158,10 @@ def mv_convenios(request):
         'status': status,
         'procedimento': procedimento,
         'pode_gerenciar_mv': pode_gerenciar_mv,
+        'chamados_mv': chamados_mv,
+        'total_chamados_mv_abertos': total_chamados_mv_abertos,
+        'total_chamados_mv_atendimento': total_chamados_mv_atendimento,
+        'total_chamados_mv_resolvidos': total_chamados_mv_resolvidos,
         'total_convenios': Convenio.objects.count(),
         'total_planos': PlanoConvenio.objects.count(),
         'total_especialidades': Especialidade.objects.count(),

@@ -33,9 +33,7 @@
 
     .btn-link,
     .btn-submit,
-    .btn-success,
-    .btn-warning,
-    .btn-danger {
+    .btn-success {
       display: inline-flex;
       align-items: center;
       justify-content: center;
@@ -61,18 +59,6 @@
       background: #2dd4bf;
       color: #06201d;
       border-color: #2dd4bf;
-    }
-
-    .btn-warning {
-      background: rgba(120, 53, 15, 0.45);
-      color: #fde68a;
-      border-color: rgba(251, 191, 36, 0.35);
-    }
-
-    .btn-danger {
-      background: rgba(127, 29, 29, 0.45);
-      color: #fecaca;
-      border-color: rgba(248, 113, 113, 0.35);
     }
 
     .btn-submit {
@@ -157,6 +143,7 @@
       border-radius: 10px;
       padding: 12px;
       outline: none;
+      font-family: Arial, sans-serif;
     }
 
     .summary-grid {
@@ -265,6 +252,12 @@
       white-space: nowrap;
     }
 
+    .badge-origin {
+      color: #bfdbfe;
+      background: rgba(30, 64, 175, 0.28);
+      border-color: rgba(96, 165, 250, 0.35);
+    }
+
     .badge-ok,
     .sla-ok {
       color: #bbf7d0;
@@ -300,7 +293,7 @@
 
     .meta-grid {
       display: grid;
-      grid-template-columns: repeat(4, minmax(0, 1fr));
+      grid-template-columns: repeat(5, minmax(0, 1fr));
       gap: 8px;
       margin-top: 12px;
     }
@@ -434,13 +427,9 @@
         </p>
 
         {% if pode_gerenciar %}
-          <p>
-            Você está visualizando o painel de atendimento da TI.
-          </p>
+          <p>Você está visualizando o painel de atendimento da TI.</p>
         {% else %}
-          <p>
-            Você está visualizando seus chamados abertos para a TI.
-          </p>
+          <p>Você está visualizando seus chamados abertos para a TI.</p>
         {% endif %}
       </div>
 
@@ -457,6 +446,18 @@
               value="{{ busca }}"
               placeholder="Título, descrição, equipamento, usuário..."
             >
+          </div>
+
+          <div class="form-group">
+            <label>Módulo de origem</label>
+            <select name="modulo_origem">
+              <option value="">Todos</option>
+              {% for valor, nome in modulos_origem %}
+                <option value="{{ valor }}" {% if modulo_origem == valor %}selected{% endif %}>
+                  {{ nome }}
+                </option>
+              {% endfor %}
+            </select>
           </div>
 
           <div class="form-group">
@@ -599,39 +600,13 @@
           <h2>Chamados encontrados</h2>
           <p>Resultado conforme os filtros aplicados.</p>
         </div>
-
-        <a class="btn-success" href="/portal/modulos/solicitacoes-ti/nova/">
-          + Abrir chamado
-        </a>
       </div>
 
       <div class="solicitacao-list">
         {% for solicitacao in solicitacoes %}
           <article class="solicitacao-card">
             <div class="solicitacao-icon">
-              {% if solicitacao.tipo == "acesso" %}
-                🔐
-              {% elif solicitacao.tipo == "sistema" %}
-                💻
-              {% elif solicitacao.tipo == "mv" %}
-                🏥
-              {% elif solicitacao.tipo == "pep" %}
-                📋
-              {% elif solicitacao.tipo == "idce" %}
-                🩺
-              {% elif solicitacao.tipo == "impressora" %}
-                🖨️
-              {% elif solicitacao.tipo == "rede" %}
-                🌐
-              {% elif solicitacao.tipo == "ramal" %}
-                ☎️
-              {% elif solicitacao.tipo == "equipamento" %}
-                🖥️
-              {% elif solicitacao.tipo == "email" %}
-                ✉️
-              {% else %}
-                🎫
-              {% endif %}
+              {{ solicitacao.modulo_origem_icone }}
             </div>
 
             <div>
@@ -664,6 +639,10 @@
                 </div>
               </div>
 
+              <span class="badge badge-origin">
+                {{ solicitacao.modulo_origem_icone }} {{ solicitacao.modulo_origem_exibicao }}
+              </span>
+
               <span class="badge">{{ solicitacao.get_tipo_display }}</span>
               <span class="badge">{{ solicitacao.get_prioridade_display }}</span>
 
@@ -688,6 +667,11 @@
               {% endif %}
 
               <div class="meta-grid">
+                <div class="meta-item">
+                  <span>Módulo</span>
+                  <strong>{{ solicitacao.modulo_origem_exibicao }}</strong>
+                </div>
+
                 <div class="meta-item">
                   <span>Unidade</span>
                   <strong>

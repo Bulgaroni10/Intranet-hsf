@@ -6,16 +6,36 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-  <title>Nova Solicitação de TI | Intranet</title>
+  <title>Solicitações de TI | Intranet</title>
 
   <link rel="stylesheet" href="{% static 'core/css/home.css' %}">
 
   <style>
-    body { background: #111111; color: #f8fafc; margin: 0; font-family: Arial, sans-serif; }
-    .page { max-width: 980px; margin: 0 auto; padding: 28px 24px 50px; }
-    .top-actions { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 24px; }
+    body {
+      background: #111111;
+      color: #f8fafc;
+      margin: 0;
+      font-family: Arial, sans-serif;
+    }
 
-    .btn-link, .btn-submit {
+    .page {
+      max-width: 1220px;
+      margin: 0 auto;
+      padding: 28px 24px 50px;
+    }
+
+    .top-actions {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-bottom: 24px;
+    }
+
+    .btn-link,
+    .btn-submit,
+    .btn-success,
+    .btn-warning,
+    .btn-danger {
       display: inline-flex;
       align-items: center;
       justify-content: center;
@@ -28,20 +48,55 @@
       font-size: 13px;
       font-weight: 800;
       cursor: pointer;
+      font-family: Arial, sans-serif;
     }
 
-    .btn-link:hover { border-color: #2dd4bf; color: #2dd4bf; }
-    .btn-submit { background: #2dd4bf; color: #06201d; border-color: #2dd4bf; width: 230px; }
-    .btn-submit:hover { filter: brightness(1.05); }
+    .btn-link:hover {
+      border-color: #2dd4bf;
+      color: #2dd4bf;
+    }
 
-    .hero-main, .form-card, .notice {
+    .btn-success,
+    .btn-submit {
+      background: #2dd4bf;
+      color: #06201d;
+      border-color: #2dd4bf;
+    }
+
+    .btn-warning {
+      background: rgba(120, 53, 15, 0.45);
+      color: #fde68a;
+      border-color: rgba(251, 191, 36, 0.35);
+    }
+
+    .btn-danger {
+      background: rgba(127, 29, 29, 0.45);
+      color: #fecaca;
+      border-color: rgba(248, 113, 113, 0.35);
+    }
+
+    .btn-submit {
+      width: 100%;
+    }
+
+    .hero-box {
+      display: grid;
+      grid-template-columns: 1fr 360px;
+      gap: 18px;
+      margin-bottom: 26px;
+    }
+
+    .hero-main,
+    .hero-side,
+    .summary-card,
+    .solicitacao-card,
+    .empty-card,
+    .notification-card {
       background: rgba(31, 31, 31, 0.96);
       border: 1px solid rgba(148, 163, 184, 0.2);
       border-radius: 16px;
       padding: 22px;
     }
-
-    .hero-main { margin-bottom: 22px; }
 
     .eyebrow {
       color: #2dd4bf;
@@ -52,24 +107,36 @@
       margin-bottom: 8px;
     }
 
-    h1 { margin: 0 0 10px; font-size: 32px; color: #ffffff; }
-    p { color: #cbd5e1; line-height: 1.5; }
-
-    .notice {
-      border-color: rgba(248, 113, 113, 0.35);
-      background: rgba(127, 29, 29, 0.25);
-      margin-bottom: 18px;
+    h1 {
+      margin: 0 0 10px;
+      font-size: 32px;
+      color: #ffffff;
     }
 
-    .notice h3 { margin: 0 0 6px; color: #fecaca; }
+    h2 {
+      margin: 0 0 6px;
+      font-size: 20px;
+      color: #ffffff;
+    }
+
+    h3 {
+      margin: 0 0 6px;
+      color: #ffffff;
+    }
+
+    p {
+      color: #cbd5e1;
+      line-height: 1.5;
+    }
 
     .form-grid {
       display: grid;
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-      gap: 16px;
+      gap: 10px;
     }
 
-    .form-group.full { grid-column: 1 / -1; }
+    .form-group {
+      margin-bottom: 2px;
+    }
 
     .form-group label {
       display: block;
@@ -80,7 +147,8 @@
       margin-bottom: 7px;
     }
 
-    .form-group input, .form-group select, .form-group textarea {
+    .form-group input,
+    .form-group select {
       width: 100%;
       box-sizing: border-box;
       border: 1px solid rgba(148, 163, 184, 0.28);
@@ -92,15 +160,192 @@
       font-family: Arial, sans-serif;
     }
 
-    .form-group textarea { resize: vertical; }
-
-    .form-group input:focus, .form-group select:focus, .form-group textarea:focus {
-      border-color: #2dd4bf;
-      box-shadow: 0 0 0 2px rgba(45, 212, 191, 0.15);
+    .summary-grid {
+      display: grid;
+      grid-template-columns: repeat(7, minmax(0, 1fr));
+      gap: 14px;
+      margin-bottom: 26px;
     }
 
-    .help-text { margin-top: 6px; color: #94a3b8; font-size: 12px; }
-    .form-actions { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 20px; }
+    .summary-card span {
+      display: block;
+      color: #94a3b8;
+      font-size: 11px;
+      font-weight: 800;
+      text-transform: uppercase;
+      margin-bottom: 8px;
+    }
+
+    .summary-card strong {
+      display: block;
+      color: #ffffff;
+      font-size: 26px;
+    }
+
+    .summary-card.alert strong {
+      color: #fde68a;
+    }
+
+    .summary-card.danger strong {
+      color: #fecaca;
+    }
+
+    .notifications {
+      display: grid;
+      gap: 10px;
+      margin-bottom: 22px;
+    }
+
+    .notification-card {
+      border-color: rgba(96, 165, 250, 0.35);
+      background: rgba(30, 64, 175, 0.18);
+      padding: 14px;
+    }
+
+    .notification-card a {
+      color: #bfdbfe;
+      text-decoration: none;
+      font-weight: 900;
+    }
+
+    .section-header {
+      margin-bottom: 14px;
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 14px;
+      flex-wrap: wrap;
+    }
+
+    .solicitacao-list {
+      display: grid;
+      gap: 14px;
+    }
+
+    .solicitacao-card {
+      display: grid;
+      grid-template-columns: 54px 1fr;
+      gap: 16px;
+    }
+
+    .solicitacao-icon {
+      width: 48px;
+      height: 48px;
+      border-radius: 14px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(45, 212, 191, 0.12);
+      border: 1px solid rgba(45, 212, 191, 0.22);
+      font-size: 22px;
+    }
+
+    .solicitacao-title-line {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .badge,
+    .sla-pill {
+      display: inline-flex;
+      align-items: center;
+      padding: 7px 10px;
+      border-radius: 999px;
+      font-size: 11px;
+      font-weight: 900;
+      text-transform: uppercase;
+      color: #2dd4bf;
+      background: rgba(45, 212, 191, 0.12);
+      border: 1px solid rgba(45, 212, 191, 0.25);
+      margin-right: 6px;
+      margin-top: 8px;
+      text-decoration: none;
+      white-space: nowrap;
+    }
+
+    .badge-origin {
+      color: #bfdbfe;
+      background: rgba(30, 64, 175, 0.28);
+      border-color: rgba(96, 165, 250, 0.35);
+    }
+
+    .badge-ok,
+    .sla-ok {
+      color: #bbf7d0;
+      background: rgba(22, 101, 52, 0.35);
+      border-color: rgba(34, 197, 94, 0.35);
+    }
+
+    .badge-warn,
+    .sla-alerta {
+      color: #fde68a;
+      background: rgba(120, 53, 15, 0.35);
+      border-color: rgba(251, 191, 36, 0.35);
+    }
+
+    .badge-danger,
+    .sla-estourado {
+      color: #fecaca;
+      background: rgba(127, 29, 29, 0.35);
+      border-color: rgba(248, 113, 113, 0.35);
+    }
+
+    .sla-encerrado {
+      color: #bfdbfe;
+      background: rgba(30, 64, 175, 0.35);
+      border-color: rgba(96, 165, 250, 0.35);
+    }
+
+    .sla-sem {
+      color: #cbd5e1;
+      background: rgba(51, 65, 85, 0.45);
+      border-color: rgba(148, 163, 184, 0.25);
+    }
+
+    .meta-grid {
+      display: grid;
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+      gap: 8px;
+      margin-top: 12px;
+    }
+
+    .meta-item {
+      border: 1px solid rgba(148, 163, 184, 0.16);
+      background: rgba(15, 23, 42, 0.35);
+      border-radius: 12px;
+      padding: 10px;
+    }
+
+    .meta-item span {
+      display: block;
+      color: #94a3b8;
+      font-size: 11px;
+      font-weight: 900;
+      text-transform: uppercase;
+      margin-bottom: 4px;
+    }
+
+    .meta-item strong {
+      display: block;
+      color: #e5e7eb;
+      font-size: 13px;
+    }
+
+    .item-actions {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-top: 14px;
+    }
+
+    .empty-card {
+      text-align: center;
+      color: #cbd5e1;
+      border-style: dashed;
+    }
 
     .footer {
       border-top: 1px solid rgba(148, 163, 184, 0.16);
@@ -112,9 +357,13 @@
       font-size: 12px;
     }
 
-    @media (max-width: 800px) {
-      .form-grid { grid-template-columns: 1fr; }
-      .btn-submit { width: 100%; }
+    @media (max-width: 1000px) {
+      .hero-box,
+      .summary-grid,
+      .solicitacao-card,
+      .meta-grid {
+        grid-template-columns: 1fr;
+      }
     }
   </style>
 </head>
@@ -146,7 +395,6 @@
     </div>
 
     <div class="header-right">
-      <a class="logout-btn" href="/portal/modulos/solicitacoes-ti/">Solicitações</a>
       <a class="logout-btn" href="/portal/">Portal</a>
       <button class="logout-btn" onclick="doLogout()">Sair</button>
     </div>
@@ -155,56 +403,113 @@
   <main class="page">
 
     <div class="top-actions">
-      <a class="btn-link" href="/portal/modulos/solicitacoes-ti/">← Voltar para solicitações</a>
-      <a class="btn-link" href="/portal/">Voltar ao portal</a>
+      <a class="btn-link" href="/portal/">← Voltar ao portal</a>
+
+      <a class="btn-success" href="/portal/modulos/solicitacoes-ti/nova/">
+        + Abrir chamado de TI
+      </a>
+
+      {% if pode_gerenciar %}
+        <a class="btn-link" href="/portal/modulos/solicitacoes-ti/exportar-csv/?{{ query_string }}">
+          Exportar CSV
+        </a>
+      {% endif %}
     </div>
 
-    <section class="hero-main">
-      <div class="eyebrow">Nova solicitação</div>
-      <h1>Abrir solicitação interna de TI</h1>
-      <p>
-        Descreva a necessidade com o máximo de informações possível para agilizar o atendimento.
-      </p>
-    </section>
-
-    {% if erro %}
-      <section class="notice">
-        <h3>Atenção</h3>
-        <p>{{ erro }}</p>
+    {% if total_notificacoes_usuario > 0 %}
+      <section class="notifications">
+        {% for notificacao in notificacoes_usuario %}
+          <div class="notification-card">
+            <a href="/portal/modulos/solicitacoes-ti/detalhe/{{ notificacao.solicitacao.id }}/">
+              Nova atualização no chamado #{{ notificacao.solicitacao.id }} - {{ notificacao.solicitacao.titulo }}
+            </a>
+            <p style="margin:6px 0 0;">
+              {{ notificacao.mensagem|truncatechars:160 }}
+            </p>
+          </div>
+        {% endfor %}
       </section>
     {% endif %}
 
-    <section class="form-card">
-      <form method="post" enctype="multipart/form-data">
-        {% csrf_token %}
+    <section class="hero-box">
+      <div class="hero-main">
+        <div class="eyebrow">Solicitações de TI</div>
+        <h1>Solicitações de TI</h1>
+        <p>
+          Central única para abrir chamados, acompanhar solicitações, conversar com a TI,
+          registrar atendimento, controlar SLA e exportar relatórios.
+        </p>
 
-        <div class="form-grid">
+        {% if pode_gerenciar %}
+          <p>
+            Você está visualizando o painel de atendimento da TI.
+          </p>
+        {% else %}
+          <p>
+            Você está visualizando seus chamados abertos para a TI.
+          </p>
+        {% endif %}
+      </div>
 
-          <div class="form-group full">
-            <label>Título</label>
+      <aside class="hero-side">
+        <h3>Filtros</h3>
+        <p>Use os filtros para localizar chamados rapidamente.</p>
+
+        <form method="get" class="form-grid">
+          <div class="form-group">
+            <label>Buscar</label>
             <input
               type="text"
-              name="titulo"
-              placeholder="Ex: Liberar acesso ao MV para novo colaborador"
-              required
+              name="busca"
+              value="{{ busca }}"
+              placeholder="Título, descrição, equipamento, usuário..."
             >
           </div>
 
           <div class="form-group">
+            <label>Módulo de origem</label>
+            <select name="modulo_origem">
+              <option value="">Todos</option>
+              {% for valor, nome in modulos_origem %}
+                <option value="{{ valor }}" {% if modulo_origem == valor %}selected{% endif %}>
+                  {{ nome }}
+                </option>
+              {% endfor %}
+            </select>
+          </div>
+
+          <div class="form-group">
             <label>Tipo</label>
-            <select name="tipo" required>
-              <option value="">Selecione</option>
+            <select name="tipo">
+              <option value="">Todos</option>
               {% for valor, nome in tipos %}
-                <option value="{{ valor }}">{{ nome }}</option>
+                <option value="{{ valor }}" {% if tipo == valor %}selected{% endif %}>
+                  {{ nome }}
+                </option>
               {% endfor %}
             </select>
           </div>
 
           <div class="form-group">
             <label>Prioridade</label>
-            <select name="prioridade" required>
+            <select name="prioridade">
+              <option value="">Todas</option>
               {% for valor, nome in prioridades %}
-                <option value="{{ valor }}" {% if valor == "normal" %}selected{% endif %}>{{ nome }}</option>
+                <option value="{{ valor }}" {% if prioridade == valor %}selected{% endif %}>
+                  {{ nome }}
+                </option>
+              {% endfor %}
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label>Status</label>
+            <select name="status">
+              <option value="">Todos</option>
+              {% for valor, nome in status_choices %}
+                <option value="{{ valor }}" {% if status == valor %}selected{% endif %}>
+                  {{ nome }}
+                </option>
               {% endfor %}
             </select>
           </div>
@@ -213,65 +518,261 @@
             <div class="form-group">
               <label>Unidade</label>
               <select name="unidade">
-                <option value="">Usar minha unidade</option>
+                <option value="">Todas</option>
                 {% for unidade in unidades %}
-                  <option value="{{ unidade.id }}">{{ unidade.sigla }} - {{ unidade.nome }}</option>
+                  <option value="{{ unidade.id }}" {% if unidade_id == unidade.id|stringformat:"s" %}selected{% endif %}>
+                    {{ unidade.sigla }} - {{ unidade.nome }}
+                  </option>
+                {% endfor %}
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label>Responsável TI</label>
+              <select name="responsavel">
+                <option value="">Todos</option>
+                <option value="sem_responsavel" {% if responsavel_id == "sem_responsavel" %}selected{% endif %}>
+                  Sem responsável
+                </option>
+
+                {% for responsavel in responsaveis_ti %}
+                  <option value="{{ responsavel.id }}" {% if responsavel_id == responsavel.id|stringformat:"s" %}selected{% endif %}>
+                    {{ responsavel.get_full_name|default:responsavel.username }}
+                  </option>
                 {% endfor %}
               </select>
             </div>
           {% endif %}
 
           <div class="form-group">
-            <label>Setor</label>
-            <select name="setor">
-              <option value="">Selecione, se aplicável</option>
-              {% for setor in setores %}
-                <option value="{{ setor.id }}">{{ setor.nome }}</option>
+            <label>SLA</label>
+            <select name="sla">
+              <option value="">Todos</option>
+              {% for valor, nome in sla_choices %}
+                <option value="{{ valor }}" {% if sla == valor %}selected{% endif %}>
+                  {{ nome }}
+                </option>
               {% endfor %}
             </select>
           </div>
 
-          <div class="form-group full">
-            <label>Equipamento / referência</label>
-            <input
-              type="text"
-              name="equipamento"
-              placeholder="Ex: P000500, impressora recepção, ramal 1234, usuário João, IP 172.30..."
-            >
-            <div class="help-text">
-              Campo opcional, mas ajuda a TI a localizar o recurso.
-            </div>
+          <div class="form-group">
+            <label>Data início</label>
+            <input type="date" name="data_inicio" value="{{ data_inicio }}">
           </div>
 
-          <div class="form-group full">
-            <label>Descrição da solicitação</label>
-            <textarea
-              name="descricao"
-              rows="7"
-              placeholder="Descreva o problema, necessidade, sistema envolvido, usuário impactado e urgência."
-              required
-            ></textarea>
+          <div class="form-group">
+            <label>Data fim</label>
+            <input type="date" name="data_fim" value="{{ data_fim }}">
           </div>
 
-          <div class="form-group full">
-            <label>Anexo</label>
-            <input type="file" name="anexo">
-            <div class="help-text">
-              Opcional. Use para anexar print do erro, documento ou evidência.
-            </div>
-          </div>
+          <button type="submit" class="btn-submit">Filtrar</button>
 
+          <a href="/portal/modulos/solicitacoes-ti/" class="btn-link">
+            Limpar filtros
+          </a>
+        </form>
+      </aside>
+    </section>
+
+    <section class="summary-grid">
+      <div class="summary-card">
+        <span>Total</span>
+        <strong>{{ total_solicitacoes }}</strong>
+      </div>
+
+      <div class="summary-card">
+        <span>Abertas</span>
+        <strong>{{ total_abertas }}</strong>
+      </div>
+
+      <div class="summary-card">
+        <span>Em atendimento</span>
+        <strong>{{ total_atendimento }}</strong>
+      </div>
+
+      <div class="summary-card">
+        <span>Aguardando</span>
+        <strong>{{ total_aguardando }}</strong>
+      </div>
+
+      <div class="summary-card">
+        <span>Resolvidas</span>
+        <strong>{{ total_resolvidas }}</strong>
+      </div>
+
+      <div class="summary-card alert">
+        <span>SLA alerta</span>
+        <strong>{{ total_sla_alerta }}</strong>
+      </div>
+
+      <div class="summary-card danger">
+        <span>SLA estourado</span>
+        <strong>{{ total_sla_estourado }}</strong>
+      </div>
+    </section>
+
+    <section>
+      <div class="section-header">
+        <div>
+          <h2>Chamados encontrados</h2>
+          <p>Resultado conforme os filtros aplicados.</p>
         </div>
 
-        <div class="form-actions">
-          <button type="submit" class="btn-submit">Abrir solicitação</button>
-          <a class="btn-link" href="/portal/modulos/solicitacoes-ti/">Cancelar</a>
-        </div>
-      </form>
+        <a class="btn-success" href="/portal/modulos/solicitacoes-ti/nova/">
+          + Abrir chamado
+        </a>
+      </div>
+
+      <div class="solicitacao-list">
+        {% for solicitacao in solicitacoes %}
+          <article class="solicitacao-card">
+            <div class="solicitacao-icon">
+              {{ solicitacao.modulo_origem_icone }}
+            </div>
+
+            <div>
+              <div class="solicitacao-title-line">
+                <div>
+                  <h3>#{{ solicitacao.id }} - {{ solicitacao.titulo }}</h3>
+                  <p>
+                    Aberto por
+                    {% if solicitacao.solicitante %}
+                      {{ solicitacao.solicitante.get_full_name|default:solicitacao.solicitante.username }}
+                    {% else %}
+                      usuário não informado
+                    {% endif %}
+                    em {{ solicitacao.criado_em|date:"d/m/Y H:i" }}.
+                  </p>
+                </div>
+
+                <div>
+                  {% if solicitacao.status == "aberto" %}
+                    <span class="badge badge-warn">{{ solicitacao.get_status_display }}</span>
+                  {% elif solicitacao.status == "em_atendimento" %}
+                    <span class="badge">{{ solicitacao.get_status_display }}</span>
+                  {% elif solicitacao.status == "resolvido" %}
+                    <span class="badge badge-ok">{{ solicitacao.get_status_display }}</span>
+                  {% elif solicitacao.status == "cancelado" %}
+                    <span class="badge badge-danger">{{ solicitacao.get_status_display }}</span>
+                  {% else %}
+                    <span class="badge">{{ solicitacao.get_status_display }}</span>
+                  {% endif %}
+                </div>
+              </div>
+
+              <span class="badge badge-origin">
+                {{ solicitacao.modulo_origem_icone }} {{ solicitacao.modulo_origem_exibicao }}
+              </span>
+
+              <span class="badge">{{ solicitacao.get_tipo_display }}</span>
+              <span class="badge">{{ solicitacao.get_prioridade_display }}</span>
+
+              <span class="sla-pill {{ solicitacao.sla_classe_css }}">
+                {{ solicitacao.sla_icone }} {{ solicitacao.sla_status_exibicao }} • {{ solicitacao.tempo_restante_sla }}
+              </span>
+
+              {% if solicitacao.visto_pela_ti %}
+                <span class="badge badge-ok">Visto pela TI</span>
+              {% else %}
+                <span class="badge badge-warn">Ainda não visto</span>
+              {% endif %}
+
+              {% if solicitacao.conversa_iniciada %}
+                <span class="badge">Conversa iniciada</span>
+              {% endif %}
+
+              {% if solicitacao.anexo %}
+                <a class="badge" href="{{ solicitacao.anexo.url }}" target="_blank">
+                  Abrir anexo
+                </a>
+              {% endif %}
+
+              <div class="meta-grid">
+                <div class="meta-item">
+                  <span>Módulo</span>
+                  <strong>
+                    {{ solicitacao.modulo_origem_exibicao }}
+                  </strong>
+                </div>
+
+                <div class="meta-item">
+                  <span>Unidade</span>
+                  <strong>
+                    {% if solicitacao.unidade %}
+                      {{ solicitacao.unidade.sigla }}
+                    {% else %}
+                      Não informada
+                    {% endif %}
+                  </strong>
+                </div>
+
+                <div class="meta-item">
+                  <span>Setor</span>
+                  <strong>
+                    {% if solicitacao.setor %}
+                      {{ solicitacao.setor.nome }}
+                    {% else %}
+                      Não informado
+                    {% endif %}
+                  </strong>
+                </div>
+
+                <div class="meta-item">
+                  <span>Responsável TI</span>
+                  <strong>
+                    {% if solicitacao.responsavel_ti %}
+                      {{ solicitacao.responsavel_ti.get_full_name|default:solicitacao.responsavel_ti.username }}
+                    {% else %}
+                      Sem responsável
+                    {% endif %}
+                  </strong>
+                </div>
+
+                <div class="meta-item">
+                  <span>Prazo SLA</span>
+                  <strong>
+                    {% if solicitacao.sla_prazo_em %}
+                      {{ solicitacao.sla_prazo_em|date:"d/m/Y H:i" }}
+                    {% else %}
+                      Não definido
+                    {% endif %}
+                  </strong>
+                </div>
+              </div>
+
+              {% if solicitacao.equipamento %}
+                <p>
+                  <strong>Equipamento / referência:</strong>
+                  {{ solicitacao.equipamento }}
+                </p>
+              {% endif %}
+
+              <p>{{ solicitacao.descricao|truncatechars:220 }}</p>
+
+              <div class="item-actions">
+                <a class="btn-link" href="/portal/modulos/solicitacoes-ti/detalhe/{{ solicitacao.id }}/">
+                  Ver detalhes
+                </a>
+
+                {% if pode_gerenciar %}
+                  <a class="btn-success" href="/portal/modulos/solicitacoes-ti/atender/{{ solicitacao.id }}/">
+                    Atender
+                  </a>
+                {% endif %}
+              </div>
+            </div>
+          </article>
+        {% empty %}
+          <div class="empty-card">
+            Nenhum chamado encontrado para os filtros informados.
+          </div>
+        {% endfor %}
+      </div>
     </section>
 
     <footer class="footer">
-      <span>Solicitações Internas de TI • Nova solicitação</span>
+      <span>Solicitações de TI • Intranet Grupo São Francisco</span>
       <span>Tecnologia da Informação • Ambiente interno</span>
     </footer>
 

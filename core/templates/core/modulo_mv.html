@@ -72,7 +72,8 @@
     .module-card,
     .notice-card,
     .empty-card,
-    .message-item {
+    .message-item,
+    .ticket-card {
       background: rgba(31, 31, 31, 0.96);
       border: 1px solid rgba(148, 163, 184, 0.2);
       border-radius: 16px;
@@ -159,6 +160,11 @@
 
     .section-header {
       margin-bottom: 14px;
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 14px;
+      flex-wrap: wrap;
     }
 
     .modules-grid {
@@ -230,6 +236,72 @@
       font-size: 20px;
     }
 
+    .ticket-list {
+      display: grid;
+      gap: 12px;
+      margin-top: 14px;
+    }
+
+    .ticket-card {
+      display: grid;
+      grid-template-columns: 48px 1fr;
+      gap: 14px;
+      padding: 16px;
+    }
+
+    .ticket-icon {
+      width: 42px;
+      height: 42px;
+      border-radius: 14px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(96, 165, 250, 0.12);
+      border: 1px solid rgba(96, 165, 250, 0.25);
+      font-size: 20px;
+    }
+
+    .ticket-title-line {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .ticket-title-line h3 {
+      margin-bottom: 4px;
+    }
+
+    .ticket-meta {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 8px;
+      margin-top: 10px;
+    }
+
+    .ticket-meta-item {
+      border: 1px solid rgba(148, 163, 184, 0.16);
+      background: rgba(15, 23, 42, 0.35);
+      border-radius: 12px;
+      padding: 9px;
+    }
+
+    .ticket-meta-item span {
+      display: block;
+      color: #94a3b8;
+      font-size: 10px;
+      font-weight: 900;
+      text-transform: uppercase;
+      margin-bottom: 4px;
+    }
+
+    .ticket-meta-item strong {
+      display: block;
+      color: #e5e7eb;
+      font-size: 12px;
+    }
+
     .badge {
       display: inline-flex;
       align-items: center;
@@ -244,6 +316,30 @@
       margin-right: 6px;
       margin-top: 6px;
       text-decoration: none;
+    }
+
+    .badge-ok {
+      color: #bbf7d0;
+      background: rgba(22, 101, 52, 0.35);
+      border-color: rgba(34, 197, 94, 0.35);
+    }
+
+    .badge-warn {
+      color: #fde68a;
+      background: rgba(120, 53, 15, 0.35);
+      border-color: rgba(251, 191, 36, 0.35);
+    }
+
+    .badge-danger {
+      color: #fecaca;
+      background: rgba(127, 29, 29, 0.35);
+      border-color: rgba(248, 113, 113, 0.35);
+    }
+
+    .badge-blue {
+      color: #bfdbfe;
+      background: rgba(30, 64, 175, 0.35);
+      border-color: rgba(96, 165, 250, 0.35);
     }
 
     .empty-card {
@@ -266,7 +362,9 @@
       .hero-box,
       .summary-grid,
       .modules-grid,
-      .panel-grid {
+      .panel-grid,
+      .ticket-card,
+      .ticket-meta {
         grid-template-columns: 1fr;
       }
     }
@@ -309,6 +407,8 @@
 
     <div class="top-actions">
       <a class="btn-link" href="/portal/">← Voltar ao portal</a>
+      <a class="btn-success" href="/portal/modulos/solicitacoes-ti/nova/?modulo=mv">+ Abrir chamado deste módulo</a>
+      <a class="btn-link" href="/portal/modulos/solicitacoes-ti/?modulo_origem=mv">Histórico de chamados MV</a>
       <a class="btn-link" href="/portal/modulos/mv/manuais/">Manuais MV</a>
       <a class="btn-link" href="/portal/modulos/mv/convenios/">Convênios MV</a>
       <a class="btn-link" href="/portal/modulos/mv/contingencia/">Contingência</a>
@@ -341,6 +441,10 @@
           Central de informações, manuais, convênios, regras operacionais, procedimentos proibidos,
           orientações, chamados, links úteis, observações e plano de contingência relacionados ao sistema MV.
         </p>
+
+        <a class="btn-success" href="/portal/modulos/solicitacoes-ti/nova/?modulo=mv">
+          + Abrir chamado de TI sobre o MV
+        </a>
       </div>
 
       <aside class="hero-side">
@@ -363,6 +467,12 @@
           {% else %}
             Não informado
           {% endif %}
+        </p>
+
+        <p>
+          <strong>Chamados MV em aberto:</strong> {{ total_chamados_mv_abertos|default:0 }}<br>
+          <strong>Em atendimento:</strong> {{ total_chamados_mv_atendimento|default:0 }}<br>
+          <strong>Resolvidos:</strong> {{ total_chamados_mv_resolvidos|default:0 }}
         </p>
       </aside>
     </section>
@@ -389,15 +499,139 @@
       </div>
 
       <div class="summary-card">
-        <span>Proced. proibidos</span>
-        <strong>{{ total_procedimentos_proibidos }}</strong>
+        <span>Chamados MV abertos</span>
+        <strong>{{ total_chamados_mv_abertos|default:0 }}</strong>
+      </div>
+    </section>
+
+    <section class="panel-box">
+      <div class="section-header">
+        <div>
+          <h2>Histórico de chamados deste módulo</h2>
+          <p>
+            Chamados abertos pela tela de Solicitações de TI com origem vinculada ao módulo MV.
+          </p>
+        </div>
+
+        <div>
+          <a class="btn-success" href="/portal/modulos/solicitacoes-ti/nova/?modulo=mv">
+            + Abrir chamado MV
+          </a>
+
+          <a class="btn-link" href="/portal/modulos/solicitacoes-ti/?modulo_origem=mv">
+            Ver todos
+          </a>
+        </div>
+      </div>
+
+      <div class="ticket-list">
+        {% for chamado in chamados_mv %}
+          <article class="ticket-card">
+            <div class="ticket-icon">🎫</div>
+
+            <div>
+              <div class="ticket-title-line">
+                <div>
+                  <h3>#{{ chamado.id }} - {{ chamado.titulo }}</h3>
+                  <p style="margin: 0;">
+                    Aberto por
+                    {% if chamado.solicitante %}
+                      {{ chamado.solicitante.get_full_name|default:chamado.solicitante.username }}
+                    {% else %}
+                      usuário não informado
+                    {% endif %}
+                    em {{ chamado.criado_em|date:"d/m/Y H:i" }}.
+                  </p>
+                </div>
+
+                <div>
+                  {% if chamado.status == "aberto" %}
+                    <span class="badge badge-warn">{{ chamado.get_status_display }}</span>
+                  {% elif chamado.status == "em_atendimento" %}
+                    <span class="badge badge-blue">{{ chamado.get_status_display }}</span>
+                  {% elif chamado.status == "resolvido" %}
+                    <span class="badge badge-ok">{{ chamado.get_status_display }}</span>
+                  {% elif chamado.status == "cancelado" %}
+                    <span class="badge badge-danger">{{ chamado.get_status_display }}</span>
+                  {% else %}
+                    <span class="badge">{{ chamado.get_status_display }}</span>
+                  {% endif %}
+                </div>
+              </div>
+
+              <span class="badge">🏥 {{ chamado.modulo_origem_exibicao }}</span>
+              <span class="badge">{{ chamado.get_tipo_display }}</span>
+              <span class="badge">{{ chamado.get_prioridade_display }}</span>
+
+              <div class="ticket-meta">
+                <div class="ticket-meta-item">
+                  <span>Unidade</span>
+                  <strong>
+                    {% if chamado.unidade %}
+                      {{ chamado.unidade.sigla }}
+                    {% else %}
+                      Não informada
+                    {% endif %}
+                  </strong>
+                </div>
+
+                <div class="ticket-meta-item">
+                  <span>Setor</span>
+                  <strong>
+                    {% if chamado.setor %}
+                      {{ chamado.setor.nome }}
+                    {% else %}
+                      Não informado
+                    {% endif %}
+                  </strong>
+                </div>
+
+                <div class="ticket-meta-item">
+                  <span>Responsável TI</span>
+                  <strong>
+                    {% if chamado.responsavel_ti %}
+                      {{ chamado.responsavel_ti.get_full_name|default:chamado.responsavel_ti.username }}
+                    {% else %}
+                      Sem responsável
+                    {% endif %}
+                  </strong>
+                </div>
+
+                <div class="ticket-meta-item">
+                  <span>SLA</span>
+                  <strong>{{ chamado.sla_status_exibicao }}</strong>
+                </div>
+              </div>
+
+              {% if chamado.descricao %}
+                <p>{{ chamado.descricao|truncatechars:180 }}</p>
+              {% endif %}
+
+              <a class="badge" href="/portal/modulos/solicitacoes-ti/detalhe/{{ chamado.id }}/">
+                Ver detalhes
+              </a>
+
+              {% if pode_gerenciar_mv %}
+                <a class="badge badge-blue" href="/portal/modulos/solicitacoes-ti/atender/{{ chamado.id }}/">
+                  Atender
+                </a>
+              {% endif %}
+            </div>
+          </article>
+        {% empty %}
+          <div class="empty-card">
+            Nenhum chamado vinculado ao módulo MV até o momento.
+          </div>
+        {% endfor %}
       </div>
     </section>
 
     <section>
       <div class="section-header">
-        <h2>Áreas do módulo</h2>
-        <p>Escolha uma área para visualizar ou administrar os conteúdos.</p>
+        <div>
+          <h2>Áreas do módulo</h2>
+          <p>Escolha uma área para visualizar ou administrar os conteúdos.</p>
+        </div>
       </div>
 
       <div class="modules-grid">
@@ -459,8 +693,10 @@
     <section class="panel-grid">
       <div class="panel-box">
         <div class="section-header">
-          <h2>Manuais disponíveis</h2>
-          <p>Últimos manuais cadastrados para seu acesso.</p>
+          <div>
+            <h2>Manuais disponíveis</h2>
+            <p>Últimos manuais cadastrados para seu acesso.</p>
+          </div>
         </div>
 
         <div class="notice-list">
@@ -500,8 +736,10 @@
 
       <div class="panel-box">
         <div class="section-header">
-          <h2>Links úteis</h2>
-          <p>Acessos rápidos do módulo MV.</p>
+          <div>
+            <h2>Links úteis</h2>
+            <p>Acessos rápidos do módulo MV.</p>
+          </div>
         </div>
 
         <div class="notice-list">
@@ -536,8 +774,10 @@
 
     <section class="panel-box">
       <div class="section-header">
-        <h2>Contingência MV</h2>
-        <p>Orientações para indisponibilidade ou falha do sistema MV.</p>
+        <div>
+          <h2>Contingência MV</h2>
+          <p>Orientações para indisponibilidade ou falha do sistema MV.</p>
+        </div>
       </div>
 
       <div class="notice-list">

@@ -6,6 +6,20 @@ from usuarios.models import Unidade, Setor
 
 
 class SolicitacaoTI(models.Model):
+    MODULO_ORIGEM_CHOICES = [
+        ('portal', 'Portal'),
+        ('mv', 'MV / Sistema Hospitalar'),
+        ('base_conhecimento', 'Base de Conhecimento'),
+        ('documentos', 'Documentos / Protocolos'),
+        ('manuais', 'Manuais e Procedimentos'),
+        ('avisos', 'Avisos / Comunicados'),
+        ('ramais', 'Ramais e Contatos'),
+        ('status_sistemas', 'Status dos Sistemas'),
+        ('conversas', 'Conversas Internas'),
+        ('administracao', 'Administração da Intranet'),
+        ('outros', 'Outros'),
+    ]
+
     TIPO_CHOICES = [
         ('acesso', 'Acesso / Permissão'),
         ('sistema', 'Sistema'),
@@ -45,6 +59,14 @@ class SolicitacaoTI(models.Model):
     ]
 
     titulo = models.CharField(max_length=180)
+
+    modulo_origem = models.CharField(
+        max_length=60,
+        choices=MODULO_ORIGEM_CHOICES,
+        default='portal',
+        help_text='Módulo da intranet onde o chamado foi aberto.'
+    )
+
     tipo = models.CharField(max_length=40, choices=TIPO_CHOICES, default='outro')
     prioridade = models.CharField(max_length=40, choices=PRIORIDADE_CHOICES, default='normal')
     status = models.CharField(max_length=40, choices=STATUS_CHOICES, default='aberto')
@@ -133,6 +155,29 @@ class SolicitacaoTI(models.Model):
     @property
     def esta_encerrada(self):
         return self.status in ['resolvido', 'cancelado']
+
+    @property
+    def modulo_origem_exibicao(self):
+        mapa = dict(self.MODULO_ORIGEM_CHOICES)
+        return mapa.get(self.modulo_origem, 'Portal')
+
+    @property
+    def modulo_origem_icone(self):
+        mapa = {
+            'portal': '🏠',
+            'mv': '🏥',
+            'base_conhecimento': '📚',
+            'documentos': '📄',
+            'manuais': '📘',
+            'avisos': '📢',
+            'ramais': '☎️',
+            'status_sistemas': '📊',
+            'conversas': '💬',
+            'administracao': '⚙️',
+            'outros': '🎫',
+        }
+
+        return mapa.get(self.modulo_origem, '🎫')
 
     @property
     def sla_status_exibicao(self):

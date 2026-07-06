@@ -45,6 +45,18 @@ def obter_ip_cliente(request):
     return request.META.get('REMOTE_ADDR')
 
 
+def modulo_origem_valido(valor):
+    valores_validos = [
+        item[0]
+        for item in SolicitacaoTI.MODULO_ORIGEM_CHOICES
+    ]
+
+    if valor in valores_validos:
+        return valor
+
+    return 'portal'
+
+
 def registrar_auditoria_solicitacao(request, solicitacao, acao, titulo, descricao_extra=''):
     RegistroAuditoria.objects.create(
         modulo='sistema',
@@ -52,6 +64,7 @@ def registrar_auditoria_solicitacao(request, solicitacao, acao, titulo, descrica
         titulo=titulo,
         descricao=(
             f'Solicitação: #{solicitacao.id} - {solicitacao.titulo}\n'
+            f'Módulo de origem: {solicitacao.modulo_origem_exibicao}\n'
             f'Tipo: {solicitacao.get_tipo_display()}\n'
             f'Prioridade: {solicitacao.get_prioridade_display()}\n'
             f'Status: {solicitacao.get_status_display()}\n'
@@ -108,6 +121,7 @@ def buscar_solicitacoes_filtradas(request):
         )
 
     busca = request.GET.get('busca', '').strip()
+    modulo_origem = request.GET.get('modulo_origem', '').strip()
     tipo = request.GET.get('tipo', '').strip()
     prioridade = request.GET.get('prioridade', '').strip()
     status = request.GET.get('status', '').strip()
@@ -129,6 +143,11 @@ def buscar_solicitacoes_filtradas(request):
             Q(responsavel_ti__username__icontains=busca) |
             Q(responsavel_ti__first_name__icontains=busca) |
             Q(responsavel_ti__last_name__icontains=busca)
+        )
+
+    if modulo_origem:
+        solicitacoes = solicitacoes.filter(
+            modulo_origem=modulo_origem_valido(modulo_origem)
         )
 
     if tipo:
@@ -175,6 +194,7 @@ def solicitacoes_ti(request):
     solicitacoes = buscar_solicitacoes_filtradas(request)
 
     busca = request.GET.get('busca', '').strip()
+    modulo_origem = request.GET.get('modulo_origem', '').strip()
     tipo = request.GET.get('tipo', '').strip()
     prioridade = request.GET.get('prioridade', '').strip()
     status = request.GET.get('status', '').strip()
@@ -231,11 +251,13 @@ def solicitacoes_ti(request):
         'solicitacoes': solicitacoes[:300],
         'unidades': unidades,
         'responsaveis_ti': responsaveis_ti,
+        'modulos_origem': SolicitacaoTI.MODULO_ORIGEM_CHOICES,
         'tipos': SolicitacaoTI.TIPO_CHOICES,
         'prioridades': SolicitacaoTI.PRIORIDADE_CHOICES,
         'status_choices': SolicitacaoTI.STATUS_CHOICES,
         'sla_choices': SolicitacaoTI.SLA_STATUS_CHOICES,
         'busca': busca,
+        'modulo_origem': modulo_origem,
         'tipo': tipo,
         'prioridade': prioridade,
         'status': status,
@@ -292,6 +314,7 @@ def exportar_solicitacoes_ti_csv(request):
     writer.writerow([
         'ID',
         'Título',
+        'Módulo de origem',
         'Tipo',
         'Prioridade',
         'Status',
@@ -316,6 +339,7 @@ def exportar_solicitacoes_ti_csv(request):
         writer.writerow([
             solicitacao.id,
             solicitacao.titulo,
+            solicitacao.modulo_origem_exibicao,
             solicitacao.get_tipo_display(),
             solicitacao.get_prioridade_display(),
             solicitacao.get_status_display(),
@@ -358,8 +382,15 @@ def nova_solicitacao_ti(request):
 
     erro = ''
 
+    modulo_origem_inicial = modulo_origem_valido(
+        request.GET.get('modulo', '').strip() or
+        request.GET.get('modulo_origem', '').strip() or
+        'portal'
+    )
+
     if request.method == 'POST':
         titulo = request.POST.get('titulo', '').strip()
+        modulo_origem = modulo_origem_valido(request.POST.get('modulo_origem', '').strip())
         tipo = request.POST.get('tipo', '').strip()
         prioridade = request.POST.get('prioridade', '').strip()
         unidade_id = request.POST.get('unidade', '').strip()
@@ -383,6 +414,7 @@ def nova_solicitacao_ti(request):
 
             solicitacao = SolicitacaoTI.objects.create(
                 titulo=titulo,
+                modulo_origem=modulo_origem,
                 tipo=tipo,
                 prioridade=prioridade,
                 unidade=unidade,
@@ -401,7 +433,7 @@ def nova_solicitacao_ti(request):
                 solicitacao=solicitacao,
                 autor=request.user,
                 origem='sistema',
-                mensagem='Solicitação aberta pelo usuário.',
+                mensagem=f'Solicitação aberta pelo usuário no módulo: {solicitacao.modulo_origem_exibicao}.',
                 lida_pela_ti=False,
                 lida_pelo_solicitante=True,
             )
@@ -421,6 +453,8 @@ def nova_solicitacao_ti(request):
     return render(request, 'solicitacoes_ti/nova_solicitacao_ti.html', {
         'unidades': unidades,
         'setores': setores,
+        'modulos_origem': SolicitacaoTI.MODULO_ORIGEM_CHOICES,
+        'modulo_origem_inicial': modulo_origem_inicial,
         'tipos': SolicitacaoTI.TIPO_CHOICES,
         'prioridades': SolicitacaoTI.PRIORIDADE_CHOICES,
         'erro': erro,
