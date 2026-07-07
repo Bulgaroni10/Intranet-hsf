@@ -1,0 +1,8 @@
+<div class="summary-card {% if tipo %}{{ tipo }}{% endif %}">
+  <span>{{ titulo }}</span>
+  <strong>{{ valor }}</strong>
+
+  {% if subtitulo %}
+    <p>{{ subtitulo }}</p>
+  {% endif %}
+</div>

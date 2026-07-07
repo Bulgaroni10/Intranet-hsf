@@ -1,0 +1,9 @@
+{% if breadcrumbs %}
+  <div class="top-actions" style="margin-bottom: 18px;">
+    {% for item in breadcrumbs %}
+      <span class="gsf-badge">
+        {{ item }}
+      </span>
+    {% endfor %}
+  </div>
+{% endif %}
