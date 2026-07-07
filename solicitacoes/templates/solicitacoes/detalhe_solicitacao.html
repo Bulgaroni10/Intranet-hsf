@@ -1,0 +1,102 @@
+{% extends "base/base.html" %}
+
+{% block title %}Detalhe da Solicitação{% endblock %}
+
+{% block content %}
+<div class="page">
+
+  <div class="section-header">
+    <div>
+      <div class="eyebrow">Solicitação #{{ solicitacao.id }}</div>
+      <h1>{{ solicitacao.titulo }}</h1>
+      <p>{{ solicitacao.descricao }}</p>
+    </div>
+
+    <div class="top-actions">
+      <a href="{% url 'solicitacoes_home' %}" class="btn-link">Voltar</a>
+      <a href="{% url 'atender_solicitacao' solicitacao.id %}" class="btn-success">Atender</a>
+    </div>
+  </div>
+
+  <div class="summary-grid">
+    <div class="summary-card">
+      <span>Status</span>
+      <strong>{{ solicitacao.get_status_display }}</strong>
+    </div>
+
+    <div class="summary-card">
+      <span>Prioridade</span>
+      <strong>{{ solicitacao.get_prioridade_display }}</strong>
+    </div>
+
+    <div class="summary-card">
+      <span>Categoria</span>
+      <strong>
+        {% if solicitacao.categoria %}
+          {{ solicitacao.categoria.nome }}
+        {% else %}
+          -
+        {% endif %}
+      </strong>
+    </div>
+
+    <div class="summary-card">
+      <span>Setor</span>
+      <strong>
+        {% if solicitacao.setor %}
+          {{ solicitacao.setor.nome }}
+        {% else %}
+          -
+        {% endif %}
+      </strong>
+    </div>
+  </div>
+
+  <div class="detail-card">
+    <h2>Informações</h2>
+
+    <p><strong>Solicitante:</strong> {{ solicitacao.solicitante|default:"Não informado" }}</p>
+    <p><strong>Responsável:</strong> {{ solicitacao.responsavel|default:"Não definido" }}</p>
+    <p><strong>Unidade:</strong> {{ solicitacao.unidade|default:"Não informada" }}</p>
+    <p><strong>Criado em:</strong> {{ solicitacao.criado_em|date:"d/m/Y H:i" }}</p>
+    <p><strong>Atualizado em:</strong> {{ solicitacao.atualizado_em|date:"d/m/Y H:i" }}</p>
+  </div>
+
+  <br>
+
+  <div class="form-card">
+    <h2>Adicionar comentário</h2>
+
+    <form method="post">
+      {% csrf_token %}
+
+      <div class="form-group">
+        <label>Comentário</label>
+        {{ comentario_form.mensagem }}
+        {{ comentario_form.mensagem.errors }}
+      </div>
+
+      <button type="submit" class="btn-submit">
+        Enviar Comentário
+      </button>
+    </form>
+  </div>
+
+  <br>
+
+  <div class="detail-card">
+    <h2>Histórico de comentários</h2>
+
+    {% for comentario in solicitacao.comentarios.all %}
+      <div class="notification-card">
+        <strong>{{ comentario.autor|default:"Usuário removido" }}</strong>
+        <span>{{ comentario.criado_em|date:"d/m/Y H:i" }}</span>
+        <p>{{ comentario.mensagem }}</p>
+      </div>
+    {% empty %}
+      <p>Nenhum comentário ainda.</p>
+    {% endfor %}
+  </div>
+
+</div>
+{% endblock %}

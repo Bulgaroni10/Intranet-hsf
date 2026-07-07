@@ -1,0 +1,144 @@
+{% extends "base/base.html" %}
+
+{% block title %}Solicitações Internas{% endblock %}
+
+{% block content %}
+<div class="page">
+
+  <div class="section-header">
+    <div>
+      <div class="eyebrow">Operação interna</div>
+      <h1>Solicitações Internas</h1>
+      <p>Centralize pedidos, acompanhe status e mantenha tudo registrado sem depender de conversa perdida no WhatsApp.</p>
+    </div>
+
+    <a href="{% url 'nova_solicitacao' %}" class="btn-success">
+      + Nova Solicitação
+    </a>
+  </div>
+
+  <div class="summary-grid">
+    <div class="summary-card">
+      <span>Total</span>
+      <strong>{{ totais.total }}</strong>
+    </div>
+
+    <div class="summary-card">
+      <span>Abertas</span>
+      <strong>{{ totais.abertas }}</strong>
+    </div>
+
+    <div class="summary-card">
+      <span>Em andamento</span>
+      <strong>{{ totais.andamento }}</strong>
+    </div>
+
+    <div class="summary-card alert">
+      <span>Aguardando</span>
+      <strong>{{ totais.aguardando }}</strong>
+    </div>
+
+    <div class="summary-card">
+      <span>Concluídas</span>
+      <strong>{{ totais.concluidas }}</strong>
+    </div>
+
+    <div class="summary-card danger">
+      <span>Críticas</span>
+      <strong>{{ totais.criticas }}</strong>
+    </div>
+  </div>
+
+  <div class="form-card">
+    <form method="get" class="form-grid">
+      <div class="form-group">
+        <label>Pesquisar</label>
+        <input type="text" name="busca" value="{{ busca }}" placeholder="Buscar por número, título ou descrição">
+      </div>
+
+      <div class="form-group">
+        <label>Status</label>
+        <select name="status">
+          <option value="">Todos</option>
+          {% for valor, nome in status_choices %}
+            <option value="{{ valor }}" {% if status_atual == valor %}selected{% endif %}>{{ nome }}</option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label>Prioridade</label>
+        <select name="prioridade">
+          <option value="">Todas</option>
+          {% for valor, nome in prioridade_choices %}
+            <option value="{{ valor }}" {% if prioridade_atual == valor %}selected{% endif %}>{{ nome }}</option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <button type="submit" class="btn-submit">Filtrar</button>
+    </form>
+  </div>
+
+  <br>
+
+  <div class="solicitacao-list">
+    {% for solicitacao in solicitacoes %}
+      <div class="solicitacao-card">
+        <div class="solicitacao-icon">🎫</div>
+
+        <div>
+          <div class="solicitacao-title-line">
+            <h3>
+              #{{ solicitacao.id }} — {{ solicitacao.titulo }}
+            </h3>
+          </div>
+
+          <p>{{ solicitacao.descricao|truncatechars:140 }}</p>
+
+          <div class="top-actions">
+            <span class="btn-muted">{{ solicitacao.get_status_display }}</span>
+            <span class="btn-muted">Prioridade: {{ solicitacao.get_prioridade_display }}</span>
+
+            {% if solicitacao.categoria %}
+              <span class="btn-muted">{{ solicitacao.categoria.nome }}</span>
+            {% endif %}
+
+            {% if solicitacao.setor %}
+              <span class="btn-muted">{{ solicitacao.setor.nome }}</span>
+            {% endif %}
+          </div>
+
+          <a href="{% url 'detalhe_solicitacao' solicitacao.id %}" class="btn-link">
+            Ver detalhes
+          </a>
+        </div>
+      </div>
+    {% empty %}
+      <div class="empty-card">
+        <h2>Nenhuma solicitação encontrada</h2>
+        <p>Brutalmente honesto: se ninguém abriu solicitação ainda, ou o filtro está restrito demais, ou o hospital virou uma utopia. Aposto no filtro.</p>
+      </div>
+    {% endfor %}
+  </div>
+
+  <br>
+
+  {% if solicitacoes.has_other_pages %}
+    <div class="top-actions">
+      {% if solicitacoes.has_previous %}
+        <a class="btn-link" href="?page={{ solicitacoes.previous_page_number }}&busca={{ busca }}&status={{ status_atual }}&prioridade={{ prioridade_atual }}">Anterior</a>
+      {% endif %}
+
+      <span class="btn-muted">
+        Página {{ solicitacoes.number }} de {{ solicitacoes.paginator.num_pages }}
+      </span>
+
+      {% if solicitacoes.has_next %}
+        <a class="btn-link" href="?page={{ solicitacoes.next_page_number }}&busca={{ busca }}&status={{ status_atual }}&prioridade={{ prioridade_atual }}">Próxima</a>
+      {% endif %}
+    </div>
+  {% endif %}
+
+</div>
+{% endblock %}

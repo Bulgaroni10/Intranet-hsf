@@ -1,0 +1,49 @@
+{% extends "base/base.html" %}
+
+{% block title %}Atender Solicitação{% endblock %}
+
+{% block content %}
+<div class="page">
+
+  <div class="section-header">
+    <div>
+      <div class="eyebrow">Atendimento</div>
+      <h1>Atender Solicitação #{{ solicitacao.id }}</h1>
+      <p>{{ solicitacao.titulo }}</p>
+    </div>
+
+    <a href="{% url 'detalhe_solicitacao' solicitacao.id %}" class="btn-link">
+      Voltar
+    </a>
+  </div>
+
+  <div class="form-card">
+    <form method="post">
+      {% csrf_token %}
+
+      <div class="form-group">
+        <label>Status</label>
+        {{ form.status }}
+        {{ form.status.errors }}
+      </div>
+
+      <div class="form-group">
+        <label>Prioridade</label>
+        {{ form.prioridade }}
+        {{ form.prioridade.errors }}
+      </div>
+
+      <div class="form-group">
+        <label>Responsável</label>
+        {{ form.responsavel }}
+        {{ form.responsavel.errors }}
+      </div>
+
+      <button type="submit" class="btn-submit">
+        Salvar Atendimento
+      </button>
+    </form>
+  </div>
+
+</div>
+{% endblock %}

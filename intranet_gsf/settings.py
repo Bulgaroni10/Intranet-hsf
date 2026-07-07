@@ -53,10 +53,10 @@ INSTALLED_APPS = [
     'documentos',
     'auditoria.apps.AuditoriaConfig',
     'solicitacoes_ti',
+    'solicitacoes',
     'conversas',
     'base_conhecimento',
 ]
-
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
