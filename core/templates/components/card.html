@@ -19,6 +19,14 @@
       <h3>{{ card_title }}</h3>
     {% endif %}
 
+    {% if card_label %}
+      <span class="gsf-card-label">{{ card_label }}</span>
+    {% endif %}
+
+    {% if card_number != None %}
+      <strong class="gsf-card-number">{{ card_number }}</strong>
+    {% endif %}
+
     {% if card_text %}
       <p>{{ card_text }}</p>
     {% endif %}
