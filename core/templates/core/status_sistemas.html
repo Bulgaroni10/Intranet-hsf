@@ -1,23 +1,10 @@
+{% extends "base/base.html" %}
 {% load static %}
 
-<!DOCTYPE html>
-<html lang="pt-BR">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+{% block title %}Status dos Sistemas | Intranet{% endblock %}
 
-  <title>Status dos Sistemas | Intranet</title>
-
-  <link rel="stylesheet" href="{% static 'core/css/home.css' %}">
-
+{% block extra_css %}
   <style>
-    body {
-      background: #111111;
-      color: #f8fafc;
-      margin: 0;
-      font-family: Arial, sans-serif;
-    }
-
     .page {
       max-width: 1180px;
       margin: 0 auto;
@@ -29,59 +16,6 @@
       gap: 10px;
       flex-wrap: wrap;
       margin-bottom: 24px;
-    }
-
-    .btn-link,
-    .btn-danger,
-    .btn-success,
-    .btn-warning {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      padding: 10px 14px;
-      border-radius: 10px;
-      border: 1px solid rgba(148, 163, 184, 0.3);
-      background: rgba(15, 23, 42, 0.75);
-      color: #e5e7eb;
-      text-decoration: none;
-      font-size: 13px;
-      font-weight: 800;
-      cursor: pointer;
-    }
-
-    .btn-link:hover {
-      border-color: #2dd4bf;
-      color: #2dd4bf;
-    }
-
-    .btn-success {
-      background: #2dd4bf;
-      color: #06201d;
-      border-color: #2dd4bf;
-    }
-
-    .btn-success:hover {
-      filter: brightness(1.05);
-    }
-
-    .btn-danger {
-      background: rgba(127, 29, 29, 0.35);
-      color: #fecaca;
-      border-color: rgba(248, 113, 113, 0.35);
-    }
-
-    .btn-danger:hover {
-      background: rgba(127, 29, 29, 0.55);
-    }
-
-    .btn-warning {
-      background: rgba(120, 53, 15, 0.35);
-      color: #fde68a;
-      border-color: rgba(251, 191, 36, 0.35);
-    }
-
-    .btn-warning:hover {
-      background: rgba(120, 53, 15, 0.55);
     }
 
     .messages-box {
@@ -278,47 +212,6 @@
       font-size: 13px;
     }
 
-    .badge {
-      display: inline-flex;
-      align-items: center;
-      padding: 8px 10px;
-      border-radius: 999px;
-      font-size: 11px;
-      font-weight: 900;
-      text-transform: uppercase;
-      white-space: nowrap;
-    }
-
-    .badge-operacional {
-      color: #bbf7d0;
-      background: rgba(22, 101, 52, 0.35);
-      border: 1px solid rgba(34, 197, 94, 0.35);
-    }
-
-    .badge-instavel {
-      color: #fde68a;
-      background: rgba(120, 53, 15, 0.35);
-      border: 1px solid rgba(251, 191, 36, 0.35);
-    }
-
-    .badge-indisponivel {
-      color: #fecaca;
-      background: rgba(127, 29, 29, 0.35);
-      border: 1px solid rgba(248, 113, 113, 0.35);
-    }
-
-    .badge-manutencao {
-      color: #bfdbfe;
-      background: rgba(30, 64, 175, 0.35);
-      border: 1px solid rgba(96, 165, 250, 0.35);
-    }
-
-    .badge-inativo {
-      color: #fecaca;
-      background: rgba(127, 29, 29, 0.35);
-      border: 1px solid rgba(248, 113, 113, 0.35);
-    }
-
     .system-description {
       color: #cbd5e1;
       font-size: 14px;
@@ -408,16 +301,6 @@
       border-style: dashed;
     }
 
-    .footer {
-      border-top: 1px solid rgba(148, 163, 184, 0.16);
-      margin-top: 26px;
-      padding-top: 14px;
-      display: flex;
-      justify-content: space-between;
-      color: #94a3b8;
-      font-size: 12px;
-    }
-
     @media (max-width: 1000px) {
       .hero-box,
       .summary-grid,
@@ -432,51 +315,20 @@
       }
     }
   </style>
-</head>
+{% endblock %}
 
-<body>
-
-  <header>
-    <div class="logo">
-      {% if request.user.unidade %}
-        {% if request.user.unidade.sigla == "HSFVF" or request.user.unidade.sigla == "HSFMA" %}
-          <img src="{% static 'core/img/logo-sagrada-familia.png' %}" alt="Logo" class="header-unit-logo">
-        {% else %}
-          <img src="{% static 'core/img/logo-hsf.png' %}" alt="Logo" class="header-unit-logo">
-        {% endif %}
-      {% else %}
-        <img src="{% static 'core/img/logo-hsf.png' %}" alt="Logo" class="header-unit-logo">
-      {% endif %}
-
-      <div>
-        <span>Intranet Grupo São Francisco</span>
-        <span class="unit-tag">
-          {% if request.user.unidade %}
-            {{ request.user.unidade.nome }}
-          {% else %}
-            Sem unidade vinculada
-          {% endif %}
-        </span>
-      </div>
-    </div>
-
-    <div class="header-right">
-      <a class="logout-btn" href="/portal/">Voltar ao portal</a>
-      <button class="logout-btn" onclick="doLogout()">Sair</button>
-    </div>
-  </header>
-
-  <main class="page">
+{% block content %}
+  <div class="page">
 
     <div class="top-actions">
-      <a class="btn-link" href="/portal/">← Voltar ao portal</a>
+      {% include "components/button.html" with button_href="/portal/" button_class="" button_icon="←" button_label="Voltar ao portal" %}
 
       {% if pode_gerenciar_status %}
-        <a class="btn-success" href="/portal/modulos/status-sistemas/nova/">+ Nova ocorrência</a>
-        <a class="btn-success" href="/portal/modulos/status-sistemas/sistema/novo/">+ Novo sistema</a>
+        {% include "components/button.html" with button_href="/portal/modulos/status-sistemas/nova/" button_class="gsf-button-primary" button_icon="+" button_label="Nova ocorrência" %}
+        {% include "components/button.html" with button_href="/portal/modulos/status-sistemas/sistema/novo/" button_class="gsf-button-primary" button_icon="+" button_label="Novo sistema" %}
       {% endif %}
 
-      <a class="btn-link" href="/portal/modulos/status-sistemas/historico/">Histórico</a>
+      {% include "components/button.html" with button_href="/portal/modulos/status-sistemas/historico/" button_class="" button_label="Histórico" %}
     </div>
 
     {% if messages %}
@@ -515,30 +367,15 @@
     </section>
 
     <section class="summary-grid">
-      <div class="summary-card summary-total">
-        <span>Sistemas</span>
-        <strong>{{ total_sistemas }}</strong>
-      </div>
+      {% include "components/card.html" with card_class="summary-card summary-total" card_label="Sistemas" card_number=total_sistemas %}
 
-      <div class="summary-card summary-operacional">
-        <span>Operacional</span>
-        <strong>{{ resumo.operacional }}</strong>
-      </div>
+      {% include "components/card.html" with card_class="summary-card summary-operacional" card_label="Operacional" card_number=resumo.operacional %}
 
-      <div class="summary-card summary-instavel">
-        <span>Instável</span>
-        <strong>{{ resumo.instavel }}</strong>
-      </div>
+      {% include "components/card.html" with card_class="summary-card summary-instavel gsf-card-alert" card_label="Instável" card_number=resumo.instavel %}
 
-      <div class="summary-card summary-indisponivel">
-        <span>Indisponível</span>
-        <strong>{{ resumo.indisponivel }}</strong>
-      </div>
+      {% include "components/card.html" with card_class="summary-card summary-indisponivel gsf-card-danger" card_label="Indisponível" card_number=resumo.indisponivel %}
 
-      <div class="summary-card summary-manutencao">
-        <span>Manutenção</span>
-        <strong>{{ resumo.manutencao }}</strong>
-      </div>
+      {% include "components/card.html" with card_class="summary-card summary-manutencao" card_label="Manutenção" card_number=resumo.manutencao %}
     </section>
 
     <section>
@@ -563,21 +400,19 @@
               </div>
 
               {% if not sistema.ativo %}
-                <span class="badge badge-inativo">Inativo</span>
+                {% include "components/badge.html" with badge_class="gsf-badge-danger" badge_text="Inativo" %}
               {% else %}
-                <span class="badge badge-{{ sistema.status_atual }}">
-                  {% if sistema.status_atual == "operacional" %}
-                    Operacional
-                  {% elif sistema.status_atual == "instavel" %}
-                    Instável
-                  {% elif sistema.status_atual == "indisponivel" %}
-                    Indisponível
-                  {% elif sistema.status_atual == "manutencao" %}
-                    Manutenção
-                  {% else %}
-                    Operacional
-                  {% endif %}
-                </span>
+                {% if sistema.status_atual == "operacional" %}
+                  {% include "components/badge.html" with badge_class="gsf-badge-ok" badge_text="Operacional" %}
+                {% elif sistema.status_atual == "instavel" %}
+                  {% include "components/badge.html" with badge_class="gsf-badge-warning" badge_text="Instável" %}
+                {% elif sistema.status_atual == "indisponivel" %}
+                  {% include "components/badge.html" with badge_class="gsf-badge-danger" badge_text="Indisponível" %}
+                {% elif sistema.status_atual == "manutencao" %}
+                  {% include "components/badge.html" with badge_class="gsf-badge-info" badge_text="Manutenção" %}
+                {% else %}
+                  {% include "components/badge.html" with badge_class="gsf-badge-ok" badge_text="Operacional" %}
+                {% endif %}
               {% endif %}
             </div>
 
@@ -589,16 +424,16 @@
 
             {% if pode_gerenciar_status %}
               <div class="system-actions">
-                <a class="btn-link" href="/portal/modulos/status-sistemas/sistema/editar/{{ sistema.id }}/">
+                <a class="gsf-button" href="/portal/modulos/status-sistemas/sistema/editar/{{ sistema.id }}/">
                   Editar
                 </a>
 
                 {% if sistema.ativo %}
-                  <a class="btn-warning" href="/portal/modulos/status-sistemas/sistema/inativar/{{ sistema.id }}/">
+                  <a class="gsf-button gsf-button-warning" href="/portal/modulos/status-sistemas/sistema/inativar/{{ sistema.id }}/">
                     Inativar
                   </a>
                 {% else %}
-                  <a class="btn-success" href="/portal/modulos/status-sistemas/sistema/reativar/{{ sistema.id }}/">
+                  <a class="gsf-button gsf-button-primary" href="/portal/modulos/status-sistemas/sistema/reativar/{{ sistema.id }}/">
                     Reativar
                   </a>
                 {% endif %}
@@ -636,9 +471,17 @@
                 </p>
               </div>
 
-              <span class="badge badge-{{ ocorrencia.status }}">
-                {{ ocorrencia.get_status_display }}
-              </span>
+              {% if ocorrencia.status == "operacional" %}
+                {% include "components/badge.html" with badge_class="gsf-badge-ok" badge_text=ocorrencia.get_status_display %}
+              {% elif ocorrencia.status == "instavel" %}
+                {% include "components/badge.html" with badge_class="gsf-badge-warning" badge_text=ocorrencia.get_status_display %}
+              {% elif ocorrencia.status == "indisponivel" %}
+                {% include "components/badge.html" with badge_class="gsf-badge-danger" badge_text=ocorrencia.get_status_display %}
+              {% elif ocorrencia.status == "manutencao" %}
+                {% include "components/badge.html" with badge_class="gsf-badge-info" badge_text=ocorrencia.get_status_display %}
+              {% else %}
+                {% include "components/badge.html" with badge_class="" badge_text=ocorrencia.get_status_display %}
+              {% endif %}
             </div>
 
             <div class="incident-grid">
@@ -685,7 +528,7 @@
 
             {% if pode_gerenciar_status %}
               <div style="display:flex; gap:10px; flex-wrap:wrap; margin-top:16px;">
-                <a class="btn-danger" href="/portal/modulos/status-sistemas/encerrar/{{ ocorrencia.id }}/">
+                <a class="gsf-button gsf-button-danger" href="/portal/modulos/status-sistemas/encerrar/{{ ocorrencia.id }}/">
                   Encerrar ocorrência
                 </a>
               </div>
@@ -700,13 +543,7 @@
       {% endif %}
     </section>
 
-    <footer class="footer">
-      <span>Status dos Sistemas • Intranet Grupo São Francisco</span>
-      <span>Tecnologia da Informação • Ambiente interno</span>
-    </footer>
+  </div>
+{% endblock %}
 
-  </main>
-
-  <script src="{% static 'core/js/home.js' %}"></script>
-</body>
-</html>
+{% block extra_js %}{% endblock %}

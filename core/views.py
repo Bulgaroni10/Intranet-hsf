@@ -2204,6 +2204,7 @@ def status_sistemas(request):
             resumo['operacional'] += 1
 
     return render(request, 'core/status_sistemas.html', {
+        'page_title': 'Status dos Sistemas',
         'sistemas': sistemas,
         'ocorrencias_ativas': ocorrencias_visiveis,
         'resumo': resumo,
