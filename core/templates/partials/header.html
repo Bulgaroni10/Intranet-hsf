@@ -1,0 +1,54 @@
+{% load static %}
+
+<header class="gsf-topbar">
+  <div class="gsf-topbar-left">
+    <button class="gsf-sidebar-toggle" type="button" onclick="document.body.classList.toggle('gsf-sidebar-collapsed')">
+      ☰
+    </button>
+
+    <div>
+      <span class="gsf-page-kicker">Intranet</span>
+      <h1 class="gsf-page-title">
+        {% block page_title %}Grupo São Francisco{% endblock %}
+      </h1>
+    </div>
+  </div>
+
+  <div class="gsf-topbar-right">
+    <a class="gsf-topbar-action" href="/conversas/">
+      💬 Conversas
+    </a>
+
+    <a class="gsf-topbar-action" href="/portal/">
+      🏠 Portal
+    </a>
+
+    <div class="gsf-user-chip">
+      {% if request.user.unidade %}
+        {% if request.user.unidade.sigla == "HSFVF" or request.user.unidade.sigla == "HSFMA" %}
+          <img src="{% static 'core/img/logo-sagrada-familia.png' %}" alt="Logo">
+        {% else %}
+          <img src="{% static 'core/img/logo-hsf.png' %}" alt="Logo">
+        {% endif %}
+      {% else %}
+        <img src="{% static 'core/img/logo-hsf.png' %}" alt="Logo">
+      {% endif %}
+
+      <div>
+        <strong>{{ request.user.get_full_name|default:request.user.username }}</strong>
+
+        <span>
+          {% if request.user.unidade %}
+            {{ request.user.unidade.sigla }}
+          {% else %}
+            Sem unidade
+          {% endif %}
+        </span>
+      </div>
+    </div>
+
+    <button class="gsf-logout-btn" type="button" onclick="doLogout()">
+      Sair
+    </button>
+  </div>
+</header>
