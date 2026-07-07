@@ -2577,6 +2577,7 @@ def nova_ocorrencia_status(request):
             return redirect('status_sistemas')
 
     return render(request, 'core/nova_ocorrencia_status.html', {
+        'page_title': 'Nova ocorrência de sistema',
         'sistemas': sistemas,
         'unidades': unidades,
         'status_choices': OcorrenciaSistema.STATUS_CHOICES,
