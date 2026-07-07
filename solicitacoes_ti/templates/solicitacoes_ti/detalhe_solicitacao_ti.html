@@ -18,35 +18,6 @@
       margin-bottom:22px;
     }
 
-    .btn-link,
-    .btn-submit {
-      display:inline-flex;
-      align-items:center;
-      justify-content:center;
-      gap:8px;
-      padding:10px 14px;
-      border-radius:12px;
-      border:1px solid rgba(148,163,184,.25);
-      background:rgba(15,23,42,.8);
-      color:#e5e7eb;
-      text-decoration:none;
-      font-size:13px;
-      font-weight:800;
-      cursor:pointer;
-    }
-
-    .btn-link:hover {
-      border-color:#2dd4bf;
-      color:#2dd4bf;
-    }
-
-    .btn-submit {
-      background:#2dd4bf;
-      color:#042f2e;
-      border-color:#2dd4bf;
-      margin-top:10px;
-    }
-
     .hero,
     .card,
     .notice {
@@ -99,7 +70,6 @@
       margin-top:14px;
     }
 
-    .badge,
     .sla-pill {
       display:inline-flex;
       align-items:center;
@@ -109,12 +79,6 @@
       font-size:12px;
       font-weight:900;
       border:1px solid rgba(148,163,184,.22);
-    }
-
-    .badge {
-      color:#2dd4bf;
-      background:rgba(45,212,191,.10);
-      border-color:rgba(45,212,191,.28);
     }
 
     .sla-ok {
@@ -224,101 +188,6 @@
       background:rgba(30,64,175,.22);
     }
 
-    .timeline {
-      position:relative;
-      display:flex;
-      flex-direction:column;
-      gap:12px;
-    }
-
-    .timeline-item {
-      display:flex;
-      gap:12px;
-      align-items:flex-start;
-    }
-
-    .timeline-dot {
-      width:34px;
-      height:34px;
-      min-width:34px;
-      border-radius:50%;
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      background:rgba(45,212,191,.12);
-      border:1px solid rgba(45,212,191,.25);
-      color:#2dd4bf;
-      font-size:15px;
-    }
-
-    .timeline-content {
-      flex:1;
-      background:rgba(15,23,42,.55);
-      border:1px solid rgba(148,163,184,.14);
-      border-radius:14px;
-      padding:12px;
-    }
-
-    .timeline-content strong {
-      display:block;
-      color:#fff;
-      font-size:14px;
-      margin-bottom:4px;
-    }
-
-    .timeline-content span {
-      color:#94a3b8;
-      font-size:12px;
-    }
-
-    .chat-box {
-      max-height:520px;
-      overflow:auto;
-      display:flex;
-      flex-direction:column;
-      gap:12px;
-      padding-right:4px;
-    }
-
-    .msg {
-      border-radius:16px;
-      padding:13px;
-      border:1px solid rgba(148,163,184,.18);
-      background:rgba(15,23,42,.58);
-    }
-
-    .msg-ti {
-      border-color:rgba(45,212,191,.35);
-      background:rgba(45,212,191,.10);
-    }
-
-    .msg-user {
-      border-color:rgba(96,165,250,.35);
-      background:rgba(30,64,175,.18);
-    }
-
-    .msg-system {
-      border-color:rgba(148,163,184,.24);
-      background:rgba(51,65,85,.35);
-    }
-
-    .msg-head {
-      display:flex;
-      justify-content:space-between;
-      gap:10px;
-      margin-bottom:7px;
-      color:#94a3b8;
-      font-size:12px;
-      font-weight:800;
-    }
-
-    .msg p {
-      margin:0;
-      white-space:pre-wrap;
-      color:#e5e7eb;
-      font-size:14px;
-    }
-
     .form-group {
       margin-top:16px;
     }
@@ -381,9 +250,6 @@
         grid-template-columns:1fr;
       }
 
-      .msg-head {
-        flex-direction:column;
-      }
     }
   </style>
 {% endblock %}
@@ -393,13 +259,13 @@
   <div class="page">
 
     <div class="top-actions">
-      <a class="btn-link" href="/portal/modulos/solicitacoes-ti/">← Voltar</a>
+      {% include "components/button.html" with button_href="/portal/modulos/solicitacoes-ti/" button_class="" button_icon="←" button_label="Voltar" %}
 
       {% if pode_gerenciar %}
-        <a class="btn-link" href="/portal/modulos/solicitacoes-ti/atender/{{ solicitacao.id }}/">Atender chamado</a>
+        <a class="gsf-button gsf-button-primary" href="/portal/modulos/solicitacoes-ti/atender/{{ solicitacao.id }}/">Atender chamado</a>
       {% endif %}
 
-      <a class="btn-link" href="/portal/">Portal</a>
+      {% include "components/button.html" with button_href="/portal/" button_class="" button_label="Portal" %}
     </div>
 
     <section class="hero">
@@ -410,8 +276,8 @@
       </p>
 
       <div class="badges">
-        <span class="badge">{{ solicitacao.get_status_display }}</span>
-        <span class="badge">{{ solicitacao.get_prioridade_display }}</span>
+        {% include "components/badge.html" with badge_class="" badge_text=solicitacao.get_status_display %}
+        {% include "components/badge.html" with badge_class="" badge_text=solicitacao.get_prioridade_display %}
         <span class="sla-pill {{ solicitacao.sla_classe_css }}">
           {{ solicitacao.sla_icone }} {{ solicitacao.sla_status_exibicao }} • {{ solicitacao.tempo_restante_sla }}
         </span>
@@ -493,7 +359,7 @@
             <div class="section-text">
               <h4>Anexo</h4>
               <p>
-                <a class="btn-link" href="{{ solicitacao.anexo.url }}" target="_blank">
+                <a class="gsf-button" href="{{ solicitacao.anexo.url }}" target="_blank">
                   Abrir anexo
                 </a>
               </p>
@@ -512,33 +378,7 @@
           <h2>Conversa e histórico</h2>
 
           {% if solicitacao.conversa_iniciada or mensagens %}
-            <div class="chat-box">
-              {% for mensagem in mensagens %}
-                <div class="msg {% if mensagem.origem == 'ti' %}msg-ti{% elif mensagem.origem == 'solicitante' %}msg-user{% else %}msg-system{% endif %}">
-                  <div class="msg-head">
-                    <span>
-                      {% if mensagem.origem == 'ti' %}
-                        TI
-                      {% elif mensagem.origem == 'solicitante' %}
-                        Solicitante
-                      {% else %}
-                        Sistema
-                      {% endif %}
-
-                      {% if mensagem.autor %}
-                        • {{ mensagem.autor.get_full_name|default:mensagem.autor.username }}
-                      {% endif %}
-                    </span>
-
-                    <span>{{ mensagem.criado_em|date:"d/m/Y H:i" }}</span>
-                  </div>
-
-                  <p>{{ mensagem.mensagem }}</p>
-                </div>
-              {% empty %}
-                <p>Nenhuma mensagem registrada ainda.</p>
-              {% endfor %}
-            </div>
+            {% include "components/chat.html" with chat_messages=mensagens chat_empty="Nenhuma mensagem registrada ainda." %}
 
             {% if solicitacao.conversa_iniciada and not solicitacao.esta_encerrada %}
               <form method="post">
@@ -549,7 +389,7 @@
                   <textarea name="mensagem" rows="4" placeholder="Digite sua resposta..." required></textarea>
                 </div>
 
-                <button type="submit" class="btn-submit">Enviar resposta</button>
+                {% include "components/button.html" with button_type="submit" button_class="gsf-button-primary" button_label="Enviar resposta" %}
               </form>
             {% elif solicitacao.esta_encerrada %}
               <section class="notice notice-info" style="margin-top:16px;">
@@ -604,19 +444,19 @@
         <section class="card">
           <h2>Linha do tempo</h2>
 
-          <div class="timeline">
-            <div class="timeline-item">
-              <div class="timeline-dot">📝</div>
-              <div class="timeline-content">
+          <div class="gsf-timeline">
+            <div class="gsf-timeline-item">
+              <div class="gsf-timeline-dot">📝</div>
+              <div class="gsf-timeline-content">
                 <strong>Chamado criado</strong>
                 <span>{{ solicitacao.criado_em|date:"d/m/Y H:i" }}</span>
               </div>
             </div>
 
             {% if solicitacao.visto_pela_ti %}
-              <div class="timeline-item">
-                <div class="timeline-dot">👀</div>
-                <div class="timeline-content">
+              <div class="gsf-timeline-item">
+                <div class="gsf-timeline-dot">👀</div>
+                <div class="gsf-timeline-content">
                   <strong>Visualizado pela TI</strong>
                   <span>
                     {% if solicitacao.visto_pela_ti_em %}
@@ -630,9 +470,9 @@
             {% endif %}
 
             {% if solicitacao.conversa_iniciada %}
-              <div class="timeline-item">
-                <div class="timeline-dot">💬</div>
-                <div class="timeline-content">
+              <div class="gsf-timeline-item">
+                <div class="gsf-timeline-dot">💬</div>
+                <div class="gsf-timeline-content">
                   <strong>Conversa iniciada</strong>
                   <span>
                     {% if solicitacao.conversa_iniciada_em %}
@@ -646,9 +486,9 @@
             {% endif %}
 
             {% if solicitacao.resolvido_em %}
-              <div class="timeline-item">
-                <div class="timeline-dot">✅</div>
-                <div class="timeline-content">
+              <div class="gsf-timeline-item">
+                <div class="gsf-timeline-dot">✅</div>
+                <div class="gsf-timeline-content">
                   <strong>Chamado resolvido</strong>
                   <span>{{ solicitacao.resolvido_em|date:"d/m/Y H:i" }}</span>
                 </div>
