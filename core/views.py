@@ -2626,6 +2626,7 @@ def encerrar_ocorrencia_status(request, ocorrencia_id):
             return redirect('status_sistemas')
 
     return render(request, 'core/encerrar_ocorrencia_status.html', {
+        'page_title': f'Encerrar ocorrência #{ocorrencia.id}',
         'ocorrencia': ocorrencia,
         'erro': erro,
     })
