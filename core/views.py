@@ -2658,6 +2658,7 @@ def manuais_procedimentos(request):
     pode_gerenciar = usuario_pode_gerenciar_manuais(request.user)
 
     return render(request, 'core/manuais_procedimentos.html', {
+        'page_title': 'Manuais e Procedimentos',
         'modulo': modulo,
         'conteudos': conteudos,
         'unidades': unidades,
