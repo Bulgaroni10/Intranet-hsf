@@ -1,23 +1,10 @@
+{% extends "base/base.html" %}
 {% load static %}
 
-<!DOCTYPE html>
-<html lang="pt-BR">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+{% block title %}Atender Solicitação de TI | Intranet{% endblock %}
 
-  <title>Atender Solicitação de TI | Intranet</title>
-
-  <link rel="stylesheet" href="{% static 'core/css/home.css' %}">
-
+{% block extra_css %}
   <style>
-    body {
-      background:#0f172a;
-      color:#f8fafc;
-      margin:0;
-      font-family:Arial,sans-serif;
-    }
-
     .page {
       max-width:1280px;
       margin:0 auto;
@@ -418,19 +405,8 @@
       text-align:right;
     }
 
-    .footer {
-      border-top:1px solid rgba(148,163,184,.16);
-      margin-top:26px;
-      padding-top:14px;
-      display:flex;
-      justify-content:space-between;
-      color:#94a3b8;
-      font-size:12px;
-    }
-
     @media (max-width:1000px) {
-      .hero-main,
-      .footer {
+      .hero-main {
         flex-direction:column;
       }
 
@@ -451,42 +427,11 @@
       }
     }
   </style>
-</head>
+{% endblock %}
 
-<body>
+{% block content %}
 
-  <header>
-    <div class="logo">
-      {% if request.user.unidade %}
-        {% if request.user.unidade.sigla == "HSFVF" or request.user.unidade.sigla == "HSFMA" %}
-          <img src="{% static 'core/img/logo-sagrada-familia.png' %}" alt="Logo" class="header-unit-logo">
-        {% else %}
-          <img src="{% static 'core/img/logo-hsf.png' %}" alt="Logo" class="header-unit-logo">
-        {% endif %}
-      {% else %}
-        <img src="{% static 'core/img/logo-hsf.png' %}" alt="Logo" class="header-unit-logo">
-      {% endif %}
-
-      <div>
-        <span>Intranet Grupo São Francisco</span>
-        <span class="unit-tag">
-          {% if request.user.unidade %}
-            {{ request.user.unidade.nome }}
-          {% else %}
-            Sem unidade vinculada
-          {% endif %}
-        </span>
-      </div>
-    </div>
-
-    <div class="header-right">
-      <a class="logout-btn" href="/portal/modulos/solicitacoes-ti/">Solicitações</a>
-      <a class="logout-btn" href="/portal/">Portal</a>
-      <button class="logout-btn" onclick="doLogout()">Sair</button>
-    </div>
-  </header>
-
-  <main class="page">
+  <div class="page">
 
     <div class="top-actions">
       <a class="btn-link" href="/portal/modulos/solicitacoes-ti/">← Voltar para solicitações</a>
@@ -874,13 +819,7 @@
 
     </div>
 
-    <footer class="footer">
-      <span>Solicitações Internas de TI • Atendimento</span>
-      <span>Tecnologia da Informação • Ambiente interno</span>
-    </footer>
+  </div>
+{% endblock %}
 
-  </main>
-
-  <script src="{% static 'core/js/home.js' %}"></script>
-</body>
-</html>
+{% block extra_js %}{% endblock %}

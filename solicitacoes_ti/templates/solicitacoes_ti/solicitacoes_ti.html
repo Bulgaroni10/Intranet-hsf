@@ -1,51 +1,13 @@
+{% extends "base/base.html" %}
 {% load static %}
 
-<!DOCTYPE html>
-<html lang="pt-BR">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+{% block title %}Solicitações de TI | Intranet{% endblock %}
 
-  <title>Solicitações de TI | Intranet</title>
+{% block extra_css %}{% endblock %}
 
-  <link rel="stylesheet" href="{% static 'core/css/home.css' %}">
-  <link rel="stylesheet" href="{% static 'core/css/gsf-ui.css' %}">
-  
-</head>
+{% block content %}
 
-<body>
-
-  <header>
-    <div class="logo">
-      {% if request.user.unidade %}
-        {% if request.user.unidade.sigla == "HSFVF" or request.user.unidade.sigla == "HSFMA" %}
-          <img src="{% static 'core/img/logo-sagrada-familia.png' %}" alt="Logo" class="header-unit-logo">
-        {% else %}
-          <img src="{% static 'core/img/logo-hsf.png' %}" alt="Logo" class="header-unit-logo">
-        {% endif %}
-      {% else %}
-        <img src="{% static 'core/img/logo-hsf.png' %}" alt="Logo" class="header-unit-logo">
-      {% endif %}
-
-      <div>
-        <span>Intranet Grupo São Francisco</span>
-        <span class="unit-tag">
-          {% if request.user.unidade %}
-            {{ request.user.unidade.nome }}
-          {% else %}
-            Sem unidade vinculada
-          {% endif %}
-        </span>
-      </div>
-    </div>
-
-    <div class="header-right">
-      <a class="logout-btn" href="/portal/">Portal</a>
-      <button class="logout-btn" onclick="doLogout()">Sair</button>
-    </div>
-  </header>
-
-  <main class="page">
+  <div class="page">
 
     <div class="top-actions">
       <a class="btn-link" href="/portal/">← Voltar ao portal</a>
@@ -406,13 +368,7 @@
       </div>
     </section>
 
-    <footer class="footer">
-      <span>Solicitações de TI • Intranet Grupo São Francisco</span>
-      <span>Tecnologia da Informação • Ambiente interno</span>
-    </footer>
+  </div>
+{% endblock %}
 
-  </main>
-
-  <script src="{% static 'core/js/home.js' %}"></script>
-</body>
-</html>
+{% block extra_js %}{% endblock %}
