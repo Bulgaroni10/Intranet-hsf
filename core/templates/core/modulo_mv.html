@@ -1,190 +1,30 @@
+{% extends "base/base.html" %}
 {% load static %}
 
-<!DOCTYPE html>
-<html lang="pt-BR">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+{% block title %}MV / Sistema Hospitalar | Intranet{% endblock %}
 
-  <title>MV / Sistema Hospitalar | Intranet</title>
-
-  <link rel="stylesheet" href="{% static 'core/css/home.css' %}">
-
+{% block extra_css %}
   <style>
-    body {
-      background: #111111;
-      color: #f8fafc;
-      margin: 0;
-      font-family: Arial, sans-serif;
-    }
-
-    .page {
-      max-width: 1180px;
-      margin: 0 auto;
-      padding: 28px 24px 50px;
-    }
-
-    .top-actions {
-      display: flex;
-      gap: 10px;
-      flex-wrap: wrap;
-      margin-bottom: 24px;
-    }
-
-    .btn-link,
-    .btn-success {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      padding: 10px 14px;
-      border-radius: 10px;
-      border: 1px solid rgba(148, 163, 184, 0.3);
-      background: rgba(15, 23, 42, 0.75);
-      color: #e5e7eb;
-      text-decoration: none;
-      font-size: 13px;
-      font-weight: 800;
-      cursor: pointer;
-    }
-
-    .btn-link:hover {
-      border-color: #2dd4bf;
-      color: #2dd4bf;
-    }
-
-    .btn-success {
-      background: #2dd4bf;
-      color: #06201d;
-      border-color: #2dd4bf;
-    }
-
-    .hero-box {
-      display: grid;
-      grid-template-columns: 1fr 320px;
-      gap: 18px;
-      margin-bottom: 26px;
-    }
-
-    .hero-main,
-    .hero-side,
-    .summary-card,
-    .panel-box,
-    .module-card,
-    .notice-card,
-    .empty-card,
-    .message-item,
-    .ticket-card {
-      background: rgba(31, 31, 31, 0.96);
-      border: 1px solid rgba(148, 163, 184, 0.2);
-      border-radius: 16px;
-      padding: 22px;
-    }
-
-    .eyebrow {
-      color: #2dd4bf;
-      font-size: 12px;
-      font-weight: 900;
-      text-transform: uppercase;
-      letter-spacing: 0.08em;
-      margin-bottom: 8px;
-    }
-
-    h1 {
-      margin: 0 0 10px;
-      font-size: 32px;
-      color: #ffffff;
-    }
-
-    h2 {
-      margin: 0 0 6px;
-      font-size: 20px;
-      color: #ffffff;
-    }
-
-    h3 {
-      margin: 0 0 6px;
-      color: #ffffff;
-    }
-
-    p {
-      color: #cbd5e1;
-      line-height: 1.5;
-    }
-
-    .messages-box {
-      display: grid;
-      gap: 10px;
-      margin-bottom: 18px;
-    }
-
-    .message-item {
-      padding: 12px 14px;
-      color: #e5e7eb;
-      font-size: 13px;
-      font-weight: 700;
-    }
-
-    .message-success {
-      border-color: rgba(34, 197, 94, 0.35);
-      background: rgba(22, 101, 52, 0.22);
-      color: #bbf7d0;
-    }
-
-    .message-error {
-      border-color: rgba(248, 113, 113, 0.35);
-      background: rgba(127, 29, 29, 0.22);
-      color: #fecaca;
-    }
-
-    .summary-grid {
-      display: grid;
-      grid-template-columns: repeat(5, minmax(0, 1fr));
-      gap: 14px;
-      margin-bottom: 26px;
-    }
-
-    .summary-card span {
-      display: block;
-      color: #94a3b8;
-      font-size: 12px;
-      font-weight: 800;
-      text-transform: uppercase;
-      margin-bottom: 8px;
-    }
-
-    .summary-card strong {
-      display: block;
-      color: #ffffff;
-      font-size: 28px;
-    }
-
-    .section-header {
-      margin-bottom: 14px;
-      display: flex;
-      justify-content: space-between;
-      align-items: flex-start;
-      gap: 14px;
-      flex-wrap: wrap;
-    }
-
-    .modules-grid {
+    .mv-modules-grid {
       display: grid;
       grid-template-columns: repeat(3, minmax(0, 1fr));
       gap: 16px;
       margin-bottom: 30px;
     }
 
-    .module-card {
+    .mv-module-card {
       cursor: pointer;
       transition: 0.2s;
     }
 
-    .module-card:hover {
+    .mv-module-card:hover {
       transform: translateY(-2px);
       border-color: rgba(45, 212, 191, 0.45);
     }
 
-    .module-icon {
+    .mv-module-icon,
+    .mv-notice-icon,
+    .mv-ticket-icon {
       width: 42px;
       height: 42px;
       border-radius: 14px;
@@ -197,71 +37,41 @@
       margin-bottom: 12px;
     }
 
-    .module-card small {
+    .mv-module-card small {
       display: block;
       margin-top: 8px;
       color: #94a3b8;
       font-weight: 700;
     }
 
-    .panel-grid {
+    .mv-panel-grid {
       display: grid;
       grid-template-columns: 1fr 1fr;
       gap: 18px;
       margin-bottom: 28px;
     }
 
-    .notice-list {
+    .mv-notice-list,
+    .mv-ticket-list {
       display: grid;
       gap: 12px;
       margin-top: 14px;
     }
 
-    .notice-card {
+    .mv-notice-card,
+    .mv-ticket-card {
       display: grid;
       grid-template-columns: 46px 1fr;
       gap: 14px;
       padding: 16px;
     }
 
-    .notice-icon {
-      width: 42px;
-      height: 42px;
-      border-radius: 14px;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      background: rgba(45, 212, 191, 0.12);
-      border: 1px solid rgba(45, 212, 191, 0.22);
-      font-size: 20px;
-    }
-
-    .ticket-list {
-      display: grid;
-      gap: 12px;
-      margin-top: 14px;
-    }
-
-    .ticket-card {
-      display: grid;
-      grid-template-columns: 48px 1fr;
-      gap: 14px;
-      padding: 16px;
-    }
-
-    .ticket-icon {
-      width: 42px;
-      height: 42px;
-      border-radius: 14px;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
+    .mv-ticket-icon {
       background: rgba(96, 165, 250, 0.12);
-      border: 1px solid rgba(96, 165, 250, 0.25);
-      font-size: 20px;
+      border-color: rgba(96, 165, 250, 0.25);
     }
 
-    .ticket-title-line {
+    .mv-ticket-title-line {
       display: flex;
       justify-content: space-between;
       align-items: flex-start;
@@ -269,25 +79,21 @@
       flex-wrap: wrap;
     }
 
-    .ticket-title-line h3 {
-      margin-bottom: 4px;
-    }
-
-    .ticket-meta {
+    .mv-ticket-meta {
       display: grid;
       grid-template-columns: repeat(4, minmax(0, 1fr));
       gap: 8px;
       margin-top: 10px;
     }
 
-    .ticket-meta-item {
+    .mv-ticket-meta-item {
       border: 1px solid rgba(148, 163, 184, 0.16);
       background: rgba(15, 23, 42, 0.35);
       border-radius: 12px;
       padding: 9px;
     }
 
-    .ticket-meta-item span {
+    .mv-ticket-meta-item span {
       display: block;
       color: #94a3b8;
       font-size: 10px;
@@ -296,130 +102,41 @@
       margin-bottom: 4px;
     }
 
-    .ticket-meta-item strong {
+    .mv-ticket-meta-item strong {
       display: block;
       color: #e5e7eb;
       font-size: 12px;
     }
 
-    .badge {
-      display: inline-flex;
-      align-items: center;
-      padding: 7px 10px;
-      border-radius: 999px;
-      font-size: 11px;
-      font-weight: 900;
-      text-transform: uppercase;
-      color: #2dd4bf;
-      background: rgba(45, 212, 191, 0.12);
-      border: 1px solid rgba(45, 212, 191, 0.25);
-      margin-right: 6px;
-      margin-top: 6px;
-      text-decoration: none;
-    }
-
-    .badge-ok {
-      color: #bbf7d0;
-      background: rgba(22, 101, 52, 0.35);
-      border-color: rgba(34, 197, 94, 0.35);
-    }
-
-    .badge-warn {
-      color: #fde68a;
-      background: rgba(120, 53, 15, 0.35);
-      border-color: rgba(251, 191, 36, 0.35);
-    }
-
-    .badge-danger {
-      color: #fecaca;
-      background: rgba(127, 29, 29, 0.35);
-      border-color: rgba(248, 113, 113, 0.35);
-    }
-
-    .badge-blue {
-      color: #bfdbfe;
-      background: rgba(30, 64, 175, 0.35);
-      border-color: rgba(96, 165, 250, 0.35);
-    }
-
-    .empty-card {
-      text-align: center;
-      color: #cbd5e1;
-      border-style: dashed;
-    }
-
-    .footer {
-      border-top: 1px solid rgba(148, 163, 184, 0.16);
-      margin-top: 26px;
-      padding-top: 14px;
-      display: flex;
-      justify-content: space-between;
-      color: #94a3b8;
-      font-size: 12px;
-    }
-
     @media (max-width: 1000px) {
-      .hero-box,
-      .summary-grid,
-      .modules-grid,
-      .panel-grid,
-      .ticket-card,
-      .ticket-meta {
+      .mv-modules-grid,
+      .mv-panel-grid,
+      .mv-ticket-card,
+      .mv-ticket-meta {
         grid-template-columns: 1fr;
       }
     }
   </style>
-</head>
+{% endblock %}
 
-<body>
-
-  <header>
-    <div class="logo">
-      {% if request.user.unidade %}
-        {% if request.user.unidade.sigla == "HSFVF" or request.user.unidade.sigla == "HSFMA" %}
-          <img src="{% static 'core/img/logo-sagrada-familia.png' %}" alt="Logo" class="header-unit-logo">
-        {% else %}
-          <img src="{% static 'core/img/logo-hsf.png' %}" alt="Logo" class="header-unit-logo">
-        {% endif %}
-      {% else %}
-        <img src="{% static 'core/img/logo-hsf.png' %}" alt="Logo" class="header-unit-logo">
-      {% endif %}
-
-      <div>
-        <span>Intranet Grupo São Francisco</span>
-        <span class="unit-tag">
-          {% if request.user.unidade %}
-            {{ request.user.unidade.nome }}
-          {% else %}
-            Sem unidade vinculada
-          {% endif %}
-        </span>
-      </div>
-    </div>
-
-    <div class="header-right">
-      <a class="logout-btn" href="/portal/">Voltar ao portal</a>
-      <button class="logout-btn" onclick="doLogout()">Sair</button>
-    </div>
-  </header>
-
-  <main class="page">
+{% block content %}
+  <div class="page">
 
     <div class="top-actions">
-      <a class="btn-link" href="/portal/">← Voltar ao portal</a>
-      <a class="btn-success" href="/portal/modulos/solicitacoes-ti/nova/?modulo=mv">+ Abrir chamado deste módulo</a>
-      <a class="btn-link" href="/portal/modulos/solicitacoes-ti/?modulo_origem=mv">Histórico de chamados MV</a>
-      <a class="btn-link" href="/portal/modulos/mv/manuais/">Manuais MV</a>
-      <a class="btn-link" href="/portal/modulos/mv/convenios/">Convênios MV</a>
-      <a class="btn-link" href="/portal/modulos/mv/contingencia/">Contingência</a>
-      <a class="btn-link" href="/portal/modulos/mv/chamados/">Chamados MV</a>
-      <a class="btn-link" href="/portal/modulos/mv/links/">Links úteis</a>
-      <a class="btn-link" href="/portal/modulos/mv/observacoes/">Observações</a>
+      {% include "components/button.html" with button_href="/portal/" button_icon="←" button_label="Voltar ao portal" %}
+      {% include "components/button.html" with button_href="/portal/modulos/solicitacoes-ti/nova/?modulo=mv" button_class="gsf-button-primary" button_icon="+" button_label="Abrir chamado deste módulo" %}
+      {% include "components/button.html" with button_href="/portal/modulos/solicitacoes-ti/?modulo_origem=mv" button_label="Histórico de chamados MV" %}
+      {% include "components/button.html" with button_href="/portal/modulos/mv/manuais/" button_label="Manuais MV" %}
+      {% include "components/button.html" with button_href="/portal/modulos/mv/convenios/" button_label="Convênios MV" %}
+      {% include "components/button.html" with button_href="/portal/modulos/mv/contingencia/" button_label="Contingência" %}
+      {% include "components/button.html" with button_href="/portal/modulos/mv/chamados/" button_label="Chamados MV" %}
+      {% include "components/button.html" with button_href="/portal/modulos/mv/links/" button_label="Links úteis" %}
+      {% include "components/button.html" with button_href="/portal/modulos/mv/observacoes/" button_label="Observações" %}
 
       {% if pode_gerenciar_mv %}
-        <a class="btn-success" href="/portal/modulos/mv/convenios/novo/">+ Novo convênio</a>
-        <a class="btn-success" href="/portal/modulos/mv/regras/nova/">+ Nova regra</a>
-        <a class="btn-success" href="/portal/modulos/mv/importacoes/">Importações MV</a>
+        {% include "components/button.html" with button_href="/portal/modulos/mv/convenios/novo/" button_class="gsf-button-primary" button_icon="+" button_label="Novo convênio" %}
+        {% include "components/button.html" with button_href="/portal/modulos/mv/regras/nova/" button_class="gsf-button-primary" button_icon="+" button_label="Nova regra" %}
+        {% include "components/button.html" with button_href="/portal/modulos/mv/importacoes/" button_label="Importações MV" %}
       {% endif %}
     </div>
 
@@ -442,31 +159,19 @@
           orientações, chamados, links úteis, observações e plano de contingência relacionados ao sistema MV.
         </p>
 
-        <a class="btn-success" href="/portal/modulos/solicitacoes-ti/nova/?modulo=mv">
-          + Abrir chamado de TI sobre o MV
-        </a>
+        {% include "components/button.html" with button_href="/portal/modulos/solicitacoes-ti/nova/?modulo=mv" button_class="gsf-button-primary" button_icon="+" button_label="Abrir chamado de TI sobre o MV" %}
       </div>
 
       <aside class="hero-side">
         <h3>Resumo do módulo</h3>
-        <p>
-          Conteúdos exibidos conforme unidade, grupo de acesso e permissões do usuário.
-        </p>
+        <p>Conteúdos exibidos conforme unidade, grupo de acesso e permissões do usuário.</p>
 
         <p>
           <strong>Unidade:</strong>
-          {% if request.user.unidade %}
-            {{ request.user.unidade.nome }}
-          {% else %}
-            Sem unidade
-          {% endif %}
+          {% if request.user.unidade %}{{ request.user.unidade.nome }}{% else %}Sem unidade{% endif %}
           <br>
           <strong>Setor:</strong>
-          {% if request.user.setor %}
-            {{ request.user.setor.nome }}
-          {% else %}
-            Não informado
-          {% endif %}
+          {% if request.user.setor %}{{ request.user.setor.nome }}{% else %}Não informado{% endif %}
         </p>
 
         <p>
@@ -478,59 +183,33 @@
     </section>
 
     <section class="summary-grid">
-      <div class="summary-card">
-        <span>Convênios</span>
-        <strong>{{ total_convenios }}</strong>
-      </div>
-
-      <div class="summary-card">
-        <span>Convênios ativos</span>
-        <strong>{{ total_convenios_ativos }}</strong>
-      </div>
-
-      <div class="summary-card">
-        <span>Planos</span>
-        <strong>{{ total_planos }}</strong>
-      </div>
-
-      <div class="summary-card">
-        <span>Regras ativas</span>
-        <strong>{{ total_regras_ativas }}</strong>
-      </div>
-
-      <div class="summary-card">
-        <span>Chamados MV abertos</span>
-        <strong>{{ total_chamados_mv_abertos|default:0 }}</strong>
-      </div>
+      {% include "components/card.html" with card_class="summary-card" card_label="Convênios" card_number=total_convenios %}
+      {% include "components/card.html" with card_class="summary-card" card_label="Convênios ativos" card_number=total_convenios_ativos %}
+      {% include "components/card.html" with card_class="summary-card" card_label="Planos" card_number=total_planos %}
+      {% include "components/card.html" with card_class="summary-card" card_label="Regras ativas" card_number=total_regras_ativas %}
+      {% include "components/card.html" with card_class="summary-card" card_label="Chamados MV abertos" card_number=total_chamados_mv_abertos %}
     </section>
 
     <section class="panel-box">
       <div class="section-header">
         <div>
           <h2>Histórico de chamados deste módulo</h2>
-          <p>
-            Chamados abertos pela tela de Solicitações de TI com origem vinculada ao módulo MV.
-          </p>
+          <p>Chamados abertos pela tela de Solicitações de TI com origem vinculada ao módulo MV.</p>
         </div>
 
-        <div>
-          <a class="btn-success" href="/portal/modulos/solicitacoes-ti/nova/?modulo=mv">
-            + Abrir chamado MV
-          </a>
-
-          <a class="btn-link" href="/portal/modulos/solicitacoes-ti/?modulo_origem=mv">
-            Ver todos
-          </a>
+        <div class="item-actions">
+          {% include "components/button.html" with button_href="/portal/modulos/solicitacoes-ti/nova/?modulo=mv" button_class="gsf-button-primary" button_icon="+" button_label="Abrir chamado MV" %}
+          {% include "components/button.html" with button_href="/portal/modulos/solicitacoes-ti/?modulo_origem=mv" button_label="Ver todos" %}
         </div>
       </div>
 
-      <div class="ticket-list">
+      <div class="mv-ticket-list">
         {% for chamado in chamados_mv %}
-          <article class="ticket-card">
-            <div class="ticket-icon">🎫</div>
+          <article class="mv-ticket-card gsf-card">
+            <div class="mv-ticket-icon">🎫</div>
 
             <div>
-              <div class="ticket-title-line">
+              <div class="mv-ticket-title-line">
                 <div>
                   <h3>#{{ chamado.id }} - {{ chamado.titulo }}</h3>
                   <p style="margin: 0;">
@@ -546,47 +225,35 @@
 
                 <div>
                   {% if chamado.status == "aberto" %}
-                    <span class="badge badge-warn">{{ chamado.get_status_display }}</span>
+                    {% include "components/badge.html" with badge_class="gsf-badge-warning" badge_text=chamado.get_status_display %}
                   {% elif chamado.status == "em_atendimento" %}
-                    <span class="badge badge-blue">{{ chamado.get_status_display }}</span>
+                    {% include "components/badge.html" with badge_class="gsf-badge-info" badge_text=chamado.get_status_display %}
                   {% elif chamado.status == "resolvido" %}
-                    <span class="badge badge-ok">{{ chamado.get_status_display }}</span>
+                    {% include "components/badge.html" with badge_class="gsf-badge-ok" badge_text=chamado.get_status_display %}
                   {% elif chamado.status == "cancelado" %}
-                    <span class="badge badge-danger">{{ chamado.get_status_display }}</span>
+                    {% include "components/badge.html" with badge_class="gsf-badge-danger" badge_text=chamado.get_status_display %}
                   {% else %}
-                    <span class="badge">{{ chamado.get_status_display }}</span>
+                    {% include "components/badge.html" with badge_text=chamado.get_status_display %}
                   {% endif %}
                 </div>
               </div>
 
-              <span class="badge">🏥 {{ chamado.modulo_origem_exibicao }}</span>
-              <span class="badge">{{ chamado.get_tipo_display }}</span>
-              <span class="badge">{{ chamado.get_prioridade_display }}</span>
+              {% include "components/badge.html" with badge_icon="🏥" badge_text=chamado.modulo_origem_exibicao %}
+              {% include "components/badge.html" with badge_text=chamado.get_tipo_display %}
+              {% include "components/badge.html" with badge_text=chamado.get_prioridade_display %}
 
-              <div class="ticket-meta">
-                <div class="ticket-meta-item">
+              <div class="mv-ticket-meta">
+                <div class="mv-ticket-meta-item">
                   <span>Unidade</span>
-                  <strong>
-                    {% if chamado.unidade %}
-                      {{ chamado.unidade.sigla }}
-                    {% else %}
-                      Não informada
-                    {% endif %}
-                  </strong>
+                  <strong>{% if chamado.unidade %}{{ chamado.unidade.sigla }}{% else %}Não informada{% endif %}</strong>
                 </div>
 
-                <div class="ticket-meta-item">
+                <div class="mv-ticket-meta-item">
                   <span>Setor</span>
-                  <strong>
-                    {% if chamado.setor %}
-                      {{ chamado.setor.nome }}
-                    {% else %}
-                      Não informado
-                    {% endif %}
-                  </strong>
+                  <strong>{% if chamado.setor %}{{ chamado.setor.nome }}{% else %}Não informado{% endif %}</strong>
                 </div>
 
-                <div class="ticket-meta-item">
+                <div class="mv-ticket-meta-item">
                   <span>Responsável TI</span>
                   <strong>
                     {% if chamado.responsavel_ti %}
@@ -597,7 +264,7 @@
                   </strong>
                 </div>
 
-                <div class="ticket-meta-item">
+                <div class="mv-ticket-meta-item">
                   <span>SLA</span>
                   <strong>{{ chamado.sla_status_exibicao }}</strong>
                 </div>
@@ -607,15 +274,17 @@
                 <p>{{ chamado.descricao|truncatechars:180 }}</p>
               {% endif %}
 
-              <a class="badge" href="/portal/modulos/solicitacoes-ti/detalhe/{{ chamado.id }}/">
-                Ver detalhes
-              </a>
-
-              {% if pode_gerenciar_mv %}
-                <a class="badge badge-blue" href="/portal/modulos/solicitacoes-ti/atender/{{ chamado.id }}/">
-                  Atender
+              <div class="item-actions">
+                <a class="gsf-button" href="/portal/modulos/solicitacoes-ti/detalhe/{{ chamado.id }}/">
+                  Ver detalhes
                 </a>
-              {% endif %}
+
+                {% if pode_gerenciar_mv %}
+                  <a class="gsf-button gsf-button-primary" href="/portal/modulos/solicitacoes-ti/atender/{{ chamado.id }}/">
+                    Atender
+                  </a>
+                {% endif %}
+              </div>
             </div>
           </article>
         {% empty %}
@@ -634,53 +303,53 @@
         </div>
       </div>
 
-      <div class="modules-grid">
+      <div class="mv-modules-grid">
 
-        <div class="module-card" onclick="window.location.href='/portal/modulos/mv/manuais/'">
-          <div class="module-icon">📘</div>
+        <div class="mv-module-card gsf-card" onclick="window.location.href='/portal/modulos/mv/manuais/'">
+          <div class="mv-module-icon">📘</div>
           <h3>Manuais MV</h3>
           <p>Documentos operacionais, orientações, POPs e manuais do sistema.</p>
           <small>{{ conteudos_por_tipo.manual|length }} item(ns) cadastrado(s)</small>
         </div>
 
-        <div class="module-card" onclick="window.location.href='/portal/modulos/mv/convenios/'">
-          <div class="module-icon">🏥</div>
+        <div class="mv-module-card gsf-card" onclick="window.location.href='/portal/modulos/mv/convenios/'">
+          <div class="mv-module-icon">🏥</div>
           <h3>Convênios</h3>
           <p>Consulta por convênio, plano, especialidade, regras e procedimentos proibidos.</p>
           <small>{{ total_convenios_ativos }} convênio(s) ativo(s)</small>
         </div>
 
-        <div class="module-card" onclick="window.location.href='/portal/modulos/mv/contingencia/'">
-          <div class="module-icon">🚨</div>
+        <div class="mv-module-card gsf-card" onclick="window.location.href='/portal/modulos/mv/contingencia/'">
+          <div class="mv-module-icon">🚨</div>
           <h3>Contingência</h3>
           <p>Orientações para indisponibilidade, lentidão ou falha do sistema MV.</p>
           <small>{{ conteudos_por_tipo.contingencia|length }} item(ns) cadastrado(s)</small>
         </div>
 
-        <div class="module-card" onclick="window.location.href='/portal/modulos/mv/chamados/'">
-          <div class="module-icon">🧾</div>
+        <div class="mv-module-card gsf-card" onclick="window.location.href='/portal/modulos/mv/chamados/'">
+          <div class="mv-module-icon">🧾</div>
           <h3>Chamados MV</h3>
           <p>Links e instruções para abertura e acompanhamento de chamados.</p>
           <small>{{ conteudos_por_tipo.chamado|length }} item(ns) cadastrado(s)</small>
         </div>
 
-        <div class="module-card" onclick="window.location.href='/portal/modulos/mv/links/'">
-          <div class="module-icon">🔗</div>
+        <div class="mv-module-card gsf-card" onclick="window.location.href='/portal/modulos/mv/links/'">
+          <div class="mv-module-icon">🔗</div>
           <h3>Links úteis</h3>
           <p>Acessos rápidos relacionados ao sistema MV e fornecedores.</p>
           <small>{{ conteudos_por_tipo.link|length }} item(ns) cadastrado(s)</small>
         </div>
 
-        <div class="module-card" onclick="window.location.href='/portal/modulos/mv/observacoes/'">
-          <div class="module-icon">📝</div>
+        <div class="mv-module-card gsf-card" onclick="window.location.href='/portal/modulos/mv/observacoes/'">
+          <div class="mv-module-icon">📝</div>
           <h3>Observações</h3>
           <p>Orientações internas, alertas e observações operacionais.</p>
           <small>{{ conteudos_por_tipo.observacao|length }} item(ns) cadastrado(s)</small>
         </div>
 
         {% if pode_gerenciar_mv %}
-          <div class="module-card" onclick="window.location.href='/portal/modulos/mv/importacoes/'">
-            <div class="module-icon">📥</div>
+          <div class="mv-module-card gsf-card" onclick="window.location.href='/portal/modulos/mv/importacoes/'">
+            <div class="mv-module-icon">📥</div>
             <h3>Importações MV</h3>
             <p>Importe convênios, planos, procedimentos proibidos e regras de atendimento por CSV ou XLSX.</p>
             <small>Processamento em massa</small>
@@ -690,7 +359,7 @@
       </div>
     </section>
 
-    <section class="panel-grid">
+    <section class="mv-panel-grid">
       <div class="panel-box">
         <div class="section-header">
           <div>
@@ -699,10 +368,10 @@
           </div>
         </div>
 
-        <div class="notice-list">
+        <div class="mv-notice-list">
           {% for item in conteudos_por_tipo.manual %}
-            <article class="notice-card">
-              <div class="notice-icon">📘</div>
+            <article class="mv-notice-card gsf-card">
+              <div class="mv-notice-icon">📘</div>
 
               <div>
                 <h3>{{ item.titulo }}</h3>
@@ -712,18 +381,20 @@
                 {% endif %}
 
                 {% if item.unidade %}
-                  <span class="badge">{{ item.unidade.sigla }}</span>
+                  {% include "components/badge.html" with badge_text=item.unidade.sigla %}
                 {% else %}
-                  <span class="badge">Todas</span>
+                  {% include "components/badge.html" with badge_text="Todas" %}
                 {% endif %}
 
-                {% if item.arquivo %}
-                  <a class="badge" href="{{ item.arquivo.url }}" target="_blank">Abrir arquivo</a>
-                {% endif %}
+                <div class="item-actions">
+                  {% if item.arquivo %}
+                    {% include "components/button.html" with button_href=item.arquivo.url button_target="_blank" button_label="Abrir arquivo" %}
+                  {% endif %}
 
-                {% if item.link_externo %}
-                  <a class="badge" href="{{ item.link_externo }}" target="_blank">Abrir link</a>
-                {% endif %}
+                  {% if item.link_externo %}
+                    {% include "components/button.html" with button_href=item.link_externo button_target="_blank" button_label="Abrir link" %}
+                  {% endif %}
+                </div>
               </div>
             </article>
           {% empty %}
@@ -742,10 +413,10 @@
           </div>
         </div>
 
-        <div class="notice-list">
+        <div class="mv-notice-list">
           {% for item in conteudos_por_tipo.link %}
-            <article class="notice-card">
-              <div class="notice-icon">🔗</div>
+            <article class="mv-notice-card gsf-card">
+              <div class="mv-notice-icon">🔗</div>
 
               <div>
                 <h3>{{ item.titulo }}</h3>
@@ -754,13 +425,15 @@
                   <p>{{ item.descricao }}</p>
                 {% endif %}
 
-                {% if item.link_externo %}
-                  <a class="badge" href="{{ item.link_externo }}" target="_blank">Abrir link</a>
-                {% elif item.arquivo %}
-                  <a class="badge" href="{{ item.arquivo.url }}" target="_blank">Abrir arquivo</a>
-                {% else %}
-                  <span class="badge">Sem link</span>
-                {% endif %}
+                <div class="item-actions">
+                  {% if item.link_externo %}
+                    {% include "components/button.html" with button_href=item.link_externo button_target="_blank" button_label="Abrir link" %}
+                  {% elif item.arquivo %}
+                    {% include "components/button.html" with button_href=item.arquivo.url button_target="_blank" button_label="Abrir arquivo" %}
+                  {% else %}
+                    {% include "components/badge.html" with badge_text="Sem link" %}
+                  {% endif %}
+                </div>
               </div>
             </article>
           {% empty %}
@@ -780,10 +453,10 @@
         </div>
       </div>
 
-      <div class="notice-list">
+      <div class="mv-notice-list">
         {% for item in conteudos_por_tipo.contingencia %}
-          <article class="notice-card">
-            <div class="notice-icon">🚨</div>
+          <article class="mv-notice-card gsf-card">
+            <div class="mv-notice-icon">🚨</div>
 
             <div>
               <h3>{{ item.titulo }}</h3>
@@ -792,13 +465,15 @@
                 <p>{{ item.descricao }}</p>
               {% endif %}
 
-              {% if item.arquivo %}
-                <a class="badge" href="{{ item.arquivo.url }}" target="_blank">Abrir arquivo</a>
-              {% endif %}
+              <div class="item-actions">
+                {% if item.arquivo %}
+                  {% include "components/button.html" with button_href=item.arquivo.url button_target="_blank" button_label="Abrir arquivo" %}
+                {% endif %}
 
-              {% if item.link_externo %}
-                <a class="badge" href="{{ item.link_externo }}" target="_blank">Abrir link</a>
-              {% endif %}
+                {% if item.link_externo %}
+                  {% include "components/button.html" with button_href=item.link_externo button_target="_blank" button_label="Abrir link" %}
+                {% endif %}
+              </div>
             </div>
           </article>
         {% empty %}
@@ -809,13 +484,5 @@
       </div>
     </section>
 
-    <footer class="footer">
-      <span>MV / Sistema Hospitalar • Intranet Grupo São Francisco</span>
-      <span>Tecnologia da Informação • Ambiente interno</span>
-    </footer>
-
-  </main>
-
-  <script src="{% static 'core/js/home.js' %}"></script>
-</body>
-</html>
+  </div>
+{% endblock %}

@@ -1126,6 +1126,7 @@ def modulo_mv(request):
     ).count()
 
     return render(request, 'core/modulo_mv.html', {
+        'page_title': 'MV / Sistema Hospitalar',
         'modulo': modulo,
         'conteudos_por_tipo': conteudos_por_tipo,
         'pode_gerenciar_mv': pode_gerenciar_mv,
