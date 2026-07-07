@@ -2984,6 +2984,7 @@ def links_uteis(request):
     pode_gerenciar = usuario_pode_gerenciar_links_uteis(request.user)
 
     return render(request, 'core/links_uteis.html', {
+        'page_title': 'Links Úteis',
         'modulo': modulo,
         'links': links,
         'unidades': unidades,

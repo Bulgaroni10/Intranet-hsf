@@ -1,54 +1,10 @@
+{% extends "base/base.html" %}
 {% load static %}
 
-<!DOCTYPE html>
-<html lang="pt-BR">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+{% block title %}Links Úteis | Intranet{% endblock %}
 
-  <title>Links Úteis | Intranet</title>
-
-  <link rel="stylesheet" href="{% static 'core/css/home.css' %}">
-
+{% block extra_css %}
   <style>
-    .top-actions {
-      display: flex;
-      gap: 10px;
-      flex-wrap: wrap;
-      margin-bottom: 24px;
-    }
-
-    .btn-action {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      padding: 10px 14px;
-      border-radius: 10px;
-      border: 1px solid rgba(148, 163, 184, 0.3);
-      background: rgba(15, 23, 42, 0.75);
-      color: #e5e7eb;
-      text-decoration: none;
-      font-size: 13px;
-      font-weight: 800;
-      cursor: pointer;
-    }
-
-    .btn-action:hover {
-      border-color: #2dd4bf;
-      color: #2dd4bf;
-    }
-
-    .btn-primary {
-      background: #2dd4bf;
-      color: #06201d;
-      border-color: #2dd4bf;
-    }
-
-    .btn-primary:hover {
-      color: #06201d;
-      filter: brightness(1.05);
-    }
-
     .messages-box {
       display: grid;
       gap: 10px;
@@ -77,21 +33,21 @@
       color: #fecaca;
     }
 
-    .summary-grid {
+    .links-summary-grid {
       display: grid;
       grid-template-columns: repeat(5, minmax(0, 1fr));
       gap: 14px;
       margin-bottom: 26px;
     }
 
-    .summary-card {
+    .links-summary-card {
       background: rgba(31, 31, 31, 0.96);
       border: 1px solid rgba(148, 163, 184, 0.2);
       border-radius: 16px;
       padding: 18px;
     }
 
-    .summary-card span {
+    .links-summary-card span {
       display: block;
       color: #94a3b8;
       font-size: 12px;
@@ -100,10 +56,17 @@
       margin-bottom: 8px;
     }
 
-    .summary-card strong {
+    .links-summary-card strong {
       display: block;
       color: #ffffff;
       font-size: 26px;
+    }
+
+    .links-filter-actions {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-top: 12px;
     }
 
     .links-grid {
@@ -114,7 +77,6 @@
 
     .link-card {
       display: block;
-      text-decoration: none;
       color: inherit;
       background: rgba(255, 255, 255, 0.04);
       border: 1px solid rgba(255, 255, 255, 0.10);
@@ -135,6 +97,11 @@
     .link-card.inativo {
       opacity: 0.62;
       border-color: rgba(248, 113, 113, 0.25);
+    }
+
+    .link-main {
+      color: inherit;
+      text-decoration: none;
     }
 
     .link-card-top {
@@ -164,27 +131,10 @@
       gap: 6px;
     }
 
-    .link-unit {
-      font-size: 11px;
-      font-weight: 700;
-      text-transform: uppercase;
-      color: #2dd4bf;
-      background: rgba(45, 212, 191, 0.10);
-      border: 1px solid rgba(45, 212, 191, 0.22);
-      border-radius: 999px;
-      padding: 6px 10px;
-    }
-
-    .link-inativo {
-      color: #fecaca;
-      background: rgba(127, 29, 29, 0.35);
-      border-color: rgba(248, 113, 113, 0.35);
-    }
-
     .link-card h3 {
       color: #ffffff;
       font-size: 17px;
-      margin: 0 0 8px 0;
+      margin: 0 0 8px;
       line-height: 1.3;
     }
 
@@ -212,10 +162,6 @@
       font-weight: 700;
     }
 
-    .link-card-footer span:last-child {
-      font-size: 16px;
-    }
-
     .card-actions {
       display: flex;
       gap: 8px;
@@ -226,320 +172,249 @@
     }
 
     .card-action {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
+      min-height: 34px;
       border-radius: 999px;
-      border: 1px solid rgba(45, 212, 191, 0.24);
-      background: rgba(45, 212, 191, 0.10);
-      color: #2dd4bf;
-      padding: 8px 12px;
+      padding: 0 12px;
       font-size: 12px;
-      font-weight: 700;
-      text-decoration: none;
-    }
-
-    .card-action:hover {
-      background: rgba(45, 212, 191, 0.18);
     }
 
     @media (max-width: 1000px) {
-      .summary-grid {
+      .links-summary-grid {
         grid-template-columns: 1fr;
       }
     }
   </style>
-</head>
+{% endblock %}
 
-<body>
+{% block content %}
+  <div class="page">
 
-  <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
+    <div class="top-actions">
+      {% include "components/button.html" with button_href="/portal/" button_icon="←" button_label="Voltar ao portal" %}
 
-  <div id="portal-screen" style="display: block;">
-    <header>
-      <div class="logo">
-        {% if request.user.unidade %}
-          {% if request.user.unidade.sigla == "HSFVF" or request.user.unidade.sigla == "HSFMA" %}
-            <img src="{% static 'core/img/logo-sagrada-familia.png' %}" alt="Logo" class="header-unit-logo">
-          {% else %}
-            <img src="{% static 'core/img/logo-hsf.png' %}" alt="Logo" class="header-unit-logo">
-          {% endif %}
-        {% else %}
-          <img src="{% static 'core/img/logo-hsf.png' %}" alt="Logo" class="header-unit-logo">
-        {% endif %}
+      {% if pode_gerenciar %}
+        {% include "components/button.html" with button_href="/portal/modulos/links-uteis/novo/" button_class="gsf-button-primary" button_icon="+" button_label="Novo link útil" %}
+      {% endif %}
+    </div>
 
-        <div>
-          <span>Intranet Grupo São Francisco</span>
-          <span class="unit-tag">
-            {% if request.user.unidade %}
-              {{ request.user.unidade.nome }}
-            {% else %}
-              Sem unidade vinculada
-            {% endif %}
-          </span>
-        </div>
+    {% if messages %}
+      <div class="messages-box">
+        {% for message in messages %}
+          <div class="message-item {% if message.tags == 'success' %}message-success{% elif message.tags == 'error' %}message-error{% endif %}">
+            {{ message }}
+          </div>
+        {% endfor %}
+      </div>
+    {% endif %}
+
+    <section class="hero-box">
+      <div class="hero-main">
+        <div class="eyebrow">Tecnologia e acessos</div>
+        <h1>Links Úteis / Sistemas Internos</h1>
+        <p>
+          Central de atalhos para sistemas, portais, ferramentas internas e acessos de apoio.
+        </p>
       </div>
 
-      <div class="header-right">
-        <a class="logout-btn" href="/portal/">Voltar ao portal</a>
-        <button class="logout-btn" onclick="doLogout()">Sair</button>
-      </div>
-    </header>
+      <aside class="hero-side">
+        <h3>Acessos rápidos</h3>
+        <p>
+          Os links exibidos são filtrados conforme sua unidade e permissão de acesso.
+        </p>
+      </aside>
+    </section>
 
-    <main class="portal-shell">
-
-      <div class="top-actions">
-        <a class="btn-action" href="/portal/">← Voltar ao portal</a>
-
-        {% if pode_gerenciar %}
-          <a class="btn-action btn-primary" href="/portal/modulos/links-uteis/novo/">
-            + Novo link útil
-          </a>
-        {% endif %}
+    <section class="links-summary-grid">
+      <div class="links-summary-card">
+        <span>Total</span>
+        <strong>{{ total_links }}</strong>
       </div>
 
-      {% if messages %}
-        <div class="messages-box">
-          {% for message in messages %}
-            <div class="message-item {% if message.tags == 'success' %}message-success{% elif message.tags == 'error' %}message-error{% endif %}">
-              {{ message }}
-            </div>
-          {% endfor %}
+      <div class="links-summary-card">
+        <span>Ativos</span>
+        <strong>{{ total_ativos }}</strong>
+      </div>
+
+      <div class="links-summary-card">
+        <span>Gerais</span>
+        <strong>{{ total_gerais }}</strong>
+      </div>
+
+      <div class="links-summary-card">
+        <span>Por unidade</span>
+        <strong>{{ total_unidade }}</strong>
+      </div>
+
+      {% if pode_gerenciar %}
+        <div class="links-summary-card">
+          <span>Inativos</span>
+          <strong>{{ total_inativos }}</strong>
         </div>
       {% endif %}
+    </section>
 
-      <section class="hero">
-        <div class="hero-main">
-          <div class="hero-eyebrow">Tecnologia e acessos</div>
+    <section class="category-section">
+      <div class="category-header">
+        <h2>Filtros</h2>
+        <p>Pesquise pelo nome do sistema, descrição ou endereço do link.</p>
+      </div>
 
-          <h1>Links Úteis / Sistemas Internos</h1>
+      <div class="panel-box">
+        <form method="get">
+          <div class="grid-section">
 
-          <p class="welcome-sub">
-            Central de atalhos para sistemas, portais, ferramentas internas e acessos de apoio.
-          </p>
-        </div>
+            <div class="form-group">
+              <label>Busca</label>
+              <input
+                type="text"
+                name="busca"
+                value="{{ busca }}"
+                placeholder="Ex: MV, PEP, IDCE, Zabbix, chamados..."
+              >
+            </div>
 
-        <aside class="support-card">
-          <h3>Acessos rápidos</h3>
+            <div class="form-group">
+              <label>Unidade</label>
+              <select name="unidade">
+                <option value="">Todas</option>
+                <option value="geral" {% if unidade_id == "geral" %}selected{% endif %}>
+                  Geral / Todas as unidades
+                </option>
 
-          <p>
-            Os links exibidos são filtrados conforme sua unidade e permissão de acesso.
-          </p>
-
-          <div class="support-actions">
-            <button class="support-action">
-              Segurança
-              <small>Não compartilhe acessos internos fora do ambiente corporativo.</small>
-            </button>
-          </div>
-        </aside>
-      </section>
-
-      <section class="summary-grid">
-        <div class="summary-card">
-          <span>Total</span>
-          <strong>{{ total_links }}</strong>
-        </div>
-
-        <div class="summary-card">
-          <span>Ativos</span>
-          <strong>{{ total_ativos }}</strong>
-        </div>
-
-        <div class="summary-card">
-          <span>Gerais</span>
-          <strong>{{ total_gerais }}</strong>
-        </div>
-
-        <div class="summary-card">
-          <span>Por unidade</span>
-          <strong>{{ total_unidade }}</strong>
-        </div>
-
-        {% if pode_gerenciar %}
-          <div class="summary-card">
-            <span>Inativos</span>
-            <strong>{{ total_inativos }}</strong>
-          </div>
-        {% endif %}
-      </section>
-
-      <section class="category-section">
-        <div class="category-header">
-          <h2>Filtros</h2>
-          <p>Pesquise pelo nome do sistema, descrição ou endereço do link.</p>
-        </div>
-
-        <div class="panel-box">
-          <form method="get">
-            <div class="grid-section">
-
-              <div class="form-group">
-                <label>Busca</label>
-                <input
-                  type="text"
-                  name="busca"
-                  value="{{ busca }}"
-                  placeholder="Ex: MV, PEP, IDCE, Zabbix, chamados..."
-                >
-              </div>
-
-              <div class="form-group">
-                <label>Unidade</label>
-                <select name="unidade">
-                  <option value="">Todas</option>
-                  <option value="geral" {% if unidade_id == "geral" %}selected{% endif %}>
-                    Geral / Todas as unidades
+                {% for unidade in unidades %}
+                  <option value="{{ unidade.id }}" {% if unidade_id == unidade.id|stringformat:"s" %}selected{% endif %}>
+                    {{ unidade.nome }}
                   </option>
+                {% endfor %}
+              </select>
+            </div>
 
-                  {% for unidade in unidades %}
-                    <option value="{{ unidade.id }}" {% if unidade_id == unidade.id|stringformat:"s" %}selected{% endif %}>
-                      {{ unidade.nome }}
-                    </option>
-                  {% endfor %}
+            {% if pode_gerenciar %}
+              <div class="form-group">
+                <label>Status</label>
+                <select name="status">
+                  <option value="">Todos</option>
+                  <option value="ativo" {% if status == "ativo" %}selected{% endif %}>Ativos</option>
+                  <option value="inativo" {% if status == "inativo" %}selected{% endif %}>Inativos</option>
                 </select>
               </div>
+            {% endif %}
 
-              {% if pode_gerenciar %}
-                <div class="form-group">
-                  <label>Status</label>
-                  <select name="status">
-                    <option value="">Todos</option>
-                    <option value="ativo" {% if status == "ativo" %}selected{% endif %}>Ativos</option>
-                    <option value="inativo" {% if status == "inativo" %}selected{% endif %}>Inativos</option>
-                  </select>
-                </div>
-              {% endif %}
+          </div>
 
-            </div>
+          <div class="links-filter-actions">
+            {% include "components/button.html" with button_type="submit" button_class="gsf-button-primary" button_label="Consultar" %}
+            {% include "components/button.html" with button_href="/portal/modulos/links-uteis/" button_label="Limpar filtros" %}
+          </div>
+        </form>
+      </div>
+    </section>
 
-            <div style="display:flex; gap:10px; flex-wrap:wrap; margin-top: 12px;">
-              <button type="submit" class="btn-login" style="max-width: 180px;">
-                Consultar
-              </button>
+    <section class="category-section">
+      <div class="category-header">
+        <h2>Links disponíveis</h2>
+        <p>Atalhos cadastrados para sua unidade e perfil.</p>
+      </div>
 
-              <a href="/portal/modulos/links-uteis/" class="logout-btn" style="text-decoration:none; display:flex; align-items:center;">
-                Limpar filtros
-              </a>
-            </div>
-          </form>
-        </div>
-      </section>
-
-      <section class="category-section">
-        <div class="category-header">
-          <h2>Links disponíveis</h2>
-          <p>Atalhos cadastrados para sua unidade e perfil.</p>
-        </div>
-
-        <div class="links-grid">
-          {% for link in links %}
-            <div class="link-card {% if not link.ativo %}inativo{% endif %}">
-              <a
-                href="{{ link.link_externo }}"
-                target="_blank"
-                rel="noopener noreferrer"
-                style="text-decoration:none; color:inherit;"
-              >
-                <div class="link-card-top">
-                  <div class="link-icon">
-                    {% with titulo_lower=link.titulo|lower %}
-                      {% if "mv" in titulo_lower %}
-                        🏥
-                      {% elif "pep" in titulo_lower %}
-                        📋
-                      {% elif "idce" in titulo_lower %}
-                        🩺
-                      {% elif "doctor" in titulo_lower %}
-                        👨‍⚕️
-                      {% elif "zabbix" in titulo_lower %}
-                        📊
-                      {% elif "chamado" in titulo_lower or "glpi" in titulo_lower %}
-                        🎫
-                      {% elif "email" in titulo_lower or "webmail" in titulo_lower %}
-                        ✉️
-                      {% elif "bookstack" in titulo_lower or "wiki" in titulo_lower %}
-                        📚
-                      {% else %}
-                        🔗
-                      {% endif %}
-                    {% endwith %}
-                  </div>
-
-                  <div class="link-badges">
-                    {% if link.unidade %}
-                      <span class="link-unit">{{ link.unidade.sigla }}</span>
+      <div class="links-grid">
+        {% for link in links %}
+          <div class="link-card {% if not link.ativo %}inativo{% endif %}">
+            <a
+              class="link-main"
+              href="{{ link.link_externo }}"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              <div class="link-card-top">
+                <div class="link-icon">
+                  {% with titulo_lower=link.titulo|lower %}
+                    {% if "mv" in titulo_lower %}
+                      🏥
+                    {% elif "pep" in titulo_lower %}
+                      📋
+                    {% elif "idce" in titulo_lower %}
+                      🩺
+                    {% elif "doctor" in titulo_lower %}
+                      ⚕
+                    {% elif "zabbix" in titulo_lower %}
+                      📊
+                    {% elif "chamado" in titulo_lower or "glpi" in titulo_lower %}
+                      🎫
+                    {% elif "email" in titulo_lower or "webmail" in titulo_lower %}
+                      ✉
+                    {% elif "bookstack" in titulo_lower or "wiki" in titulo_lower %}
+                      📚
                     {% else %}
-                      <span class="link-unit">Geral</span>
+                      🔗
                     {% endif %}
-
-                    {% if not link.ativo %}
-                      <span class="link-unit link-inativo">Inativo</span>
-                    {% endif %}
-                  </div>
+                  {% endwith %}
                 </div>
 
-                <h3>{{ link.titulo }}</h3>
-
-                {% if link.descricao %}
-                  <p>{{ link.descricao }}</p>
-                {% else %}
-                  <p>Acessar sistema ou portal interno.</p>
-                {% endif %}
-
-                {% if pode_gerenciar %}
-                  <div class="link-url">
-                    {{ link.link_externo }}
-                  </div>
-                {% endif %}
-
-                <div class="link-card-footer">
-                  <span>Abrir link</span>
-                  <span>↗</span>
-                </div>
-              </a>
-
-              {% if pode_gerenciar %}
-                <div class="card-actions">
-                  <a class="card-action" href="/portal/modulos/links-uteis/editar/{{ link.id }}/">
-                    Editar
-                  </a>
-
-                  {% if link.ativo %}
-                    <a class="card-action" href="/portal/modulos/links-uteis/inativar/{{ link.id }}/">
-                      Inativar
-                    </a>
+                <div class="link-badges">
+                  {% if link.unidade %}
+                    {% include "components/badge.html" with badge_text=link.unidade.sigla %}
                   {% else %}
-                    <a class="card-action" href="/portal/modulos/links-uteis/reativar/{{ link.id }}/">
-                      Reativar
-                    </a>
+                    {% include "components/badge.html" with badge_text="Geral" %}
+                  {% endif %}
+
+                  {% if not link.ativo %}
+                    {% include "components/badge.html" with badge_class="gsf-badge-danger" badge_text="Inativo" %}
                   {% endif %}
                 </div>
-              {% endif %}
-            </div>
-          {% empty %}
-            <div class="notice">
-              <div class="notice-icon">🔎</div>
-
-              <div>
-                <h3>Nenhum link encontrado</h3>
-                <p>
-                  Não há links cadastrados para os filtros informados ou para seu perfil de acesso.
-                </p>
               </div>
+
+              <h3>{{ link.titulo }}</h3>
+
+              {% if link.descricao %}
+                <p>{{ link.descricao }}</p>
+              {% else %}
+                <p>Acessar sistema ou portal interno.</p>
+              {% endif %}
+
+              {% if pode_gerenciar %}
+                <div class="link-url">
+                  {{ link.link_externo }}
+                </div>
+              {% endif %}
+
+              <div class="link-card-footer">
+                <span>Abrir link</span>
+                <span>↗</span>
+              </div>
+            </a>
+
+            {% if pode_gerenciar %}
+              <div class="card-actions">
+                <a class="gsf-button card-action" href="/portal/modulos/links-uteis/editar/{{ link.id }}/">
+                  Editar
+                </a>
+
+                {% if link.ativo %}
+                  <a class="gsf-button gsf-button-danger card-action" href="/portal/modulos/links-uteis/inativar/{{ link.id }}/">
+                    Inativar
+                  </a>
+                {% else %}
+                  <a class="gsf-button gsf-button-primary card-action" href="/portal/modulos/links-uteis/reativar/{{ link.id }}/">
+                    Reativar
+                  </a>
+                {% endif %}
+              </div>
+            {% endif %}
+          </div>
+        {% empty %}
+          <div class="notice">
+            <div class="notice-icon">🔎</div>
+
+            <div>
+              <h3>Nenhum link encontrado</h3>
+              <p>
+                Não há links cadastrados para os filtros informados ou para seu perfil de acesso.
+              </p>
             </div>
-          {% endfor %}
-        </div>
-      </section>
+          </div>
+        {% endfor %}
+      </div>
+    </section>
 
-      <footer class="footer">
-        <span>Links Úteis • Intranet Grupo São Francisco</span>
-        <span>Tecnologia da Informação • Ambiente interno</span>
-      </footer>
-
-    </main>
   </div>
-
-  <script src="{% static 'core/js/home.js' %}"></script>
-</body>
-</html>
+{% endblock %}
