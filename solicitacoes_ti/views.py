@@ -248,6 +248,7 @@ def solicitacoes_ti(request):
         )[:10]
 
     return render(request, 'solicitacoes_ti/solicitacoes_ti.html', {
+        'page_title': 'Solicitações de TI',
         'solicitacoes': solicitacoes[:300],
         'unidades': unidades,
         'responsaveis_ti': responsaveis_ti,
@@ -451,6 +452,7 @@ def nova_solicitacao_ti(request):
             return redirect('solicitacoes_ti')
 
     return render(request, 'solicitacoes_ti/nova_solicitacao_ti.html', {
+        'page_title': 'Nova solicitação de TI',
         'unidades': unidades,
         'setores': setores,
         'modulos_origem': SolicitacaoTI.MODULO_ORIGEM_CHOICES,
@@ -560,6 +562,7 @@ def detalhe_solicitacao_ti(request, solicitacao_id):
     )
 
     return render(request, 'solicitacoes_ti/detalhe_solicitacao_ti.html', {
+        'page_title': f'Solicitação #{solicitacao.id}',
         'solicitacao': solicitacao,
         'mensagens': mensagens,
         'erro': erro,
@@ -821,6 +824,7 @@ def atender_solicitacao_ti(request, solicitacao_id):
     )
 
     return render(request, 'solicitacoes_ti/atender_solicitacao_ti.html', {
+        'page_title': f'Atendimento #{solicitacao.id}',
         'solicitacao': solicitacao,
         'mensagens': mensagens,
         'status_choices': SolicitacaoTI.STATUS_CHOICES,

@@ -1048,6 +1048,7 @@ def portal(request):
     if pode_acessar_solicitacoes_ti:
         resumo_chamados_ti = buscar_resumo_chamados_ti(user)
     return render(request, 'core/portal.html', {
+        'page_title': 'Portal',
         'categorias': categorias,
         'ocorrencias_ativas': ocorrencias_ativas,
         'avisos_dashboard': avisos_dashboard,
