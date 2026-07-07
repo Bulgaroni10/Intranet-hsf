@@ -18,57 +18,6 @@
       margin-bottom:22px;
     }
 
-    .btn-link,
-    .btn-submit,
-    .btn-success,
-    .btn-warning,
-    .btn-danger,
-    .btn-muted {
-      display:inline-flex;
-      align-items:center;
-      justify-content:center;
-      padding:10px 14px;
-      border-radius:12px;
-      border:1px solid rgba(148,163,184,.28);
-      background:rgba(15,23,42,.82);
-      color:#e5e7eb;
-      text-decoration:none;
-      font-size:13px;
-      font-weight:900;
-      cursor:pointer;
-      transition:.15s;
-    }
-
-    .btn-link:hover,
-    .btn-muted:hover {
-      border-color:#2dd4bf;
-      color:#2dd4bf;
-    }
-
-    .btn-submit,
-    .btn-success {
-      background:#2dd4bf;
-      color:#042f2e;
-      border-color:#2dd4bf;
-    }
-
-    .btn-warning {
-      background:rgba(120,53,15,.78);
-      color:#fde68a;
-      border-color:rgba(251,191,36,.45);
-    }
-
-    .btn-danger {
-      background:rgba(127,29,29,.78);
-      color:#fecaca;
-      border-color:rgba(248,113,113,.45);
-    }
-
-    .btn-muted {
-      background:rgba(51,65,85,.72);
-      color:#cbd5e1;
-    }
-
     .hero-main,
     .detail-card,
     .form-card,
@@ -130,7 +79,6 @@
       margin-top:14px;
     }
 
-    .badge,
     .sla-pill {
       display:inline-flex;
       align-items:center;
@@ -325,56 +273,6 @@
       box-sizing:border-box;
     }
 
-    .chat-box {
-      max-height:460px;
-      overflow:auto;
-      display:flex;
-      flex-direction:column;
-      gap:12px;
-      padding-right:4px;
-    }
-
-    .msg {
-      border-radius:16px;
-      padding:13px;
-      border:1px solid rgba(148,163,184,.18);
-      background:rgba(15,23,42,.58);
-    }
-
-    .msg-ti {
-      border-color:rgba(45,212,191,.35);
-      background:rgba(45,212,191,.10);
-      margin-left:45px;
-    }
-
-    .msg-user {
-      border-color:rgba(96,165,250,.35);
-      background:rgba(30,64,175,.18);
-      margin-right:45px;
-    }
-
-    .msg-system {
-      border-color:rgba(148,163,184,.25);
-      background:rgba(51,65,85,.35);
-    }
-
-    .msg-head {
-      display:flex;
-      justify-content:space-between;
-      gap:10px;
-      margin-bottom:7px;
-      color:#94a3b8;
-      font-size:12px;
-      font-weight:900;
-    }
-
-    .msg p {
-      margin:0;
-      white-space:pre-wrap;
-      color:#e5e7eb;
-      font-size:14px;
-    }
-
     .side-list {
       display:flex;
       flex-direction:column;
@@ -420,11 +318,6 @@
         box-sizing:border-box;
       }
 
-      .msg-ti,
-      .msg-user {
-        margin-left:0;
-        margin-right:0;
-      }
     }
   </style>
 {% endblock %}
@@ -434,9 +327,9 @@
   <div class="page">
 
     <div class="top-actions">
-      <a class="btn-link" href="/portal/modulos/solicitacoes-ti/">← Voltar para solicitações</a>
-      <a class="btn-link" href="/portal/modulos/solicitacoes-ti/detalhe/{{ solicitacao.id }}/">Ver como solicitante</a>
-      <a class="btn-link" href="/portal/">Voltar ao portal</a>
+      <a class="gsf-button" href="/portal/modulos/solicitacoes-ti/">← Voltar para solicitações</a>
+      <a class="gsf-button" href="/portal/modulos/solicitacoes-ti/detalhe/{{ solicitacao.id }}/">Ver como solicitante</a>
+      <a class="gsf-button" href="/portal/">Voltar ao portal</a>
     </div>
 
     <section class="hero-main">
@@ -446,9 +339,9 @@
         <p>Atualize o status, registre a tratativa e converse com o solicitante.</p>
 
         <div class="hero-badges">
-          <span class="badge">{{ solicitacao.get_status_display }}</span>
-          <span class="badge">{{ solicitacao.get_prioridade_display }}</span>
-          <span class="badge">{{ solicitacao.modulo_origem_icone }} {{ solicitacao.modulo_origem_exibicao }}</span>
+          {% include "components/badge.html" with badge_class="" badge_text=solicitacao.get_status_display %}
+          {% include "components/badge.html" with badge_class="" badge_text=solicitacao.get_prioridade_display %}
+          {% include "components/badge.html" with badge_class="gsf-badge-info" badge_icon=solicitacao.modulo_origem_icone badge_text=solicitacao.modulo_origem_exibicao %}
         </div>
       </div>
 
@@ -584,7 +477,7 @@
             <div class="detail-section">
               <h4>Anexo</h4>
               <p>
-                <a class="btn-link" href="{{ solicitacao.anexo.url }}" target="_blank">
+                <a class="gsf-button" href="{{ solicitacao.anexo.url }}" target="_blank">
                   Abrir anexo
                 </a>
               </p>
@@ -596,33 +489,7 @@
           <h2>Conversa com o solicitante</h2>
 
           {% if solicitacao.conversa_iniciada %}
-            <div class="chat-box">
-              {% for mensagem in mensagens %}
-                <div class="msg {% if mensagem.origem == 'ti' %}msg-ti{% elif mensagem.origem == 'solicitante' %}msg-user{% else %}msg-system{% endif %}">
-                  <div class="msg-head">
-                    <span>
-                      {% if mensagem.origem == 'ti' %}
-                        TI
-                      {% elif mensagem.origem == 'solicitante' %}
-                        Solicitante
-                      {% else %}
-                        Sistema
-                      {% endif %}
-
-                      {% if mensagem.autor %}
-                        • {{ mensagem.autor.get_full_name|default:mensagem.autor.username }}
-                      {% endif %}
-                    </span>
-
-                    <span>{{ mensagem.criado_em|date:"d/m/Y H:i" }}</span>
-                  </div>
-
-                  <p>{{ mensagem.mensagem }}</p>
-                </div>
-              {% empty %}
-                <p>Nenhuma mensagem registrada.</p>
-              {% endfor %}
-            </div>
+            {% include "components/chat.html" with chat_messages=mensagens chat_empty="Nenhuma mensagem registrada." %}
 
             {% if not solicitacao.esta_encerrada %}
               <form method="post" style="margin-top:16px;">
@@ -634,7 +501,7 @@
                   <textarea name="mensagem" rows="4" placeholder="Digite uma mensagem para o solicitante..." required></textarea>
                 </div>
 
-                <button type="submit" class="btn-submit">Enviar mensagem</button>
+                <button type="submit" class="gsf-button gsf-button-primary">Enviar mensagem</button>
               </form>
             {% else %}
               <p>Este chamado está encerrado. Para responder novamente, reabra o atendimento.</p>
@@ -678,7 +545,7 @@
               <textarea name="resposta_ti" rows="7" placeholder="Registre aqui a tratativa, diagnóstico ou solução aplicada.">{{ solicitacao.resposta_ti }}</textarea>
             </div>
 
-            <button type="submit" class="btn-submit">Salvar atendimento</button>
+            <button type="submit" class="gsf-button gsf-button-primary">Salvar atendimento</button>
           </form>
         </section>
 
@@ -694,7 +561,7 @@
             <form method="post">
               {% csrf_token %}
               <input type="hidden" name="acao" value="assumir">
-              <button type="submit" class="btn-success">Assumir / Marcar como visto</button>
+              <button type="submit" class="gsf-button gsf-button-primary">Assumir / Marcar como visto</button>
             </form>
 
             {% if not solicitacao.conversa_iniciada %}
@@ -707,10 +574,10 @@
                   <textarea name="primeira_mensagem" rows="5" placeholder="Ex: Olá, estamos analisando sua solicitação. Pode nos informar mais detalhes?"></textarea>
                 </div>
 
-                <button type="submit" class="btn-warning">Iniciar conversa</button>
+                <button type="submit" class="gsf-button gsf-button-warning">Iniciar conversa</button>
               </form>
             {% else %}
-              <a class="btn-muted" href="/portal/modulos/solicitacoes-ti/detalhe/{{ solicitacao.id }}/">
+              <a class="gsf-button gsf-button-muted" href="/portal/modulos/solicitacoes-ti/detalhe/{{ solicitacao.id }}/">
                 Conversa já iniciada
               </a>
             {% endif %}
@@ -722,7 +589,7 @@
                 <input type="hidden" name="status" value="aguardando_usuario">
                 <input type="hidden" name="prioridade" value="{{ solicitacao.prioridade }}">
                 <input type="hidden" name="resposta_ti" value="{{ solicitacao.resposta_ti }}">
-                <button type="submit" class="btn-warning">Aguardar usuário</button>
+                <button type="submit" class="gsf-button gsf-button-warning">Aguardar usuário</button>
               </form>
 
               <form method="post">
@@ -731,7 +598,7 @@
                 <input type="hidden" name="status" value="aguardando_terceiro">
                 <input type="hidden" name="prioridade" value="{{ solicitacao.prioridade }}">
                 <input type="hidden" name="resposta_ti" value="{{ solicitacao.resposta_ti }}">
-                <button type="submit" class="btn-warning">Aguardar terceiro</button>
+                <button type="submit" class="gsf-button gsf-button-warning">Aguardar terceiro</button>
               </form>
 
               <form method="post">
@@ -740,7 +607,7 @@
                 <input type="hidden" name="status" value="cancelado">
                 <input type="hidden" name="prioridade" value="{{ solicitacao.prioridade }}">
                 <input type="hidden" name="resposta_ti" value="{{ solicitacao.resposta_ti }}">
-                <button type="submit" class="btn-danger">Cancelar chamado</button>
+                <button type="submit" class="gsf-button gsf-button-danger">Cancelar chamado</button>
               </form>
             {% else %}
               <form method="post">
@@ -749,7 +616,7 @@
                 <input type="hidden" name="status" value="em_atendimento">
                 <input type="hidden" name="prioridade" value="{{ solicitacao.prioridade }}">
                 <input type="hidden" name="resposta_ti" value="{{ solicitacao.resposta_ti }}">
-                <button type="submit" class="btn-success">Reabrir chamado</button>
+                <button type="submit" class="gsf-button gsf-button-primary">Reabrir chamado</button>
               </form>
             {% endif %}
 
@@ -768,7 +635,7 @@
               <textarea name="resposta_ti" rows="7" placeholder="Informe a solução aplicada antes de marcar como resolvida.">{{ solicitacao.resposta_ti }}</textarea>
             </div>
 
-            <button type="submit" class="btn-success">Marcar como resolvida</button>
+            <button type="submit" class="gsf-button gsf-button-primary">Marcar como resolvida</button>
           </form>
         </section>
 

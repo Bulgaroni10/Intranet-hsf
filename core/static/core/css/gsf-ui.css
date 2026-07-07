@@ -476,6 +476,11 @@ p {
   border-color: rgba(248, 113, 113, .45);
 }
 
+.gsf-button-muted {
+  background: rgba(51, 65, 85, .72);
+  color: var(--gsf-muted);
+}
+
 .gsf-button-block {
   width: 100%;
 }
