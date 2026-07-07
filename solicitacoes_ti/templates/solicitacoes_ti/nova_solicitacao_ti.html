@@ -18,54 +18,6 @@
       margin-bottom: 24px;
     }
 
-    .btn-link,
-    .btn-submit,
-    .btn-success,
-    .btn-warning,
-    .btn-danger {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      padding: 10px 14px;
-      border-radius: 10px;
-      border: 1px solid rgba(148, 163, 184, 0.3);
-      background: rgba(15, 23, 42, 0.75);
-      color: #e5e7eb;
-      text-decoration: none;
-      font-size: 13px;
-      font-weight: 800;
-      cursor: pointer;
-      font-family: Arial, sans-serif;
-    }
-
-    .btn-link:hover {
-      border-color: #2dd4bf;
-      color: #2dd4bf;
-    }
-
-    .btn-success,
-    .btn-submit {
-      background: #2dd4bf;
-      color: #06201d;
-      border-color: #2dd4bf;
-    }
-
-    .btn-warning {
-      background: rgba(120, 53, 15, 0.45);
-      color: #fde68a;
-      border-color: rgba(251, 191, 36, 0.35);
-    }
-
-    .btn-danger {
-      background: rgba(127, 29, 29, 0.45);
-      color: #fecaca;
-      border-color: rgba(248, 113, 113, 0.35);
-    }
-
-    .btn-submit {
-      width: 100%;
-    }
-
     .hero-box {
       display: grid;
       grid-template-columns: 1fr 360px;
@@ -235,7 +187,6 @@
       flex-wrap: wrap;
     }
 
-    .badge,
     .sla-pill {
       display: inline-flex;
       align-items: center;
@@ -253,27 +204,18 @@
       white-space: nowrap;
     }
 
-    .badge-origin {
-      color: #bfdbfe;
-      background: rgba(30, 64, 175, 0.28);
-      border-color: rgba(96, 165, 250, 0.35);
-    }
-
-    .badge-ok,
     .sla-ok {
       color: #bbf7d0;
       background: rgba(22, 101, 52, 0.35);
       border-color: rgba(34, 197, 94, 0.35);
     }
 
-    .badge-warn,
     .sla-alerta {
       color: #fde68a;
       background: rgba(120, 53, 15, 0.35);
       border-color: rgba(251, 191, 36, 0.35);
     }
 
-    .badge-danger,
     .sla-estourado {
       color: #fecaca;
       background: rgba(127, 29, 29, 0.35);
@@ -350,16 +292,12 @@
   <div class="page">
 
     <div class="top-actions">
-      <a class="btn-link" href="/portal/">← Voltar ao portal</a>
+      {% include "components/button.html" with button_href="/portal/" button_class="" button_icon="←" button_label="Voltar ao portal" %}
 
-      <a class="btn-success" href="/portal/modulos/solicitacoes-ti/nova/">
-        + Abrir chamado de TI
-      </a>
+      {% include "components/button.html" with button_href="/portal/modulos/solicitacoes-ti/nova/" button_class="gsf-button-primary" button_icon="+" button_label="Abrir chamado de TI" %}
 
       {% if pode_gerenciar %}
-        <a class="btn-link" href="/portal/modulos/solicitacoes-ti/exportar-csv/?{{ query_string }}">
-          Exportar CSV
-        </a>
+        {% include "components/button.html" with button_href="/portal/modulos/solicitacoes-ti/exportar-csv/?"|add:query_string button_class="" button_label="Exportar CSV" %}
       {% endif %}
     </div>
 
@@ -513,50 +451,27 @@
             <input type="date" name="data_fim" value="{{ data_fim }}">
           </div>
 
-          <button type="submit" class="btn-submit">Filtrar</button>
+          {% include "components/button.html" with button_type="submit" button_class="gsf-button-primary gsf-button-block" button_label="Filtrar" %}
 
-          <a href="/portal/modulos/solicitacoes-ti/" class="btn-link">
-            Limpar filtros
-          </a>
+          {% include "components/button.html" with button_href="/portal/modulos/solicitacoes-ti/" button_class="" button_label="Limpar filtros" %}
         </form>
       </aside>
     </section>
 
     <section class="summary-grid">
-      <div class="summary-card">
-        <span>Total</span>
-        <strong>{{ total_solicitacoes }}</strong>
-      </div>
+      {% include "components/card.html" with card_class="summary-card" card_label="Total" card_number=total_solicitacoes %}
 
-      <div class="summary-card">
-        <span>Abertas</span>
-        <strong>{{ total_abertas }}</strong>
-      </div>
+      {% include "components/card.html" with card_class="summary-card" card_label="Abertas" card_number=total_abertas %}
 
-      <div class="summary-card">
-        <span>Em atendimento</span>
-        <strong>{{ total_atendimento }}</strong>
-      </div>
+      {% include "components/card.html" with card_class="summary-card" card_label="Em atendimento" card_number=total_atendimento %}
 
-      <div class="summary-card">
-        <span>Aguardando</span>
-        <strong>{{ total_aguardando }}</strong>
-      </div>
+      {% include "components/card.html" with card_class="summary-card" card_label="Aguardando" card_number=total_aguardando %}
 
-      <div class="summary-card">
-        <span>Resolvidas</span>
-        <strong>{{ total_resolvidas }}</strong>
-      </div>
+      {% include "components/card.html" with card_class="summary-card" card_label="Resolvidas" card_number=total_resolvidas %}
 
-      <div class="summary-card alert">
-        <span>SLA alerta</span>
-        <strong>{{ total_sla_alerta }}</strong>
-      </div>
+      {% include "components/card.html" with card_class="summary-card gsf-card-alert" card_label="SLA alerta" card_number=total_sla_alerta %}
 
-      <div class="summary-card danger">
-        <span>SLA estourado</span>
-        <strong>{{ total_sla_estourado }}</strong>
-      </div>
+      {% include "components/card.html" with card_class="summary-card gsf-card-danger" card_label="SLA estourado" card_number=total_sla_estourado %}
     </section>
 
     <section>
@@ -566,9 +481,7 @@
           <p>Resultado conforme os filtros aplicados.</p>
         </div>
 
-        <a class="btn-success" href="/portal/modulos/solicitacoes-ti/nova/">
-          + Abrir chamado
-        </a>
+        {% include "components/button.html" with button_href="/portal/modulos/solicitacoes-ti/nova/" button_class="gsf-button-primary" button_icon="+" button_label="Abrir chamado" %}
       </div>
 
       <div class="solicitacao-list">
@@ -595,42 +508,40 @@
 
                 <div>
                   {% if solicitacao.status == "aberto" %}
-                    <span class="badge badge-warn">{{ solicitacao.get_status_display }}</span>
+                    {% include "components/badge.html" with badge_class="gsf-badge-warning" badge_text=solicitacao.get_status_display %}
                   {% elif solicitacao.status == "em_atendimento" %}
-                    <span class="badge">{{ solicitacao.get_status_display }}</span>
+                    {% include "components/badge.html" with badge_class="" badge_text=solicitacao.get_status_display %}
                   {% elif solicitacao.status == "resolvido" %}
-                    <span class="badge badge-ok">{{ solicitacao.get_status_display }}</span>
+                    {% include "components/badge.html" with badge_class="gsf-badge-ok" badge_text=solicitacao.get_status_display %}
                   {% elif solicitacao.status == "cancelado" %}
-                    <span class="badge badge-danger">{{ solicitacao.get_status_display }}</span>
+                    {% include "components/badge.html" with badge_class="gsf-badge-danger" badge_text=solicitacao.get_status_display %}
                   {% else %}
-                    <span class="badge">{{ solicitacao.get_status_display }}</span>
+                    {% include "components/badge.html" with badge_class="" badge_text=solicitacao.get_status_display %}
                   {% endif %}
                 </div>
               </div>
 
-              <span class="badge badge-origin">
-                {{ solicitacao.modulo_origem_icone }} {{ solicitacao.modulo_origem_exibicao }}
-              </span>
+              {% include "components/badge.html" with badge_class="gsf-badge-info" badge_icon=solicitacao.modulo_origem_icone badge_text=solicitacao.modulo_origem_exibicao %}
 
-              <span class="badge">{{ solicitacao.get_tipo_display }}</span>
-              <span class="badge">{{ solicitacao.get_prioridade_display }}</span>
+              {% include "components/badge.html" with badge_class="" badge_text=solicitacao.get_tipo_display %}
+              {% include "components/badge.html" with badge_class="" badge_text=solicitacao.get_prioridade_display %}
 
               <span class="sla-pill {{ solicitacao.sla_classe_css }}">
                 {{ solicitacao.sla_icone }} {{ solicitacao.sla_status_exibicao }} • {{ solicitacao.tempo_restante_sla }}
               </span>
 
               {% if solicitacao.visto_pela_ti %}
-                <span class="badge badge-ok">Visto pela TI</span>
+                {% include "components/badge.html" with badge_class="gsf-badge-ok" badge_text="Visto pela TI" %}
               {% else %}
-                <span class="badge badge-warn">Ainda não visto</span>
+                {% include "components/badge.html" with badge_class="gsf-badge-warning" badge_text="Ainda não visto" %}
               {% endif %}
 
               {% if solicitacao.conversa_iniciada %}
-                <span class="badge">Conversa iniciada</span>
+                {% include "components/badge.html" with badge_class="" badge_text="Conversa iniciada" %}
               {% endif %}
 
               {% if solicitacao.anexo %}
-                <a class="badge" href="{{ solicitacao.anexo.url }}" target="_blank">
+                <a class="gsf-badge" href="{{ solicitacao.anexo.url }}" target="_blank">
                   Abrir anexo
                 </a>
               {% endif %}
@@ -698,12 +609,12 @@
               <p>{{ solicitacao.descricao|truncatechars:220 }}</p>
 
               <div class="item-actions">
-                <a class="btn-link" href="/portal/modulos/solicitacoes-ti/detalhe/{{ solicitacao.id }}/">
+                <a class="gsf-button" href="/portal/modulos/solicitacoes-ti/detalhe/{{ solicitacao.id }}/">
                   Ver detalhes
                 </a>
 
                 {% if pode_gerenciar %}
-                  <a class="btn-success" href="/portal/modulos/solicitacoes-ti/atender/{{ solicitacao.id }}/">
+                  <a class="gsf-button gsf-button-primary" href="/portal/modulos/solicitacoes-ti/atender/{{ solicitacao.id }}/">
                     Atender
                   </a>
                 {% endif %}
