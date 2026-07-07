@@ -1,6 +1,5 @@
 {% load static %}
 
-
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -105,7 +104,8 @@
       font-size: 14px;
     }
 
-    .quick-actions {
+    .quick-actions,
+    .ti-panel-actions {
       display: flex;
       gap: 10px;
       flex-wrap: wrap;
@@ -191,201 +191,27 @@
       gap: 16px;
     }
 
-    .dashboard-card {
-      padding: 18px;
-      transition: 0.2s ease;
-    }
-
-    .dashboard-card:hover {
-      transform: translateY(-2px);
-      border-color: rgba(45, 212, 191, 0.55);
-      background: rgba(45, 212, 191, 0.08);
-    }
-
-    .dashboard-card h3 {
-      color: #ffffff;
-      font-size: 14px;
-      margin: 0 0 8px 0;
-    }
-
-    .dashboard-number {
-      color: #2dd4bf;
-      font-size: 32px;
-      font-weight: 900;
-      margin-bottom: 4px;
-    }
-
-    .dashboard-card p {
-      color: rgba(255, 255, 255, 0.68);
-      font-size: 13px;
-      margin: 0;
-      line-height: 1.5;
-    }
-
-    .portal-two-columns {
-      display: grid;
-      grid-template-columns: 1.2fr 1fr;
-      gap: 18px;
-    }
-
-    .mini-list {
-      display: grid;
-      gap: 12px;
-    }
-
-    .mini-item {
-      display: flex;
-      align-items: flex-start;
-      gap: 12px;
-      padding: 14px;
-      color: inherit;
-      text-decoration: none;
-      transition: 0.2s ease;
-    }
-
-    .mini-item:hover {
-      border-color: rgba(45, 212, 191, 0.55);
-      background: rgba(45, 212, 191, 0.08);
-      transform: translateY(-1px);
-    }
-
-    .mini-icon {
-      width: 38px;
-      height: 38px;
-      border-radius: 13px;
-      background: rgba(45, 212, 191, 0.12);
-      border: 1px solid rgba(45, 212, 191, 0.22);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      flex: 0 0 auto;
-      font-size: 18px;
-    }
-
-    .mini-item h3 {
-      color: #ffffff;
-      font-size: 14px;
-      margin: 0 0 4px 0;
-    }
-
-    .mini-item p {
-      color: rgba(255, 255, 255, 0.68);
-      font-size: 12px;
-      margin: 0;
-      line-height: 1.4;
-    }
-
-    .mini-badge {
-      display: inline-flex;
-      margin-top: 8px;
-      color: #2dd4bf;
-      background: rgba(45, 212, 191, 0.10);
-      border: 1px solid rgba(45, 212, 191, 0.22);
-      border-radius: 999px;
-      padding: 5px 9px;
-      font-size: 11px;
-      font-weight: 800;
-      text-decoration: none;
-    }
-
-    .mini-badge.red {
-      color: #fecaca;
-      background: rgba(239, 68, 68, 0.18);
-      border-color: rgba(239, 68, 68, 0.35);
-    }
-
-    .mini-badge.orange {
-      color: #fed7aa;
-      background: rgba(249, 115, 22, 0.16);
-      border-color: rgba(249, 115, 22, 0.32);
-    }
-
-    .aviso-dashboard-grid,
-    .doc-dashboard-grid {
-      display: grid;
-      gap: 12px;
-    }
-
-    .aviso-dashboard-card,
-    .doc-dashboard-card {
-      padding: 16px;
-      display: flex;
-      align-items: flex-start;
-      gap: 12px;
-      transition: 0.2s ease;
-    }
-
-    .aviso-dashboard-card:hover,
-    .doc-dashboard-card:hover {
-      transform: translateY(-1px);
-      border-color: rgba(45, 212, 191, 0.55);
-      background: rgba(45, 212, 191, 0.08);
-    }
-
-    .aviso-dashboard-icon,
-    .doc-dashboard-icon {
-      width: 40px;
-      height: 40px;
-      border-radius: 14px;
-      background: rgba(45, 212, 191, 0.12);
-      border: 1px solid rgba(45, 212, 191, 0.22);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      flex: 0 0 auto;
-      font-size: 20px;
-    }
-
-    .aviso-dashboard-card h3,
-    .doc-dashboard-card h3 {
-      color: #ffffff;
-      font-size: 15px;
-      margin: 0 0 5px 0;
-      line-height: 1.3;
-    }
-
-    .aviso-dashboard-card p,
-    .doc-dashboard-card p {
-      color: rgba(255, 255, 255, 0.70);
-      font-size: 13px;
-      line-height: 1.5;
-      margin: 0;
-    }
-
-    .ti-panel-actions {
-      display: flex;
-      gap: 10px;
-      flex-wrap: wrap;
-      margin-top: 12px;
-    }
-
+    .dashboard-card,
     .ti-panel-card {
       padding: 18px;
       transition: 0.2s ease;
     }
 
+    .dashboard-card:hover,
     .ti-panel-card:hover {
       transform: translateY(-2px);
       border-color: rgba(45, 212, 191, 0.55);
       background: rgba(45, 212, 191, 0.08);
     }
 
-    .ti-panel-card.warning-card {
-      border-color: rgba(251, 191, 36, 0.32);
-      background: rgba(251, 191, 36, 0.07);
-    }
-
-    .ti-panel-card.danger-card {
-      border-color: rgba(239, 68, 68, 0.38);
-      background: rgba(239, 68, 68, 0.08);
-    }
-
+    .dashboard-card h3,
     .ti-panel-card h3 {
       color: #ffffff;
       font-size: 14px;
       margin: 0 0 8px 0;
     }
 
+    .dashboard-number,
     .ti-panel-number {
       color: #2dd4bf;
       font-size: 32px;
@@ -393,19 +219,30 @@
       margin-bottom: 4px;
     }
 
-    .ti-panel-card.warning-card .ti-panel-number {
-      color: #fbbf24;
-    }
-
-    .ti-panel-card.danger-card .ti-panel-number {
-      color: #fca5a5;
-    }
-
+    .dashboard-card p,
     .ti-panel-card p {
       color: rgba(255, 255, 255, 0.68);
       font-size: 13px;
       margin: 0;
       line-height: 1.5;
+    }
+
+    .ti-panel-card.warning-card {
+      border-color: rgba(251, 191, 36, 0.32);
+      background: rgba(251, 191, 36, 0.07);
+    }
+
+    .ti-panel-card.warning-card .ti-panel-number {
+      color: #fbbf24;
+    }
+
+    .ti-panel-card.danger-card {
+      border-color: rgba(239, 68, 68, 0.38);
+      background: rgba(239, 68, 68, 0.08);
+    }
+
+    .ti-panel-card.danger-card .ti-panel-number {
+      color: #fca5a5;
     }
 
     .ti-ticket-list {
@@ -471,6 +308,109 @@
       font-size: 11px;
       white-space: nowrap;
       padding-top: 3px;
+    }
+
+    .portal-two-columns {
+      display: grid;
+      grid-template-columns: 1.2fr 1fr;
+      gap: 18px;
+    }
+
+    .mini-list,
+    .aviso-dashboard-grid,
+    .doc-dashboard-grid {
+      display: grid;
+      gap: 12px;
+    }
+
+    .mini-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      padding: 14px;
+      color: inherit;
+      text-decoration: none;
+      transition: 0.2s ease;
+    }
+
+    .mini-item:hover {
+      border-color: rgba(45, 212, 191, 0.55);
+      background: rgba(45, 212, 191, 0.08);
+      transform: translateY(-1px);
+    }
+
+    .mini-icon,
+    .aviso-dashboard-icon,
+    .doc-dashboard-icon {
+      width: 40px;
+      height: 40px;
+      border-radius: 14px;
+      background: rgba(45, 212, 191, 0.12);
+      border: 1px solid rgba(45, 212, 191, 0.22);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex: 0 0 auto;
+      font-size: 20px;
+    }
+
+    .mini-item h3,
+    .aviso-dashboard-card h3,
+    .doc-dashboard-card h3 {
+      color: #ffffff;
+      font-size: 15px;
+      margin: 0 0 5px 0;
+      line-height: 1.3;
+    }
+
+    .mini-item p,
+    .aviso-dashboard-card p,
+    .doc-dashboard-card p {
+      color: rgba(255, 255, 255, 0.70);
+      font-size: 13px;
+      line-height: 1.5;
+      margin: 0;
+    }
+
+    .mini-badge {
+      display: inline-flex;
+      margin-top: 8px;
+      color: #2dd4bf;
+      background: rgba(45, 212, 191, 0.10);
+      border: 1px solid rgba(45, 212, 191, 0.22);
+      border-radius: 999px;
+      padding: 5px 9px;
+      font-size: 11px;
+      font-weight: 800;
+      text-decoration: none;
+    }
+
+    .mini-badge.red {
+      color: #fecaca;
+      background: rgba(239, 68, 68, 0.18);
+      border-color: rgba(239, 68, 68, 0.35);
+    }
+
+    .mini-badge.orange {
+      color: #fed7aa;
+      background: rgba(249, 115, 22, 0.16);
+      border-color: rgba(249, 115, 22, 0.32);
+    }
+
+    .aviso-dashboard-card,
+    .doc-dashboard-card {
+      padding: 16px;
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      transition: 0.2s ease;
+    }
+
+    .aviso-dashboard-card:hover,
+    .doc-dashboard-card:hover {
+      transform: translateY(-1px);
+      border-color: rgba(45, 212, 191, 0.55);
+      background: rgba(45, 212, 191, 0.08);
     }
 
     .portal-modules-grid {
@@ -752,7 +692,9 @@
           {% if pode_acessar_solicitacoes_ti %}
             <div class="dashboard-card">
               <h3>Chamados de TI ativos</h3>
-              <div class="dashboard-number">{{ total_chamados_ti_abertos|add:total_chamados_ti_atendimento|add:total_chamados_ti_aguardando }}</div>
+              <div class="dashboard-number">
+                {{ total_chamados_ti_abertos|add:total_chamados_ti_atendimento|add:total_chamados_ti_aguardando }}
+              </div>
               <p>Solicitações abertas, em atendimento ou aguardando retorno.</p>
             </div>
           {% endif %}
@@ -816,65 +758,67 @@
 
           <div class="portal-section-header" style="margin-top: 18px;">
             <h2>Últimas solicitações de TI</h2>
-            <p>Chamados mais recentes vinculados ao seu perfil de acesso.</p>
+            <p>Chamados ativos mais recentes vinculados ao seu perfil de acesso.</p>
           </div>
 
           <div class="ti-ticket-list">
             {% for chamado in ultimos_chamados_ti %}
-              <a class="ti-ticket-item" href="/portal/modulos/solicitacoes-ti/">
-                <div class="ti-ticket-id">#{{ chamado.id }}</div>
+              {% if chamado.status != "resolvido" and chamado.status != "cancelado" %}
+                <a class="ti-ticket-item" href="/portal/modulos/solicitacoes-ti/?busca={{ chamado.id }}">
+                  <div class="ti-ticket-id">#{{ chamado.id }}</div>
 
-                <div>
-                  <h3>{{ chamado.titulo }}</h3>
+                  <div>
+                    <h3>{{ chamado.titulo }}</h3>
 
-                  <p>
-                    {{ chamado.get_tipo_display }} • {{ chamado.get_status_display }} • {{ chamado.get_prioridade_display }}
+                    <p>
+                      {{ chamado.get_tipo_display }} • {{ chamado.get_status_display }} • {{ chamado.get_prioridade_display }}
 
-                    {% if chamado.unidade %}
-                      • {{ chamado.unidade.sigla }}
-                    {% endif %}
+                      {% if chamado.unidade %}
+                        • {{ chamado.unidade.sigla }}
+                      {% endif %}
 
-                    {% if chamado.responsavel_ti %}
-                      • Resp.: {{ chamado.responsavel_ti.get_full_name|default:chamado.responsavel_ti.username }}
-                    {% else %}
-                      • Sem responsável
-                    {% endif %}
-                  </p>
+                      {% if chamado.responsavel_ti %}
+                        • Resp.: {{ chamado.responsavel_ti.get_full_name|default:chamado.responsavel_ti.username }}
+                      {% else %}
+                        • Sem responsável
+                      {% endif %}
+                    </p>
 
-                  <div class="ti-ticket-badges">
-                    {% if chamado.sla_status == "estourado" %}
-                      <span class="mini-badge red">SLA estourado</span>
-                    {% elif chamado.sla_status == "proximo_vencimento" %}
-                      <span class="mini-badge orange">SLA em alerta</span>
-                    {% else %}
-                      <span class="mini-badge">
-                        {% if chamado.sla_status_exibicao %}
-                          {{ chamado.sla_status_exibicao }}
-                        {% else %}
-                          SLA normal
-                        {% endif %}
-                      </span>
-                    {% endif %}
+                    <div class="ti-ticket-badges">
+                      {% if chamado.sla_status == "estourado" %}
+                        <span class="mini-badge red">SLA estourado</span>
+                      {% elif chamado.sla_status == "proximo_vencimento" %}
+                        <span class="mini-badge orange">SLA em alerta</span>
+                      {% else %}
+                        <span class="mini-badge">
+                          {% if chamado.sla_status_exibicao %}
+                            {{ chamado.sla_status_exibicao }}
+                          {% else %}
+                            SLA normal
+                          {% endif %}
+                        </span>
+                      {% endif %}
 
-                    {% if chamado.modulo_origem_exibicao %}
-                      <span class="mini-badge">
-                        {{ chamado.modulo_origem_icone }} {{ chamado.modulo_origem_exibicao }}
-                      </span>
-                    {% endif %}
+                      {% if chamado.modulo_origem_exibicao %}
+                        <span class="mini-badge">
+                          {{ chamado.modulo_origem_icone }} {{ chamado.modulo_origem_exibicao }}
+                        </span>
+                      {% endif %}
+                    </div>
                   </div>
-                </div>
 
-                <div class="ti-ticket-date">
-                  {{ chamado.criado_em|date:"d/m/Y H:i" }}
-                </div>
-              </a>
+                  <div class="ti-ticket-date">
+                    {{ chamado.criado_em|date:"d/m/Y H:i" }}
+                  </div>
+                </a>
+              {% endif %}
             {% empty %}
               <div class="mini-item">
                 <div class="mini-icon">✅</div>
 
                 <div>
                   <h3>Nenhuma solicitação encontrada</h3>
-                  <p>No momento não há chamados vinculados ao seu perfil.</p>
+                  <p>No momento não há chamados ativos vinculados ao seu perfil.</p>
                   <span class="mini-badge">Sem pendências de TI</span>
                 </div>
               </div>
