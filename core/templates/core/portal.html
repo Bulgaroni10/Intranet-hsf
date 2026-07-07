@@ -1,7 +1,5 @@
 {% load static %}
-{% load core_tags %}
 
-{% painel_ti_dashboard request.user as painel_ti %}
 
 <!DOCTYPE html>
 <html lang="pt-BR">
@@ -671,7 +669,7 @@
               </a>
             {% endif %}
 
-            {% if painel_ti.pode_acessar %}
+            {% if pode_acessar_solicitacoes_ti %}
               <a class="quick-action" href="/portal/modulos/solicitacoes-ti/">
                 🎫 Solicitações de TI
               </a>
@@ -751,17 +749,17 @@
             <p>Últimos documentos cadastrados.</p>
           </div>
 
-          {% if painel_ti.pode_acessar %}
+          {% if pode_acessar_solicitacoes_ti %}
             <div class="dashboard-card">
               <h3>Chamados de TI ativos</h3>
-              <div class="dashboard-number">{{ painel_ti.ativos_total }}</div>
+              <div class="dashboard-number">{{ total_chamados_ti_abertos|add:total_chamados_ti_atendimento|add:total_chamados_ti_aguardando }}</div>
               <p>Solicitações abertas, em atendimento ou aguardando retorno.</p>
             </div>
           {% endif %}
         </div>
       </section>
 
-      {% if painel_ti.pode_acessar %}
+      {% if pode_acessar_solicitacoes_ti %}
         <section class="portal-section">
           <div class="portal-section-header">
             <h2>Painel da TI</h2>
@@ -781,37 +779,37 @@
           <div class="dashboard-grid">
             <div class="ti-panel-card">
               <h3>Abertos</h3>
-              <div class="ti-panel-number">{{ painel_ti.abertos }}</div>
+              <div class="ti-panel-number">{{ total_chamados_ti_abertos }}</div>
               <p>Chamados novos aguardando atuação da TI.</p>
             </div>
 
             <div class="ti-panel-card">
               <h3>Em atendimento</h3>
-              <div class="ti-panel-number">{{ painel_ti.em_atendimento }}</div>
+              <div class="ti-panel-number">{{ total_chamados_ti_atendimento }}</div>
               <p>Solicitações já assumidas ou em análise.</p>
             </div>
 
             <div class="ti-panel-card">
               <h3>Aguardando</h3>
-              <div class="ti-panel-number">{{ painel_ti.aguardando }}</div>
+              <div class="ti-panel-number">{{ total_chamados_ti_aguardando }}</div>
               <p>Aguardando usuário, fornecedor ou terceiro.</p>
             </div>
 
             <div class="ti-panel-card warning-card">
               <h3>SLA em alerta</h3>
-              <div class="ti-panel-number">{{ painel_ti.sla_alerta }}</div>
+              <div class="ti-panel-number">{{ total_chamados_ti_sla_alerta }}</div>
               <p>Chamados próximos do vencimento do SLA.</p>
             </div>
 
             <div class="ti-panel-card danger-card">
               <h3>SLA estourado</h3>
-              <div class="ti-panel-number">{{ painel_ti.sla_estourado }}</div>
+              <div class="ti-panel-number">{{ total_chamados_ti_sla_estourado }}</div>
               <p>Chamados ativos fora do prazo definido.</p>
             </div>
 
             <div class="ti-panel-card">
               <h3>Sem responsável</h3>
-              <div class="ti-panel-number">{{ painel_ti.sem_responsavel }}</div>
+              <div class="ti-panel-number">{{ total_chamados_ti_sem_responsavel }}</div>
               <p>Chamados ativos ainda sem responsável de TI.</p>
             </div>
           </div>
@@ -822,7 +820,7 @@
           </div>
 
           <div class="ti-ticket-list">
-            {% for chamado in painel_ti.ultimos %}
+            {% for chamado in ultimos_chamados_ti %}
               <a class="ti-ticket-item" href="/portal/modulos/solicitacoes-ti/">
                 <div class="ti-ticket-id">#{{ chamado.id }}</div>
 
