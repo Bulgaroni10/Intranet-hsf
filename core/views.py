@@ -2434,6 +2434,7 @@ def historico_ocorrencias_status(request):
     ocorrencias = ocorrencias_filtradas[:300]
 
     return render(request, 'core/historico_ocorrencias_status.html', {
+        'page_title': 'Histórico de ocorrências',
         'ocorrencias': ocorrencias,
         'sistemas': sistemas,
         'unidades': unidades,
