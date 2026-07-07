@@ -9,7 +9,7 @@
     <div>
       <span class="gsf-page-kicker">Intranet</span>
       <h1 class="gsf-page-title">
-        {% block page_title %}Grupo São Francisco{% endblock %}
+        {{ page_title|default:"Grupo São Francisco" }}
       </h1>
     </div>
   </div>
