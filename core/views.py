@@ -2734,6 +2734,7 @@ def novo_manual_procedimento(request):
                 messages.error(request, erro)
 
             return render(request, 'core/formulario_manual_procedimento.html', {
+                'page_title': 'Novo manual / procedimento',
                 'titulo': 'Novo manual / procedimento',
                 'subtitulo': 'Cadastre um manual, POP, procedimento, link, contingência ou observação.',
                 'form_data': form_data,
@@ -2772,6 +2773,7 @@ def novo_manual_procedimento(request):
         return redirect('/portal/modulos/manuais-procedimentos/')
 
     return render(request, 'core/formulario_manual_procedimento.html', {
+        'page_title': 'Novo manual / procedimento',
         'titulo': 'Novo manual / procedimento',
         'subtitulo': 'Cadastre um manual, POP, procedimento, link, contingência ou observação.',
         'form_data': form_data,
@@ -2838,6 +2840,7 @@ def editar_manual_procedimento(request, conteudo_id):
                 messages.error(request, erro)
 
             return render(request, 'core/formulario_manual_procedimento.html', {
+                'page_title': 'Editar manual / procedimento',
                 'titulo': 'Editar manual / procedimento',
                 'subtitulo': 'Atualize os dados do conteúdo selecionado.',
                 'form_data': form_data,
@@ -2881,6 +2884,7 @@ def editar_manual_procedimento(request, conteudo_id):
         return redirect('/portal/modulos/manuais-procedimentos/')
 
     return render(request, 'core/formulario_manual_procedimento.html', {
+        'page_title': 'Editar manual / procedimento',
         'titulo': 'Editar manual / procedimento',
         'subtitulo': 'Atualize os dados do conteúdo selecionado.',
         'form_data': form_data,

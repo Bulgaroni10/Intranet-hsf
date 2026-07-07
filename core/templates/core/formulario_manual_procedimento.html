@@ -1,101 +1,18 @@
+{% extends "base/base.html" %}
 {% load static %}
 
-<!DOCTYPE html>
-<html lang="pt-BR">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+{% block title %}{{ titulo }} | Intranet{% endblock %}
 
-  <title>{{ titulo }} | Intranet</title>
-
-  <link rel="stylesheet" href="{% static 'core/css/home.css' %}">
-
+{% block extra_css %}
   <style>
-    body {
-      background: #111111;
-      color: #f8fafc;
-      margin: 0;
-      font-family: Arial, sans-serif;
+    .manual-form-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 16px;
     }
 
-    .page {
-      max-width: 1050px;
-      margin: 0 auto;
-      padding: 28px 24px 50px;
-    }
-
-    .top-actions {
-      display: flex;
-      gap: 10px;
-      flex-wrap: wrap;
-      margin-bottom: 24px;
-    }
-
-    .btn-link,
-    .btn-submit {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      padding: 10px 14px;
-      border-radius: 10px;
-      border: 1px solid rgba(148, 163, 184, 0.3);
-      background: rgba(15, 23, 42, 0.75);
-      color: #e5e7eb;
-      text-decoration: none;
-      font-size: 13px;
-      font-weight: 800;
-      cursor: pointer;
-    }
-
-    .btn-link:hover {
-      border-color: #2dd4bf;
-      color: #2dd4bf;
-    }
-
-    .btn-submit {
-      background: #2dd4bf;
-      color: #06201d;
-      border-color: #2dd4bf;
-      width: 260px;
-    }
-
-    .hero-main,
-    .form-card,
-    .message-item {
-      background: rgba(31, 31, 31, 0.96);
-      border: 1px solid rgba(148, 163, 184, 0.2);
-      border-radius: 16px;
-      padding: 22px;
-    }
-
-    .hero-main {
-      margin-bottom: 22px;
-    }
-
-    .eyebrow {
-      color: #2dd4bf;
-      font-size: 12px;
-      font-weight: 900;
-      text-transform: uppercase;
-      letter-spacing: 0.08em;
-      margin-bottom: 8px;
-    }
-
-    h1 {
-      margin: 0 0 10px;
-      font-size: 32px;
-      color: #ffffff;
-    }
-
-    h2 {
-      margin: 0 0 14px;
-      color: #ffffff;
-      font-size: 20px;
-    }
-
-    p {
-      color: #cbd5e1;
-      line-height: 1.5;
+    .manual-form-grid .full {
+      grid-column: 1 / -1;
     }
 
     .messages-box {
@@ -105,6 +22,9 @@
     }
 
     .message-item {
+      background: rgba(31, 31, 31, 0.96);
+      border: 1px solid rgba(148, 163, 184, 0.2);
+      border-radius: 16px;
       padding: 12px 14px;
       color: #e5e7eb;
       font-size: 13px;
@@ -121,54 +41,6 @@
       border-color: rgba(248, 113, 113, 0.35);
       background: rgba(127, 29, 29, 0.22);
       color: #fecaca;
-    }
-
-    .form-grid {
-      display: grid;
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-      gap: 16px;
-    }
-
-    .form-group.full {
-      grid-column: 1 / -1;
-    }
-
-    .form-group label {
-      display: block;
-      color: #cbd5e1;
-      font-size: 12px;
-      font-weight: 800;
-      text-transform: uppercase;
-      margin-bottom: 7px;
-    }
-
-    .form-group input,
-    .form-group select,
-    .form-group textarea {
-      width: 100%;
-      box-sizing: border-box;
-      border: 1px solid rgba(148, 163, 184, 0.28);
-      background: #2a2a2a;
-      color: #ffffff;
-      border-radius: 10px;
-      padding: 12px;
-      outline: none;
-      font-family: Arial, sans-serif;
-    }
-
-    .form-group textarea {
-      resize: vertical;
-    }
-
-    .form-group input[type="file"] {
-      padding: 10px;
-    }
-
-    .form-group input:focus,
-    .form-group select:focus,
-    .form-group textarea:focus {
-      border-color: #2dd4bf;
-      box-shadow: 0 0 0 2px rgba(45, 212, 191, 0.15);
     }
 
     .help-text {
@@ -238,66 +110,20 @@
       margin-top: 20px;
     }
 
-    .footer {
-      border-top: 1px solid rgba(148, 163, 184, 0.16);
-      margin-top: 26px;
-      padding-top: 14px;
-      display: flex;
-      justify-content: space-between;
-      color: #94a3b8;
-      font-size: 12px;
-    }
-
     @media (max-width: 800px) {
-      .form-grid {
+      .manual-form-grid {
         grid-template-columns: 1fr;
-      }
-
-      .btn-submit {
-        width: 100%;
       }
     }
   </style>
-</head>
+{% endblock %}
 
-<body>
-
-  <header>
-    <div class="logo">
-      {% if request.user.unidade %}
-        {% if request.user.unidade.sigla == "HSFVF" or request.user.unidade.sigla == "HSFMA" %}
-          <img src="{% static 'core/img/logo-sagrada-familia.png' %}" alt="Logo" class="header-unit-logo">
-        {% else %}
-          <img src="{% static 'core/img/logo-hsf.png' %}" alt="Logo" class="header-unit-logo">
-        {% endif %}
-      {% else %}
-        <img src="{% static 'core/img/logo-hsf.png' %}" alt="Logo" class="header-unit-logo">
-      {% endif %}
-
-      <div>
-        <span>Intranet Grupo São Francisco</span>
-        <span class="unit-tag">
-          {% if request.user.unidade %}
-            {{ request.user.unidade.nome }}
-          {% else %}
-            Sem unidade vinculada
-          {% endif %}
-        </span>
-      </div>
-    </div>
-
-    <div class="header-right">
-      <a class="logout-btn" href="/portal/modulos/manuais-procedimentos/">Manuais</a>
-      <a class="logout-btn" href="/portal/">Portal</a>
-      <button class="logout-btn" onclick="doLogout()">Sair</button>
-    </div>
-  </header>
-
-  <main class="page">
+{% block content %}
+  <div class="page">
 
     <div class="top-actions">
-      <a class="btn-link" href="/portal/modulos/manuais-procedimentos/">← Voltar para manuais</a>
-      <a class="btn-link" href="/portal/">Voltar ao portal</a>
+      {% include "components/button.html" with button_href="/portal/modulos/manuais-procedimentos/" button_icon="←" button_label="Voltar para manuais" %}
+      {% include "components/button.html" with button_href="/portal/" button_label="Voltar ao portal" %}
     </div>
 
     <section class="hero-main">
@@ -320,7 +146,7 @@
       <form method="post" action="{{ url_salvar }}" enctype="multipart/form-data">
         {% csrf_token %}
 
-        <div class="form-grid">
+        <div class="manual-form-grid">
 
           <div class="form-group">
             <label>Unidade</label>
@@ -467,26 +293,16 @@
         </div>
 
         <div class="form-actions">
-          <button type="submit" class="btn-submit">
-            {% if modo == "editar" %}
-              Salvar alterações
-            {% else %}
-              Cadastrar conteúdo
-            {% endif %}
-          </button>
+          {% if modo == "editar" %}
+            {% include "components/button.html" with button_type="submit" button_class="gsf-button-primary" button_label="Salvar alterações" %}
+          {% else %}
+            {% include "components/button.html" with button_type="submit" button_class="gsf-button-primary" button_label="Cadastrar conteúdo" %}
+          {% endif %}
 
-          <a class="btn-link" href="/portal/modulos/manuais-procedimentos/">Cancelar</a>
+          {% include "components/button.html" with button_href="/portal/modulos/manuais-procedimentos/" button_label="Cancelar" %}
         </div>
       </form>
     </section>
 
-    <footer class="footer">
-      <span>Manuais e Procedimentos • Cadastro</span>
-      <span>Tecnologia da Informação • Ambiente interno</span>
-    </footer>
-
-  </main>
-
-  <script src="{% static 'core/js/home.js' %}"></script>
-</body>
-</html>
+  </div>
+{% endblock %}
