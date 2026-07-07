@@ -1,0 +1,49 @@
+<div class="gsf-page-header">
+
+  <div class="gsf-page-header-main">
+    {% if eyebrow %}
+      <div class="eyebrow">{{ eyebrow }}</div>
+    {% endif %}
+
+    <div class="gsf-page-title-line">
+      {% if icon %}
+        <div class="gsf-page-icon">{{ icon }}</div>
+      {% endif %}
+
+      <div>
+        <h1>{{ title }}</h1>
+
+        {% if subtitle %}
+          <p>{{ subtitle }}</p>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+  {% if action_url_name or action_href or secondary_url_name or secondary_href %}
+    <div class="top-actions">
+
+      {% if secondary_url_name %}
+        <a href="{% url secondary_url_name %}" class="btn-link">
+          {{ secondary_text|default:"Voltar" }}
+        </a>
+      {% elif secondary_href %}
+        <a href="{{ secondary_href }}" class="btn-link">
+          {{ secondary_text|default:"Voltar" }}
+        </a>
+      {% endif %}
+
+      {% if action_url_name %}
+        <a href="{% url action_url_name %}" class="btn-success">
+          {{ action_text }}
+        </a>
+      {% elif action_href %}
+        <a href="{{ action_href }}" class="btn-success">
+          {{ action_text }}
+        </a>
+      {% endif %}
+
+    </div>
+  {% endif %}
+
+</div>

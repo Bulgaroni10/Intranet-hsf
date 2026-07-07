@@ -5,17 +5,7 @@
 {% block content %}
 <div class="page">
 
-  <div class="section-header">
-    <div>
-      <div class="eyebrow">Operação interna</div>
-      <h1>Solicitações Internas</h1>
-      <p>Centralize pedidos, acompanhe status e mantenha tudo registrado sem depender de conversa perdida no WhatsApp.</p>
-    </div>
-
-    <a href="{% url 'nova_solicitacao' %}" class="btn-success">
-      + Nova Solicitação
-    </a>
-  </div>
+  {% include "components/page_header.html" with eyebrow="Operação interna" icon="📋" title="Solicitações Internas" subtitle="Centralize pedidos, acompanhe status e mantenha tudo registrado sem depender de conversa perdida no WhatsApp." action_url_name="nova_solicitacao" action_text="+ Nova Solicitação" %}
 
   <div class="summary-grid">
     <div class="summary-card">
@@ -88,11 +78,7 @@
         <div class="solicitacao-icon">🎫</div>
 
         <div>
-          <div class="solicitacao-title-line">
-            <h3>
-              #{{ solicitacao.id }} — {{ solicitacao.titulo }}
-            </h3>
-          </div>
+          <h3>#{{ solicitacao.id }} — {{ solicitacao.titulo }}</h3>
 
           <p>{{ solicitacao.descricao|truncatechars:140 }}</p>
 
@@ -109,16 +95,15 @@
             {% endif %}
           </div>
 
+          <br>
+
           <a href="{% url 'detalhe_solicitacao' solicitacao.id %}" class="btn-link">
             Ver detalhes
           </a>
         </div>
       </div>
     {% empty %}
-      <div class="empty-card">
-        <h2>Nenhuma solicitação encontrada</h2>
-        <p>Brutalmente honesto: se ninguém abriu solicitação ainda, ou o filtro está restrito demais, ou o hospital virou uma utopia. Aposto no filtro.</p>
-      </div>
+      {% include "components/empty_state.html" with titulo="Nenhuma solicitação encontrada" mensagem="Nenhuma solicitação foi encontrada para os filtros atuais." link_url="/portal/modulos/solicitacoes/nova/" link_texto="Abrir solicitação" %}
     {% endfor %}
   </div>
 

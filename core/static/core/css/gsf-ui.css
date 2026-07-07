@@ -458,3 +458,58 @@ textarea:focus {
     padding: 20px 14px 40px;
   }
 }
+.gsf-page-header {
+  background: var(--gsf-card);
+  border: 1px solid var(--gsf-border);
+  border-radius: var(--gsf-radius);
+  padding: 24px;
+  margin-bottom: 24px;
+  box-shadow: var(--gsf-shadow);
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 18px;
+  flex-wrap: wrap;
+}
+
+.gsf-page-header-main {
+  flex: 1;
+  min-width: 260px;
+}
+
+.gsf-page-title-line {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.gsf-page-icon {
+  width: 54px;
+  height: 54px;
+  border-radius: 16px;
+  display: grid;
+  place-items: center;
+  background: var(--gsf-primary-soft);
+  border: 1px solid #99f6e4;
+  color: var(--gsf-primary);
+  font-size: 26px;
+  flex: 0 0 auto;
+}
+
+.gsf-page-title-line h1 {
+  margin-bottom: 6px;
+}
+
+.gsf-page-title-line p {
+  margin: 0;
+}
+
+@media (max-width: 760px) {
+  .gsf-page-header {
+    padding: 20px;
+  }
+
+  .gsf-page-title-line {
+    align-items: flex-start;
+  }
+}
