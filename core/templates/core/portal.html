@@ -1,16 +1,10 @@
+{% extends "base/base.html" %}
 {% load static %}
 
-<!DOCTYPE html>
-<html lang="pt-BR">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+{% block title %}Portal | Intranet{% endblock %}
 
-  <title>Portal | Intranet</title>
-
-  <link rel="stylesheet" href="{% static 'core/css/home.css' %}">
-
-  <style>
+{% block extra_css %}
+<style>
     .portal-dashboard {
       width: min(1180px, calc(100% - 32px));
       margin: 0 auto;
@@ -141,28 +135,6 @@
     .quick-action.admin-action:hover {
       background: rgba(251, 191, 36, 0.17);
       border-color: rgba(251, 191, 36, 0.55);
-    }
-
-    .top-chat-btn {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      gap: 6px;
-      text-decoration: none;
-      border-radius: 999px;
-      border: 1px solid rgba(45, 212, 191, 0.32);
-      background: rgba(45, 212, 191, 0.10);
-      color: #2dd4bf;
-      padding: 9px 13px;
-      font-size: 12px;
-      font-weight: 800;
-      transition: 0.2s ease;
-    }
-
-    .top-chat-btn:hover {
-      background: rgba(45, 212, 191, 0.18);
-      border-color: rgba(45, 212, 191, 0.55);
-      transform: translateY(-1px);
     }
 
     .portal-section {
@@ -490,18 +462,6 @@
       font-weight: 800;
     }
 
-    .portal-footer {
-      margin-top: 34px;
-      padding-top: 18px;
-      border-top: 1px solid rgba(255, 255, 255, 0.10);
-      display: flex;
-      justify-content: space-between;
-      gap: 12px;
-      flex-wrap: wrap;
-      color: rgba(255, 255, 255, 0.50);
-      font-size: 12px;
-    }
-
     @media (max-width: 900px) {
       .dashboard-hero,
       .portal-two-columns {
@@ -526,37 +486,11 @@
       }
     }
   </style>
-</head>
+{% endblock %}
 
-<body>
-
-  <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
-
+{% block content %}
   <div id="portal-screen" style="display: block;">
-    <header>
-      <div class="logo">
-        {% if request.user.unidade.sigla == "HSFVF" or request.user.unidade.sigla == "HSFMA" %}
-          <img src="{% static 'core/img/logo-sagrada-familia.png' %}" alt="Logo" class="header-unit-logo">
-        {% else %}
-          <img src="{% static 'core/img/logo-hsf.png' %}" alt="Logo" class="header-unit-logo">
-        {% endif %}
-
-        <div>
-          <span>Intranet Grupo São Francisco</span>
-          <span class="unit-tag">{{ request.user.unidade.nome }}</span>
-        </div>
-      </div>
-
-      <div class="header-right">
-        <a class="top-chat-btn" href="/conversas/">
-          💬 Conversas
-        </a>
-
-        <button class="logout-btn" onclick="doLogout()">Sair</button>
-      </div>
-    </header>
-
-    <main class="portal-dashboard">
+    <div class="portal-dashboard">
 
       <section class="dashboard-hero">
         <div class="dashboard-hero-main">
@@ -1231,14 +1165,8 @@
         </section>
       {% endfor %}
 
-      <footer class="portal-footer">
-        <span>Portal • Intranet Grupo São Francisco</span>
-        <span>Tecnologia da Informação • Ambiente interno</span>
-      </footer>
-
-    </main>
+    </div>
   </div>
+{% endblock %}
 
-  <script src="{% static 'core/js/home.js' %}"></script>
-</body>
-</html>
+{% block extra_js %}{% endblock %}
