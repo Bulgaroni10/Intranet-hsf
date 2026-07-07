@@ -827,30 +827,7 @@ def buscar_dados_formularios_mv():
 
 
 def usuario_pode_acessar_solicitacoes_ti(user):
-    if usuario_eh_admin_ti(user):
-        return True
-
-    links_possiveis = [
-        '/portal/modulos/solicitacoes-ti/',
-        '/portal/modulos/solicitacoes-ti',
-    ]
-
-    nomes_possiveis = [
-        'Solicitações de TI',
-        'Solicitações Internas de TI',
-        'Solicitações TI',
-        'Chamados de TI',
-    ]
-
-    for link in links_possiveis:
-        if usuario_pode_acessar_link_modulo(user, link):
-            return True
-
-    for nome in nomes_possiveis:
-        if usuario_pode_acessar_modulo(user, nome):
-            return True
-
-    return False
+    return usuario_pode_acessar_modulo(user, 'Solicitações Internas de TI')
 
 
 def atualizar_sla_solicitacoes_dashboard(solicitacoes):
@@ -3305,5 +3282,4 @@ def logout_intranet(request):
         'message': 'Logout realizado com sucesso.',
         'redirect_url': '/'
     })
-
 

@@ -1,4 +1,7 @@
 {% load static %}
+{% load core_tags %}
+
+{% painel_ti_dashboard request.user as painel_ti %}
 
 <!DOCTYPE html>
 <html lang="pt-BR">
@@ -30,7 +33,9 @@
     .portal-module-card,
     .mini-item,
     .aviso-dashboard-card,
-    .doc-dashboard-card {
+    .doc-dashboard-card,
+    .ti-panel-card,
+    .ti-ticket-item {
       background: rgba(255, 255, 255, 0.04);
       border: 1px solid rgba(255, 255, 255, 0.10);
       border-radius: 22px;
@@ -349,6 +354,127 @@
       margin: 0;
     }
 
+    .ti-panel-actions {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-top: 12px;
+    }
+
+    .ti-panel-card {
+      padding: 18px;
+      transition: 0.2s ease;
+    }
+
+    .ti-panel-card:hover {
+      transform: translateY(-2px);
+      border-color: rgba(45, 212, 191, 0.55);
+      background: rgba(45, 212, 191, 0.08);
+    }
+
+    .ti-panel-card.warning-card {
+      border-color: rgba(251, 191, 36, 0.32);
+      background: rgba(251, 191, 36, 0.07);
+    }
+
+    .ti-panel-card.danger-card {
+      border-color: rgba(239, 68, 68, 0.38);
+      background: rgba(239, 68, 68, 0.08);
+    }
+
+    .ti-panel-card h3 {
+      color: #ffffff;
+      font-size: 14px;
+      margin: 0 0 8px 0;
+    }
+
+    .ti-panel-number {
+      color: #2dd4bf;
+      font-size: 32px;
+      font-weight: 900;
+      margin-bottom: 4px;
+    }
+
+    .ti-panel-card.warning-card .ti-panel-number {
+      color: #fbbf24;
+    }
+
+    .ti-panel-card.danger-card .ti-panel-number {
+      color: #fca5a5;
+    }
+
+    .ti-panel-card p {
+      color: rgba(255, 255, 255, 0.68);
+      font-size: 13px;
+      margin: 0;
+      line-height: 1.5;
+    }
+
+    .ti-ticket-list {
+      display: grid;
+      gap: 12px;
+      margin-top: 16px;
+    }
+
+    .ti-ticket-item {
+      display: grid;
+      grid-template-columns: 58px 1fr auto;
+      align-items: flex-start;
+      gap: 12px;
+      padding: 14px;
+      text-decoration: none;
+      color: inherit;
+      transition: 0.2s ease;
+    }
+
+    .ti-ticket-item:hover {
+      border-color: rgba(45, 212, 191, 0.55);
+      background: rgba(45, 212, 191, 0.08);
+      transform: translateY(-1px);
+    }
+
+    .ti-ticket-id {
+      width: 58px;
+      min-height: 42px;
+      border-radius: 14px;
+      background: rgba(45, 212, 191, 0.12);
+      border: 1px solid rgba(45, 212, 191, 0.22);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #2dd4bf;
+      font-size: 13px;
+      font-weight: 900;
+    }
+
+    .ti-ticket-item h3 {
+      color: #ffffff;
+      font-size: 14px;
+      line-height: 1.35;
+      margin: 0 0 5px 0;
+    }
+
+    .ti-ticket-item p {
+      color: rgba(255, 255, 255, 0.68);
+      font-size: 12px;
+      line-height: 1.45;
+      margin: 0;
+    }
+
+    .ti-ticket-badges {
+      display: flex;
+      gap: 7px;
+      flex-wrap: wrap;
+      margin-top: 9px;
+    }
+
+    .ti-ticket-date {
+      color: rgba(255, 255, 255, 0.48);
+      font-size: 11px;
+      white-space: nowrap;
+      padding-top: 3px;
+    }
+
     .portal-modules-grid {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
@@ -447,6 +573,19 @@
       .dashboard-hero-main h1 {
         font-size: 28px;
       }
+
+      .ti-ticket-item {
+        grid-template-columns: 1fr;
+      }
+
+      .ti-ticket-id {
+        width: fit-content;
+        padding: 0 12px;
+      }
+
+      .ti-ticket-date {
+        white-space: normal;
+      }
     }
   </style>
 </head>
@@ -532,6 +671,12 @@
               </a>
             {% endif %}
 
+            {% if painel_ti.pode_acessar %}
+              <a class="quick-action" href="/portal/modulos/solicitacoes-ti/">
+                🎫 Solicitações de TI
+              </a>
+            {% endif %}
+
             {% if pode_acessar_administracao %}
               <a class="quick-action admin-action" href="/portal/administracao/">
                 ⚙️ Administração
@@ -605,8 +750,140 @@
             <div class="dashboard-number">{{ total_manuais }}</div>
             <p>Últimos documentos cadastrados.</p>
           </div>
+
+          {% if painel_ti.pode_acessar %}
+            <div class="dashboard-card">
+              <h3>Chamados de TI ativos</h3>
+              <div class="dashboard-number">{{ painel_ti.ativos_total }}</div>
+              <p>Solicitações abertas, em atendimento ou aguardando retorno.</p>
+            </div>
+          {% endif %}
         </div>
       </section>
+
+      {% if painel_ti.pode_acessar %}
+        <section class="portal-section">
+          <div class="portal-section-header">
+            <h2>Painel da TI</h2>
+            <p>Acompanhamento rápido das solicitações internas de TI.</p>
+
+            <div class="ti-panel-actions">
+              <a class="quick-action" href="/portal/modulos/solicitacoes-ti/">
+                🎫 Ver solicitações
+              </a>
+
+              <a class="quick-action" href="/portal/modulos/solicitacoes-ti/nova/">
+                + Abrir chamado
+              </a>
+            </div>
+          </div>
+
+          <div class="dashboard-grid">
+            <div class="ti-panel-card">
+              <h3>Abertos</h3>
+              <div class="ti-panel-number">{{ painel_ti.abertos }}</div>
+              <p>Chamados novos aguardando atuação da TI.</p>
+            </div>
+
+            <div class="ti-panel-card">
+              <h3>Em atendimento</h3>
+              <div class="ti-panel-number">{{ painel_ti.em_atendimento }}</div>
+              <p>Solicitações já assumidas ou em análise.</p>
+            </div>
+
+            <div class="ti-panel-card">
+              <h3>Aguardando</h3>
+              <div class="ti-panel-number">{{ painel_ti.aguardando }}</div>
+              <p>Aguardando usuário, fornecedor ou terceiro.</p>
+            </div>
+
+            <div class="ti-panel-card warning-card">
+              <h3>SLA em alerta</h3>
+              <div class="ti-panel-number">{{ painel_ti.sla_alerta }}</div>
+              <p>Chamados próximos do vencimento do SLA.</p>
+            </div>
+
+            <div class="ti-panel-card danger-card">
+              <h3>SLA estourado</h3>
+              <div class="ti-panel-number">{{ painel_ti.sla_estourado }}</div>
+              <p>Chamados ativos fora do prazo definido.</p>
+            </div>
+
+            <div class="ti-panel-card">
+              <h3>Sem responsável</h3>
+              <div class="ti-panel-number">{{ painel_ti.sem_responsavel }}</div>
+              <p>Chamados ativos ainda sem responsável de TI.</p>
+            </div>
+          </div>
+
+          <div class="portal-section-header" style="margin-top: 18px;">
+            <h2>Últimas solicitações de TI</h2>
+            <p>Chamados mais recentes vinculados ao seu perfil de acesso.</p>
+          </div>
+
+          <div class="ti-ticket-list">
+            {% for chamado in painel_ti.ultimos %}
+              <a class="ti-ticket-item" href="/portal/modulos/solicitacoes-ti/">
+                <div class="ti-ticket-id">#{{ chamado.id }}</div>
+
+                <div>
+                  <h3>{{ chamado.titulo }}</h3>
+
+                  <p>
+                    {{ chamado.get_tipo_display }} • {{ chamado.get_status_display }} • {{ chamado.get_prioridade_display }}
+
+                    {% if chamado.unidade %}
+                      • {{ chamado.unidade.sigla }}
+                    {% endif %}
+
+                    {% if chamado.responsavel_ti %}
+                      • Resp.: {{ chamado.responsavel_ti.get_full_name|default:chamado.responsavel_ti.username }}
+                    {% else %}
+                      • Sem responsável
+                    {% endif %}
+                  </p>
+
+                  <div class="ti-ticket-badges">
+                    {% if chamado.sla_status == "estourado" %}
+                      <span class="mini-badge red">SLA estourado</span>
+                    {% elif chamado.sla_status == "proximo_vencimento" %}
+                      <span class="mini-badge orange">SLA em alerta</span>
+                    {% else %}
+                      <span class="mini-badge">
+                        {% if chamado.sla_status_exibicao %}
+                          {{ chamado.sla_status_exibicao }}
+                        {% else %}
+                          SLA normal
+                        {% endif %}
+                      </span>
+                    {% endif %}
+
+                    {% if chamado.modulo_origem_exibicao %}
+                      <span class="mini-badge">
+                        {{ chamado.modulo_origem_icone }} {{ chamado.modulo_origem_exibicao }}
+                      </span>
+                    {% endif %}
+                  </div>
+                </div>
+
+                <div class="ti-ticket-date">
+                  {{ chamado.criado_em|date:"d/m/Y H:i" }}
+                </div>
+              </a>
+            {% empty %}
+              <div class="mini-item">
+                <div class="mini-icon">✅</div>
+
+                <div>
+                  <h3>Nenhuma solicitação encontrada</h3>
+                  <p>No momento não há chamados vinculados ao seu perfil.</p>
+                  <span class="mini-badge">Sem pendências de TI</span>
+                </div>
+              </div>
+            {% endfor %}
+          </div>
+        </section>
+      {% endif %}
 
       <section class="portal-section">
         <div class="portal-section-header">
