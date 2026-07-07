@@ -1,0 +1,31 @@
+<div class="gsf-chat {{ chat_class }}">
+  {% for message in chat_messages %}
+    <div class="gsf-chat-message {% if message.origem == 'ti' %}gsf-chat-message-ti{% elif message.origem == 'solicitante' %}gsf-chat-message-user{% else %}gsf-chat-message-system{% endif %}">
+      <div class="gsf-chat-head">
+        <span>
+          {% if message.origem == 'ti' %}
+            TI
+          {% elif message.origem == 'solicitante' %}
+            Solicitante
+          {% else %}
+            Sistema
+          {% endif %}
+
+          {% if message.autor %}
+            - {{ message.autor.get_full_name|default:message.autor.username }}
+          {% endif %}
+        </span>
+
+        {% if message.criado_em %}
+          <span>{{ message.criado_em|date:"d/m/Y H:i" }}</span>
+        {% endif %}
+      </div>
+
+      <p>{{ message.mensagem }}</p>
+    </div>
+  {% empty %}
+    <div class="gsf-empty">
+      {{ chat_empty|default:"Nenhuma mensagem registrada." }}
+    </div>
+  {% endfor %}
+</div>

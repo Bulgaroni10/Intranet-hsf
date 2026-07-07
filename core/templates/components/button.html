@@ -1,0 +1,11 @@
+{% if button_href %}
+  <a class="gsf-button {{ button_class }}" href="{{ button_href }}"{% if button_target %} target="{{ button_target }}"{% endif %}{% if button_rel %} rel="{{ button_rel }}"{% endif %}>
+    {% if button_icon %}<span>{{ button_icon }}</span>{% endif %}
+    {{ button_label }}
+  </a>
+{% else %}
+  <button class="gsf-button {{ button_class }}" type="{{ button_type|default:'button' }}"{% if button_name %} name="{{ button_name }}"{% endif %}{% if button_value %} value="{{ button_value }}"{% endif %}>
+    {% if button_icon %}<span>{{ button_icon }}</span>{% endif %}
+    {{ button_label }}
+  </button>
+{% endif %}

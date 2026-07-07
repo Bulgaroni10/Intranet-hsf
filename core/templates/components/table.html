@@ -1,0 +1,33 @@
+<div class="gsf-table-wrap {{ table_class }}">
+  <table class="gsf-table">
+    {% if table_caption %}
+      <caption>{{ table_caption }}</caption>
+    {% endif %}
+
+    {% if table_headers %}
+      <thead>
+        <tr>
+          {% for header in table_headers %}
+            <th>{{ header }}</th>
+          {% endfor %}
+        </tr>
+      </thead>
+    {% endif %}
+
+    <tbody>
+      {% for row in table_rows %}
+        <tr>
+          {% for cell in row %}
+            <td>{{ cell }}</td>
+          {% endfor %}
+        </tr>
+      {% empty %}
+        <tr>
+          <td class="gsf-table-empty" colspan="{{ table_colspan|default:1 }}">
+            {{ table_empty|default:"Nenhum registro encontrado." }}
+          </td>
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>

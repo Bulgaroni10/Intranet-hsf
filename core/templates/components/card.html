@@ -1,0 +1,33 @@
+{% if card_href %}
+  <a class="gsf-card {{ card_class }}" href="{{ card_href }}">
+{% else %}
+  <article class="gsf-card {{ card_class }}">
+{% endif %}
+    {% if card_icon or card_tag %}
+      <div class="gsf-card-topline">
+        {% if card_icon %}
+          <div class="gsf-card-icon">{{ card_icon }}</div>
+        {% endif %}
+
+        {% if card_tag %}
+          <span class="gsf-badge">{{ card_tag }}</span>
+        {% endif %}
+      </div>
+    {% endif %}
+
+    {% if card_title %}
+      <h3>{{ card_title }}</h3>
+    {% endif %}
+
+    {% if card_text %}
+      <p>{{ card_text }}</p>
+    {% endif %}
+
+    {% if card_meta %}
+      <div class="gsf-card-meta">{{ card_meta }}</div>
+    {% endif %}
+{% if card_href %}
+  </a>
+{% else %}
+  </article>
+{% endif %}

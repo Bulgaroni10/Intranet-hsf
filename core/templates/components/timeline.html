@@ -1,0 +1,27 @@
+<div class="gsf-timeline {{ timeline_class }}">
+  {% for item in timeline_items %}
+    <div class="gsf-timeline-item">
+      <div class="gsf-timeline-dot">
+        {{ item.icon|default:"•" }}
+      </div>
+
+      <div class="gsf-timeline-content">
+        {% if item.title %}
+          <strong>{{ item.title }}</strong>
+        {% endif %}
+
+        {% if item.date %}
+          <span>{{ item.date }}</span>
+        {% endif %}
+
+        {% if item.text %}
+          <p>{{ item.text }}</p>
+        {% endif %}
+      </div>
+    </div>
+  {% empty %}
+    <div class="gsf-empty">
+      {{ timeline_empty|default:"Nenhum evento registrado." }}
+    </div>
+  {% endfor %}
+</div>
