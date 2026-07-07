@@ -3047,6 +3047,7 @@ def novo_link_util(request):
                 messages.error(request, erro)
 
             return render(request, 'core/formulario_link_util.html', {
+                'page_title': 'Novo link útil',
                 'titulo': 'Novo link útil',
                 'subtitulo': 'Cadastre um novo sistema, portal ou atalho interno.',
                 'form_data': form_data,
@@ -3077,6 +3078,7 @@ def novo_link_util(request):
         return redirect('/portal/modulos/links-uteis/')
 
     return render(request, 'core/formulario_link_util.html', {
+        'page_title': 'Novo link útil',
         'titulo': 'Novo link útil',
         'subtitulo': 'Cadastre um novo sistema, portal ou atalho interno.',
         'form_data': form_data,
@@ -3133,6 +3135,7 @@ def editar_link_util(request, link_id):
                 messages.error(request, erro)
 
             return render(request, 'core/formulario_link_util.html', {
+                'page_title': 'Editar link útil',
                 'titulo': 'Editar link útil',
                 'subtitulo': 'Atualize os dados do link selecionado.',
                 'form_data': form_data,
@@ -3161,6 +3164,7 @@ def editar_link_util(request, link_id):
         return redirect('/portal/modulos/links-uteis/')
 
     return render(request, 'core/formulario_link_util.html', {
+        'page_title': 'Editar link útil',
         'titulo': 'Editar link útil',
         'subtitulo': 'Atualize os dados do link selecionado.',
         'form_data': form_data,
