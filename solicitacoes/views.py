@@ -9,6 +9,7 @@ from .forms import (
     ComentarioSolicitacaoForm,
 )
 from .models import SolicitacaoInterna
+from .services import registrar_historico, rotulo_choice
 
 
 @login_required
@@ -79,6 +80,15 @@ def nova_solicitacao(request):
             solicitacao.setor = getattr(request.user, 'setor', None)
             solicitacao.save()
 
+            registrar_historico(
+                solicitacao=solicitacao,
+                usuario=request.user,
+                tipo='criacao',
+                titulo='Solicitação criada',
+                descricao='A solicitação foi aberta pelo usuário.',
+                valor_novo=solicitacao.titulo,
+            )
+
             return redirect('detalhe_solicitacao', solicitacao_id=solicitacao.id)
     else:
         form = SolicitacaoInternaForm()
@@ -97,6 +107,9 @@ def detalhe_solicitacao(request, solicitacao_id):
             'responsavel',
             'unidade',
             'setor',
+        ).prefetch_related(
+            'comentarios',
+            'historicos',
         ),
         id=solicitacao_id
     )
@@ -112,6 +125,14 @@ def detalhe_solicitacao(request, solicitacao_id):
             comentario.autor = request.user
             comentario.save()
 
+            registrar_historico(
+                solicitacao=solicitacao,
+                usuario=request.user,
+                tipo='comentario',
+                titulo='Comentário adicionado',
+                descricao=comentario.mensagem,
+            )
+
             return redirect('detalhe_solicitacao', solicitacao_id=solicitacao.id)
 
     return render(request, 'solicitacoes/detalhe_solicitacao.html', {
@@ -122,13 +143,63 @@ def detalhe_solicitacao(request, solicitacao_id):
 
 @login_required
 def atender_solicitacao(request, solicitacao_id):
-    solicitacao = get_object_or_404(SolicitacaoInterna, id=solicitacao_id)
+    solicitacao = get_object_or_404(
+        SolicitacaoInterna.objects.select_related('responsavel'),
+        id=solicitacao_id
+    )
+
+    status_anterior = solicitacao.status
+    prioridade_anterior = solicitacao.prioridade
+    responsavel_anterior = solicitacao.responsavel
 
     if request.method == 'POST':
         form = AtendimentoSolicitacaoForm(request.POST, instance=solicitacao)
 
         if form.is_valid():
-            form.save()
+            solicitacao_atualizada = form.save()
+
+            if status_anterior != solicitacao_atualizada.status:
+                registrar_historico(
+                    solicitacao=solicitacao_atualizada,
+                    usuario=request.user,
+                    tipo='status',
+                    titulo='Status alterado',
+                    descricao='O status da solicitação foi atualizado.',
+                    valor_anterior=rotulo_choice(SolicitacaoInterna.STATUS_CHOICES, status_anterior),
+                    valor_novo=rotulo_choice(SolicitacaoInterna.STATUS_CHOICES, solicitacao_atualizada.status),
+                )
+
+                if solicitacao_atualizada.status == 'concluida':
+                    registrar_historico(
+                        solicitacao=solicitacao_atualizada,
+                        usuario=request.user,
+                        tipo='conclusao',
+                        titulo='Solicitação concluída',
+                        descricao='A solicitação foi marcada como concluída.',
+                    )
+
+            if prioridade_anterior != solicitacao_atualizada.prioridade:
+                registrar_historico(
+                    solicitacao=solicitacao_atualizada,
+                    usuario=request.user,
+                    tipo='prioridade',
+                    titulo='Prioridade alterada',
+                    descricao='A prioridade da solicitação foi atualizada.',
+                    valor_anterior=rotulo_choice(SolicitacaoInterna.PRIORIDADE_CHOICES, prioridade_anterior),
+                    valor_novo=rotulo_choice(SolicitacaoInterna.PRIORIDADE_CHOICES, solicitacao_atualizada.prioridade),
+                )
+
+            if responsavel_anterior != solicitacao_atualizada.responsavel:
+                registrar_historico(
+                    solicitacao=solicitacao_atualizada,
+                    usuario=request.user,
+                    tipo='responsavel',
+                    titulo='Responsável alterado',
+                    descricao='O responsável pela solicitação foi atualizado.',
+                    valor_anterior=str(responsavel_anterior or 'Não atribuído'),
+                    valor_novo=str(solicitacao_atualizada.responsavel or 'Não atribuído'),
+                )
+
             return redirect('detalhe_solicitacao', solicitacao_id=solicitacao.id)
     else:
         form = AtendimentoSolicitacaoForm(instance=solicitacao)

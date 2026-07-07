@@ -64,6 +64,70 @@
 
   <br>
 
+  <div class="detail-card">
+    <h2>Timeline automática</h2>
+
+    <div class="gsf-timeline">
+      {% for historico in solicitacao.historicos.all %}
+        <div class="gsf-timeline-item">
+          <div class="gsf-timeline-dot">
+            {% if historico.tipo == "criacao" %}
+              🎫
+            {% elif historico.tipo == "status" %}
+              🚦
+            {% elif historico.tipo == "prioridade" %}
+              ⚡
+            {% elif historico.tipo == "responsavel" %}
+              👤
+            {% elif historico.tipo == "comentario" %}
+              💬
+            {% elif historico.tipo == "conclusao" %}
+              ✅
+            {% else %}
+              📝
+            {% endif %}
+          </div>
+
+          <div class="gsf-timeline-content">
+            <strong>{{ historico.titulo }}</strong>
+            <span>
+              {{ historico.criado_em|date:"d/m/Y H:i" }}
+              —
+              {{ historico.usuario|default:"Sistema" }}
+            </span>
+
+            {% if historico.descricao %}
+              <p>{{ historico.descricao }}</p>
+            {% endif %}
+
+            {% if historico.valor_anterior or historico.valor_novo %}
+              <div class="top-actions">
+                {% if historico.valor_anterior %}
+                  <span class="gsf-badge gsf-badge-warning">
+                    De: {{ historico.valor_anterior }}
+                  </span>
+                {% endif %}
+
+                {% if historico.valor_novo %}
+                  <span class="gsf-badge gsf-badge-success">
+                    Para: {{ historico.valor_novo }}
+                  </span>
+                {% endif %}
+              </div>
+            {% endif %}
+          </div>
+        </div>
+      {% empty %}
+        <div class="empty-card">
+          <h2>Sem histórico ainda</h2>
+          <p>Quando essa solicitação for movimentada, a timeline aparecerá aqui.</p>
+        </div>
+      {% endfor %}
+    </div>
+  </div>
+
+  <br>
+
   <div class="form-card">
     <h2>Adicionar comentário</h2>
 
@@ -85,7 +149,7 @@
   <br>
 
   <div class="detail-card">
-    <h2>Histórico de comentários</h2>
+    <h2>Comentários</h2>
 
     {% for comentario in solicitacao.comentarios.all %}
       <div class="notification-card">

@@ -74,17 +74,8 @@ class SolicitacaoInterna(models.Model):
         blank=True
     )
 
-    status = models.CharField(
-        max_length=30,
-        choices=STATUS_CHOICES,
-        default='aberta'
-    )
-
-    prioridade = models.CharField(
-        max_length=20,
-        choices=PRIORIDADE_CHOICES,
-        default='media'
-    )
+    status = models.CharField(max_length=30, choices=STATUS_CHOICES, default='aberta')
+    prioridade = models.CharField(max_length=20, choices=PRIORIDADE_CHOICES, default='media')
 
     criado_em = models.DateTimeField(auto_now_add=True)
     atualizado_em = models.DateTimeField(auto_now=True)
@@ -132,3 +123,45 @@ class ComentarioSolicitacao(models.Model):
 
     def __str__(self):
         return f'Comentário #{self.id}'
+
+
+class HistoricoSolicitacao(models.Model):
+    TIPO_CHOICES = [
+        ('criacao', 'Criação'),
+        ('status', 'Status'),
+        ('prioridade', 'Prioridade'),
+        ('responsavel', 'Responsável'),
+        ('comentario', 'Comentário'),
+        ('atualizacao', 'Atualização'),
+        ('conclusao', 'Conclusão'),
+    ]
+
+    solicitacao = models.ForeignKey(
+        SolicitacaoInterna,
+        on_delete=models.CASCADE,
+        related_name='historicos'
+    )
+
+    usuario = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True
+    )
+
+    tipo = models.CharField(max_length=30, choices=TIPO_CHOICES)
+    titulo = models.CharField(max_length=160)
+    descricao = models.TextField(blank=True)
+
+    valor_anterior = models.CharField(max_length=255, blank=True)
+    valor_novo = models.CharField(max_length=255, blank=True)
+
+    criado_em = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = 'Histórico da Solicitação'
+        verbose_name_plural = 'Históricos das Solicitações'
+        ordering = ['-criado_em']
+
+    def __str__(self):
+        return f'{self.get_tipo_display()} - #{self.solicitacao_id}'
