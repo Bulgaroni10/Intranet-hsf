@@ -793,3 +793,19 @@ TIMELINE
     color:#16A34A;
 
 }
+
+.hero-side {
+  background: var(--gsf-card);
+  border: 1px solid var(--gsf-border);
+  border-radius: var(--gsf-radius);
+  padding: 22px;
+  box-shadow: var(--gsf-shadow);
+}
+
+.hero-side h2 {
+  margin-bottom: 14px;
+}
+
+.hero-side p {
+  margin: 0 0 10px;
+}

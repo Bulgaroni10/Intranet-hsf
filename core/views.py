@@ -1,4 +1,4 @@
-﻿import csv
+import csv
 import json
 
 from django.contrib import messages
@@ -26,6 +26,13 @@ from avisos.models import AvisoComunicado
 from documentos.models import DocumentoProtocolo
 from auditoria.models import RegistroAuditoria
 from solicitacoes_ti.models import SolicitacaoTI
+
+try:
+    from inventario_ti.models import ComputadorInventario
+except Exception:
+    ComputadorInventario = None
+
+
 
 
 def usuario_pode_acessar_modulo(user, nome_modulo):
@@ -933,6 +940,44 @@ def buscar_resumo_chamados_ti(user, limite=8, modulo_origem=None):
         'ultimos_chamados_ti': ultimos_chamados,
     }
 
+
+def buscar_resumo_inventario_ti():
+    if ComputadorInventario is None:
+        return {
+            'total_computadores': 0,
+            'total_computadores_online': 0,
+            'total_computadores_offline': 0,
+            'total_computadores_sem_patrimonio': 0,
+            'ultimos_computadores': [],
+        }
+
+    try:
+        computadores = list(ComputadorInventario.objects.all())
+    except Exception:
+        return {
+            'total_computadores': 0,
+            'total_computadores_online': 0,
+            'total_computadores_offline': 0,
+            'total_computadores_sem_patrimonio': 0,
+            'ultimos_computadores': [],
+        }
+
+    total = len(computadores)
+    online = len([pc for pc in computadores if pc.online])
+    offline = total - online
+    sem_patrimonio = len([
+        pc for pc in computadores
+        if not pc.patrimonio or pc.patrimonio == '-'
+    ])
+
+    return {
+        'total_computadores': total,
+        'total_computadores_online': online,
+        'total_computadores_offline': offline,
+        'total_computadores_sem_patrimonio': sem_patrimonio,
+        'ultimos_computadores': ComputadorInventario.objects.order_by('-ultimo_contato')[:6],
+    }
+
 def home(request):
     if request.user.is_authenticated:
         return redirect('portal')
@@ -1047,6 +1092,9 @@ def portal(request):
 
     if pode_acessar_solicitacoes_ti:
         resumo_chamados_ti = buscar_resumo_chamados_ti(user)
+
+    resumo_inventario_ti = buscar_resumo_inventario_ti()
+
     return render(request, 'core/portal.html', {
         'page_title': 'Portal',
         'categorias': categorias,
@@ -1064,6 +1112,7 @@ def portal(request):
         'acessos_botoes_rapidos': montar_acessos_botoes_rapidos(user),
         'pode_acessar_solicitacoes_ti': pode_acessar_solicitacoes_ti,
         **resumo_chamados_ti,
+        **resumo_inventario_ti,
         'pode_acessar_administracao': usuario_pode_acessar_administracao(user),
     })
 
