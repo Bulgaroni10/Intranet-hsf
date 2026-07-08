@@ -10,6 +10,7 @@ Copie `config.example.json` para `config.json` no mesmo diretório do agente e a
 {
   "server": "http://intranet.osascohsf.hosp",
   "endpoint": "/api/inventario/heartbeat/",
+  "error_endpoint": "/api/inventario/agent-error/",
   "interval": 30,
   "agent_version": "2.1.0",
   "request_timeout": 8,
@@ -19,6 +20,9 @@ Copie `config.example.json` para `config.json` no mesmo diretório do agente e a
 ```
 
 Não use IP fixo no código. Altere o servidor pelo `config.json`.
+
+O agente registra logs locais e reporta falhas de coleta para a GSF Hub pelo `error_endpoint`.
+Falhas de rede no heartbeat ficam apenas no log local para evitar repetição de erro quando a intranet estiver indisponível.
 
 ## Execução manual
 
@@ -32,19 +36,15 @@ python agent.py
 ## Serviço com NSSM
 
 ```powershell
-C:\Servicos\nssm\nssm-2.24\win64\nssm.exe install GSFAgent
+cd C:\Projetos\intranet_gsf\agentes\inventario_ti
+.\install_nssm.ps1 -PythonPath "C:\Caminho\Python\python.exe"
 ```
 
-Configure:
-
-- Application path: `C:\Caminho\Python\python.exe`
-- Startup directory: diretório do agente
-- Arguments: `agent.py`
-
-Depois:
+Para remover:
 
 ```powershell
-C:\Servicos\nssm\nssm-2.24\win64\nssm.exe start GSFAgent
+cd C:\Projetos\intranet_gsf\agentes\inventario_ti
+.\uninstall_nssm.ps1
 ```
 
 ## Serviço com pywin32

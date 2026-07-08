@@ -1,6 +1,6 @@
 from django.utils import timezone
 
-from .models import HistoricoComputadorInventario
+from .models import ComputadorInventario, ErroAgenteInventario, HistoricoComputadorInventario
 
 
 CAMPOS_MONITORADOS = {
@@ -97,3 +97,36 @@ def registrar_alteracoes_inventario(computador, valores_anteriores, novos_valore
         HistoricoComputadorInventario.objects.bulk_create(eventos)
 
     return eventos
+
+
+def registrar_erro_agente(dados, ip_origem=None):
+    hostname = normalizar_valor(dados.get("hostname")).upper() or "-"
+    computador = ComputadorInventario.objects.filter(hostname=hostname).first()
+
+    erro = ErroAgenteInventario.objects.create(
+        computador=computador,
+        hostname=hostname,
+        agent_version=normalizar_valor(dados.get("agent_version")) or "-",
+        categoria=normalizar_valor(dados.get("categoria")) or "geral",
+        mensagem=normalizar_valor(dados.get("mensagem")) or "Erro sem mensagem.",
+        detalhe=normalizar_valor(dados.get("detalhe")),
+        payload=dados.get("payload") or {},
+        ip_origem=ip_origem,
+    )
+
+    if computador:
+        registrar_evento(
+            computador=computador,
+            tipo="status",
+            titulo=f"Erro do agente: {erro.categoria}",
+            descricao=erro.mensagem,
+            campo="agent_error",
+            valor_novo=str(erro.id),
+            dados={
+                "erro_id": erro.id,
+                "categoria": erro.categoria,
+                "agent_version": erro.agent_version,
+            },
+        )
+
+    return erro

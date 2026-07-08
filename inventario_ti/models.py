@@ -84,3 +84,33 @@ class HistoricoComputadorInventario(models.Model):
 
     def __str__(self):
         return f"{self.computador.hostname} - {self.titulo}"
+
+
+class ErroAgenteInventario(models.Model):
+    computador = models.ForeignKey(
+        ComputadorInventario,
+        on_delete=models.SET_NULL,
+        related_name="erros_agente",
+        null=True,
+        blank=True,
+    )
+    hostname = models.CharField(max_length=120)
+    agent_version = models.CharField(max_length=50, blank=True, default="-")
+    categoria = models.CharField(max_length=80, blank=True, default="geral")
+    mensagem = models.TextField()
+    detalhe = models.TextField(blank=True, default="")
+    payload = models.JSONField(default=dict, blank=True)
+    ip_origem = models.GenericIPAddressField(null=True, blank=True)
+    criado_em = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = "Erro do agente"
+        verbose_name_plural = "Erros dos agentes"
+        ordering = ["-criado_em"]
+        indexes = [
+            models.Index(fields=["hostname", "-criado_em"]),
+            models.Index(fields=["categoria", "-criado_em"]),
+        ]
+
+    def __str__(self):
+        return f"{self.hostname} - {self.categoria}"

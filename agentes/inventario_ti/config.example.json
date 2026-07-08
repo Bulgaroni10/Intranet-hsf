@@ -1,6 +1,7 @@
 {
   "server": "http://intranet.osascohsf.hosp",
   "endpoint": "/api/inventario/heartbeat/",
+  "error_endpoint": "/api/inventario/agent-error/",
   "interval": 30,
   "agent_version": "2.1.0",
   "request_timeout": 8,

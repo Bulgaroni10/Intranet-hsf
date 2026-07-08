@@ -2,8 +2,8 @@ import json
 
 from django.test import RequestFactory, TestCase
 
-from .models import ComputadorInventario
-from .views import heartbeat
+from .models import ComputadorInventario, ErroAgenteInventario
+from .views import agent_error, heartbeat
 
 
 class HeartbeatHistoricoTests(TestCase):
@@ -63,3 +63,49 @@ class HeartbeatHistoricoTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertIn("usuario", campos_alterados)
         self.assertIn("disco_percentual", campos_alterados)
+
+
+class AgentErrorTests(TestCase):
+    def setUp(self):
+        self.factory = RequestFactory()
+
+    def postar_erro(self, payload):
+        request = self.factory.post(
+            "/api/inventario/agent-error/",
+            data=json.dumps(payload),
+            content_type="application/json",
+            REMOTE_ADDR="127.0.0.1",
+        )
+
+        return agent_error(request)
+
+    def test_agent_error_cria_registro_sem_computador(self):
+        response = self.postar_erro({
+            "hostname": "PC-SEM-CADASTRO",
+            "agent_version": "2.1.0",
+            "categoria": "coleta",
+            "mensagem": "Falha ao coletar dados.",
+            "detalhe": "stacktrace",
+        })
+
+        erro = ErroAgenteInventario.objects.get(hostname="PC-SEM-CADASTRO")
+
+        self.assertEqual(response.status_code, 200)
+        self.assertIsNone(erro.computador)
+        self.assertEqual(erro.categoria, "coleta")
+
+    def test_agent_error_vincula_computador_e_cria_historico(self):
+        computador = ComputadorInventario.objects.create(hostname="PC-TESTE")
+
+        response = self.postar_erro({
+            "hostname": "PC-TESTE",
+            "agent_version": "2.1.0",
+            "categoria": "coleta",
+            "mensagem": "Falha ao coletar dados.",
+        })
+
+        erro = ErroAgenteInventario.objects.get(hostname="PC-TESTE")
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(erro.computador, computador)
+        self.assertEqual(computador.historicos.filter(campo="agent_error").count(), 1)

@@ -17,6 +17,7 @@ from .services import (
     computador_estava_offline,
     registrar_alteracoes_inventario,
     registrar_cadastro_computador,
+    registrar_erro_agente,
     registrar_retorno_online,
 )
 
@@ -218,6 +219,40 @@ def heartbeat(request):
         "hostname": computador.hostname,
         "status": computador.status_texto,
         "eventos_registrados": eventos_registrados,
+    })
+
+
+@csrf_exempt
+def agent_error(request):
+    if request.method != "POST":
+        return JsonResponse({"ok": False, "erro": "Método não permitido"}, status=405)
+
+    try:
+        dados = json.loads(request.body.decode("utf-8"))
+    except Exception:
+        return JsonResponse({"ok": False, "erro": "JSON inválido"}, status=400)
+
+    hostname = dados.get("hostname", "").strip().upper()
+    mensagem = dados.get("mensagem", "").strip()
+
+    if not hostname:
+        return JsonResponse({"ok": False, "erro": "Hostname obrigatório"}, status=400)
+
+    if not mensagem:
+        return JsonResponse({"ok": False, "erro": "Mensagem obrigatória"}, status=400)
+
+    erro = registrar_erro_agente(
+        dados={
+            **dados,
+            "hostname": hostname,
+        },
+        ip_origem=request.META.get("REMOTE_ADDR"),
+    )
+
+    return JsonResponse({
+        "ok": True,
+        "erro_id": erro.id,
+        "hostname": erro.hostname,
     })
 
 

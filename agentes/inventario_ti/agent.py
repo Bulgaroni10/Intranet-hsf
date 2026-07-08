@@ -7,6 +7,7 @@ import socket
 import subprocess
 import sys
 import time
+import traceback
 import uuid
 from pathlib import Path
 
@@ -19,6 +20,7 @@ BASE_DIR = Path(__file__).resolve().parent
 DEFAULT_CONFIG = {
     "server": "http://intranet.osascohsf.hosp",
     "endpoint": "/api/inventario/heartbeat/",
+    "error_endpoint": "/api/inventario/agent-error/",
     "interval": 30,
     "agent_version": AGENT_VERSION,
     "request_timeout": 8,
@@ -37,6 +39,7 @@ def carregar_config(caminho_config=None):
 
     config["server"] = str(config["server"]).rstrip("/")
     config["endpoint"] = "/" + str(config["endpoint"]).strip("/") + "/"
+    config["error_endpoint"] = "/" + str(config["error_endpoint"]).strip("/") + "/"
     config["interval"] = max(5, int(config.get("interval", 30)))
     config["request_timeout"] = max(3, int(config.get("request_timeout", 8)))
     config["agent_version"] = str(config.get("agent_version") or AGENT_VERSION)
@@ -73,6 +76,10 @@ def configurar_logging(config):
 
 def montar_url_heartbeat(config):
     return f"{config['server']}{config['endpoint']}"
+
+
+def montar_url_erro(config):
+    return f"{config['server']}{config['error_endpoint']}"
 
 
 def executar_powershell(comando):
@@ -194,8 +201,47 @@ def coletar_dados(config):
     }
 
 
+def reportar_erro_agente(config, logger, categoria, mensagem, detalhe="", payload=None):
+    dados = {
+        "hostname": get_hostname(),
+        "agent_version": config["agent_version"],
+        "categoria": categoria,
+        "mensagem": str(mensagem)[:4000],
+        "detalhe": str(detalhe)[:12000],
+        "payload": payload or {},
+    }
+    url = montar_url_erro(config)
+
+    try:
+        resposta = requests.post(
+            url,
+            json=dados,
+            timeout=config["request_timeout"],
+        )
+        resposta.raise_for_status()
+        logger.info("Erro do agente reportado para GSF Hub: %s", resposta.text[:300])
+        return True
+
+    except Exception as erro:
+        logger.warning("Nao foi possivel reportar erro do agente para %s: %s", url, erro)
+        return False
+
+
 def enviar_heartbeat(config, logger):
-    dados = coletar_dados(config)
+    try:
+        dados = coletar_dados(config)
+    except Exception as erro:
+        detalhe = traceback.format_exc()
+        logger.exception("Falha ao coletar dados do inventario: %s", erro)
+        reportar_erro_agente(
+            config=config,
+            logger=logger,
+            categoria="coleta",
+            mensagem=f"Falha ao coletar dados do inventario: {erro}",
+            detalhe=detalhe,
+        )
+        return False
+
     url = montar_url_heartbeat(config)
 
     try:

@@ -9,4 +9,5 @@ urlpatterns = [
 
     path("api/heartbeat/", views.heartbeat, name="inventario_ti_heartbeat_compat"),
     path("api/inventario/heartbeat/", views.heartbeat, name="inventario_ti_heartbeat"),
+    path("api/inventario/agent-error/", views.agent_error, name="inventario_ti_agent_error"),
 ]
