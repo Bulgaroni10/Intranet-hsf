@@ -155,6 +155,30 @@
   </div>
 
   <div class="detail-card">
+      {% if pode_ver_painel_tecnico %}
+    <div class="detail-card">
+      <h2>Timeline operacional</h2>
+
+      {% for evento in timeline_global %}
+        <div class="notification-card">
+          <strong>{{ evento.icone }} {{ evento.titulo }}</strong>
+          <p>{{ evento.origem }} • {{ evento.data|date:"d/m/Y H:i" }}</p>
+
+          {% if evento.descricao %}
+            <p>{{ evento.descricao }}</p>
+          {% endif %}
+
+          {% if evento.link %}
+            <a href="{{ evento.link }}" class="btn-link">Abrir</a>
+          {% endif %}
+        </div>
+      {% empty %}
+        <p>Nenhum evento operacional recente.</p>
+      {% endfor %}
+    </div>
+
+    <br>
+  {% endif %}
     <h2>Módulos disponíveis</h2>
 
     {% for categoria in categorias %}

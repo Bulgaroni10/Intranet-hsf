@@ -1,27 +1,74 @@
 {% load static %}
 
 <header class="gsf-topbar">
+
   <div class="gsf-topbar-left">
     <button class="gsf-sidebar-toggle" type="button" onclick="document.body.classList.toggle('gsf-sidebar-collapsed')">
       ☰
     </button>
 
-    <div>
-      <span class="gsf-page-kicker">Intranet</span>
-      <h1 class="gsf-page-title">
-        {{ page_title|default:"Grupo São Francisco" }}
-      </h1>
+    <div class="gsf-brand-mini">
+      <span class="gsf-brand-mark">GSF</span>
+      <div>
+        <strong>GSF Hub</strong>
+        <small>{{ page_title|default:"Plataforma Corporativa" }}</small>
+      </div>
     </div>
   </div>
 
+  <div class="gsf-topbar-center">
+    <button class="gsf-command-search" type="button" onclick="alert('Busca Global em desenvolvimento — em breve Ctrl + K')">
+      <span>🔍</span>
+      <strong>Pesquisar computadores, ramais, documentos...</strong>
+      <kbd>Ctrl K</kbd>
+    </button>
+  </div>
+
   <div class="gsf-topbar-right">
-    <a class="gsf-topbar-action" href="/conversas/">
-      💬 Conversas
+
+    <a class="gsf-icon-action" href="/portal/" title="Portal">
+      🏠
     </a>
 
-    <a class="gsf-topbar-action" href="/portal/">
-      🏠 Portal
+    <a class="gsf-icon-action" href="/conversas/" title="Conversas">
+      💬
     </a>
+
+    <div class="gsf-notification-wrapper">
+      <button class="gsf-icon-action gsf-notification-btn" type="button" onclick="document.body.classList.toggle('gsf-notifications-open')">
+        🔔
+        {% if total_notificacoes %}
+          <span class="gsf-notification-count">{{ total_notificacoes }}</span>
+        {% endif %}
+      </button>
+
+      <div class="gsf-notification-panel">
+        <div class="gsf-notification-header">
+          <strong>Notificações</strong>
+          <span>{{ total_notificacoes|default:0 }}</span>
+        </div>
+
+        {% for notificacao in notificacoes %}
+          <a class="gsf-notification-item" href="{{ notificacao.link|default:'#' }}">
+            <span>{{ notificacao.icone }}</span>
+            <div>
+              <strong>{{ notificacao.titulo }}</strong>
+              <small>{{ notificacao.descricao }}</small>
+            </div>
+          </a>
+        {% empty %}
+          <div class="gsf-notification-empty">
+            Nenhuma notificação no momento.
+          </div>
+        {% endfor %}
+      </div>
+    </div>
+
+    {% if pode_acessar_administracao %}
+      <a class="gsf-icon-action" href="/portal/administracao/" title="Administração">
+        ⚙️
+      </a>
+    {% endif %}
 
     <div class="gsf-user-chip">
       {% if request.user.unidade %}
@@ -36,7 +83,6 @@
 
       <div>
         <strong>{{ request.user.get_full_name|default:request.user.username }}</strong>
-
         <span>
           {% if request.user.unidade %}
             {{ request.user.unidade.sigla }}
@@ -50,5 +96,6 @@
     <button class="gsf-logout-btn" type="button" onclick="doLogout()">
       Sair
     </button>
+
   </div>
 </header>

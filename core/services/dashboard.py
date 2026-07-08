@@ -8,6 +8,8 @@ from modulos.models import Modulo
 from solicitacoes_ti.models import SolicitacaoTI
 from status_sistemas.models import OcorrenciaSistema
 
+from core.services.events import montar_timeline_global
+from core.services.notifications import listar_notificacoes
 from core.services.permissions import (
     usuario_eh_admin_ti,
     usuario_eh_ti,
@@ -404,6 +406,15 @@ def montar_contexto_portal(user):
     if pode_ver_painel_tecnico:
         resumo_inventario_ti = buscar_resumo_inventario_ti()
 
+    notificacoes = listar_notificacoes()
+
+    timeline_global = montar_timeline_global(
+        computadores=resumo_inventario_ti.get("ultimos_computadores", []),
+        chamados_ti=resumo_chamados_ti.get("ultimos_chamados_ti", []),
+        ocorrencias=ocorrencias_ativas,
+        limite=10,
+    )
+
     return {
         "page_title": "Portal",
         "categorias": categorias,
@@ -424,4 +435,7 @@ def montar_contexto_portal(user):
         "pode_acessar_administracao": usuario_eh_admin_ti(user),
         **resumo_chamados_ti,
         **resumo_inventario_ti,
+        "timeline_global": timeline_global,
+        "notificacoes": notificacoes,
+        "total_notificacoes": len(notificacoes),
     }
