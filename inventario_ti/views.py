@@ -6,6 +6,8 @@ from django.shortcuts import get_object_or_404, render
 from django.utils import timezone
 from django.views.decorators.csrf import csrf_exempt
 import json
+import re
+from urllib.parse import urlencode
 
 from core.services.permissions import usuario_eh_ti
 
@@ -14,6 +16,117 @@ from .models import ComputadorInventario
 
 def usuario_pode_acessar_inventario_ti(user):
     return usuario_eh_ti(user)
+
+
+def valor_informado(valor):
+    return bool(valor and str(valor).strip() not in ["", "-"])
+
+
+def patrimonio_informado(computador):
+    return valor_informado(computador.patrimonio)
+
+
+def extrair_percentual_disco(valor):
+    if not valor:
+        return None
+
+    match = re.search(r"\d+", str(valor))
+
+    if not match:
+        return None
+
+    return int(match.group())
+
+
+def computador_tem_disco_critico(computador):
+    percentual = extrair_percentual_disco(computador.disco_percentual)
+    return percentual is not None and percentual >= 90
+
+
+def computador_tem_dados_incompletos(computador):
+    campos_obrigatorios = [
+        computador.hostname,
+        computador.usuario,
+        computador.ip_local,
+        computador.mac,
+        computador.sistema,
+        computador.fabricante,
+        computador.modelo,
+        computador.serial,
+    ]
+
+    return any(not valor_informado(valor) for valor in campos_obrigatorios)
+
+
+def computador_sem_heartbeat_recente(computador):
+    if not computador.ultimo_contato:
+        return True
+
+    return computador.ultimo_contato < timezone.now() - timezone.timedelta(hours=24)
+
+
+def aplicar_filtros_memoria(computadores, status, patrimonio, saude):
+    filtrados = []
+
+    for computador in computadores:
+        if status == "online" and not computador.online:
+            continue
+
+        if status == "offline" and computador.online:
+            continue
+
+        if patrimonio == "sem" and patrimonio_informado(computador):
+            continue
+
+        if patrimonio == "com" and not patrimonio_informado(computador):
+            continue
+
+        if saude == "disco_critico" and not computador_tem_disco_critico(computador):
+            continue
+
+        if saude == "dados_incompletos" and not computador_tem_dados_incompletos(computador):
+            continue
+
+        if saude == "sem_heartbeat" and not computador_sem_heartbeat_recente(computador):
+            continue
+
+        filtrados.append(computador)
+
+    return filtrados
+
+
+def ordenar_computadores(computadores, ordenacao):
+    ordenacoes = {
+        "hostname": lambda pc: (pc.hostname or "").lower(),
+        "ultimo_contato": lambda pc: pc.ultimo_contato or timezone.datetime.min.replace(tzinfo=timezone.get_current_timezone()),
+        "usuario": lambda pc: (pc.usuario or "").lower(),
+        "modelo": lambda pc: (pc.modelo or "").lower(),
+    }
+
+    chave = ordenacoes.get(ordenacao, ordenacoes["hostname"])
+    reverso = ordenacao == "ultimo_contato"
+
+    return sorted(computadores, key=chave, reverse=reverso)
+
+
+def montar_resumo_inventario(computadores):
+    total = len(computadores)
+    online = len([pc for pc in computadores if pc.online])
+    offline = total - online
+    sem_patrimonio = len([pc for pc in computadores if not patrimonio_informado(pc)])
+    disco_critico = len([pc for pc in computadores if computador_tem_disco_critico(pc)])
+    dados_incompletos = len([pc for pc in computadores if computador_tem_dados_incompletos(pc)])
+    sem_heartbeat = len([pc for pc in computadores if computador_sem_heartbeat_recente(pc)])
+
+    return {
+        "total": total,
+        "online": online,
+        "offline": offline,
+        "sem_patrimonio": sem_patrimonio,
+        "disco_critico": disco_critico,
+        "dados_incompletos": dados_incompletos,
+        "sem_heartbeat": sem_heartbeat,
+    }
 
 
 @csrf_exempt
@@ -68,6 +181,12 @@ def dashboard(request):
         return render(request, "core/sem_permissao.html", status=403)
 
     busca = request.GET.get("busca", "").strip()
+    status = request.GET.get("status", "").strip()
+    patrimonio = request.GET.get("patrimonio", "").strip()
+    saude = request.GET.get("saude", "").strip()
+    fabricante = request.GET.get("fabricante", "").strip()
+    sistema = request.GET.get("sistema", "").strip()
+    ordenacao = request.GET.get("ordenacao", "hostname").strip() or "hostname"
 
     computadores = ComputadorInventario.objects.all()
 
@@ -82,12 +201,48 @@ def dashboard(request):
             Q(patrimonio__icontains=busca)
         )
 
-    lista = list(computadores)
+    if fabricante:
+        computadores = computadores.filter(fabricante=fabricante)
 
-    total = len(lista)
-    online = len([pc for pc in lista if pc.online])
-    offline = total - online
-    sem_patrimonio = len([pc for pc in lista if not pc.patrimonio or pc.patrimonio == "-"])
+    if sistema:
+        computadores = computadores.filter(sistema=sistema)
+
+    fabricantes = ComputadorInventario.objects.exclude(
+        fabricante__in=["", "-"]
+    ).order_by(
+        "fabricante"
+    ).values_list(
+        "fabricante",
+        flat=True
+    ).distinct()
+
+    sistemas = ComputadorInventario.objects.exclude(
+        sistema__in=["", "-"]
+    ).order_by(
+        "sistema"
+    ).values_list(
+        "sistema",
+        flat=True
+    ).distinct()
+
+    lista_base = list(computadores)
+    totais = montar_resumo_inventario(lista_base)
+    lista = aplicar_filtros_memoria(lista_base, status, patrimonio, saude)
+    lista = ordenar_computadores(lista, ordenacao)
+
+    filtros = {
+        "busca": busca,
+        "status": status,
+        "patrimonio": patrimonio,
+        "saude": saude,
+        "fabricante": fabricante,
+        "sistema": sistema,
+        "ordenacao": ordenacao,
+    }
+
+    query_string = urlencode({
+        chave: valor for chave, valor in filtros.items() if valor
+    })
 
     paginator = Paginator(lista, 20)
     pagina = request.GET.get("page")
@@ -95,13 +250,12 @@ def dashboard(request):
 
     return render(request, "inventario_ti/dashboard.html", {
         "computadores": computadores_pagina,
-        "busca": busca,
-        "totais": {
-            "total": total,
-            "online": online,
-            "offline": offline,
-            "sem_patrimonio": sem_patrimonio,
-        }
+        "filtros": filtros,
+        "query_string": query_string,
+        "fabricantes": fabricantes,
+        "sistemas": sistemas,
+        "totais": totais,
+        "total_filtrado": len(lista),
     })
 
 
@@ -111,7 +265,40 @@ def detalhe(request, computador_id):
         return render(request, "core/sem_permissao.html", status=403)
 
     computador = get_object_or_404(ComputadorInventario, id=computador_id)
+    disco_critico = computador_tem_disco_critico(computador)
+    dados_incompletos = computador_tem_dados_incompletos(computador)
+    sem_heartbeat = computador_sem_heartbeat_recente(computador)
+
+    ficha_hardware = [
+        ("Hostname", computador.hostname),
+        ("Patrimônio", computador.patrimonio),
+        ("Fabricante", computador.fabricante),
+        ("Modelo", computador.modelo),
+        ("Serial", computador.serial),
+        ("Sistema operacional", computador.sistema),
+        ("CPU", computador.cpu),
+        ("RAM", computador.ram),
+        ("Disco total", computador.disco_total),
+        ("Disco livre", computador.disco_livre),
+        ("Uso do disco", computador.disco_percentual),
+    ]
+
+    ficha_rede = [
+        ("IP origem", computador.ip_origem or "-"),
+        ("IP local", computador.ip_local or "-"),
+        ("MAC", computador.mac),
+        ("Usuário logado", computador.usuario),
+        ("Versão do agente", computador.agent_version),
+        ("Último contato", computador.ultimo_contato),
+        ("Cadastrado em", computador.criado_em),
+        ("Atualizado em", computador.atualizado_em),
+    ]
 
     return render(request, "inventario_ti/detalhe.html", {
-        "computador": computador
+        "computador": computador,
+        "disco_critico": disco_critico,
+        "dados_incompletos": dados_incompletos,
+        "sem_heartbeat": sem_heartbeat,
+        "ficha_hardware": ficha_hardware,
+        "ficha_rede": ficha_rede,
     })

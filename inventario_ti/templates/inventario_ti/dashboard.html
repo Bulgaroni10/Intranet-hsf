@@ -5,24 +5,92 @@
 {% block content %}
 <div class="page">
 
-  {% include "components/page_header.html" with eyebrow="Tecnologia" icon="💻" title="Inventário TI" subtitle="Monitore computadores, usuários, IPs, hardware e último contato dos agentes." %}
+  {% include "components/page_header.html" with eyebrow="Tecnologia" icon="💻" title="Inventário TI" subtitle="Monitoramento técnico de computadores, agentes, rede e saúde do parque." %}
 
   <div class="summary-grid">
     {% include "components/kpi_card.html" with icon="💻" title="Total" value=totais.total %}
     {% include "components/kpi_card.html" with icon="🟢" title="Online" value=totais.online color="success" %}
     {% include "components/kpi_card.html" with icon="🔴" title="Offline" value=totais.offline color="danger" %}
     {% include "components/kpi_card.html" with icon="🏷️" title="Sem patrimônio" value=totais.sem_patrimonio color="warning" %}
+    {% include "components/kpi_card.html" with icon="💾" title="Disco crítico" value=totais.disco_critico color="danger" %}
+    {% include "components/kpi_card.html" with icon="📡" title="Sem heartbeat 24h" value=totais.sem_heartbeat color="warning" %}
   </div>
 
   <div class="form-card">
     <form method="get" class="form-grid">
       <div class="form-group">
         <label>Pesquisar</label>
-        <input type="text" name="busca" value="{{ busca }}" placeholder="Hostname, usuário, IP, MAC, serial, modelo ou patrimônio">
+        <input type="text" name="busca" value="{{ filtros.busca }}" placeholder="Hostname, usuário, IP, MAC, serial, modelo ou patrimônio">
       </div>
 
-      <button type="submit" class="btn-submit">Filtrar</button>
+      <div class="form-group">
+        <label>Status</label>
+        <select name="status">
+          <option value="">Todos</option>
+          <option value="online" {% if filtros.status == "online" %}selected{% endif %}>Online</option>
+          <option value="offline" {% if filtros.status == "offline" %}selected{% endif %}>Offline</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label>Patrimônio</label>
+        <select name="patrimonio">
+          <option value="">Todos</option>
+          <option value="com" {% if filtros.patrimonio == "com" %}selected{% endif %}>Com patrimônio</option>
+          <option value="sem" {% if filtros.patrimonio == "sem" %}selected{% endif %}>Sem patrimônio</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label>Saúde</label>
+        <select name="saude">
+          <option value="">Todas</option>
+          <option value="disco_critico" {% if filtros.saude == "disco_critico" %}selected{% endif %}>Disco crítico</option>
+          <option value="dados_incompletos" {% if filtros.saude == "dados_incompletos" %}selected{% endif %}>Dados incompletos</option>
+          <option value="sem_heartbeat" {% if filtros.saude == "sem_heartbeat" %}selected{% endif %}>Sem heartbeat 24h</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label>Fabricante</label>
+        <select name="fabricante">
+          <option value="">Todos</option>
+          {% for item in fabricantes %}
+            <option value="{{ item }}" {% if filtros.fabricante == item %}selected{% endif %}>{{ item }}</option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label>Sistema</label>
+        <select name="sistema">
+          <option value="">Todos</option>
+          {% for item in sistemas %}
+            <option value="{{ item }}" {% if filtros.sistema == item %}selected{% endif %}>{{ item }}</option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label>Ordenar por</label>
+        <select name="ordenacao">
+          <option value="hostname" {% if filtros.ordenacao == "hostname" %}selected{% endif %}>Hostname</option>
+          <option value="ultimo_contato" {% if filtros.ordenacao == "ultimo_contato" %}selected{% endif %}>Último contato</option>
+          <option value="usuario" {% if filtros.ordenacao == "usuario" %}selected{% endif %}>Usuário</option>
+          <option value="modelo" {% if filtros.ordenacao == "modelo" %}selected{% endif %}>Modelo</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label>&nbsp;</label>
+        <button type="submit" class="btn-submit">Filtrar</button>
+      </div>
     </form>
+
+    <div class="top-actions" style="margin-top: 14px;">
+      <a href="{% url 'inventario_ti_dashboard' %}" class="btn-link">Limpar filtros</a>
+      <span class="btn-muted">{{ total_filtrado }} computador(es) encontrado(s)</span>
+    </div>
   </div>
 
   <br>
@@ -32,7 +100,7 @@
       <div class="gsf-table-header">
         <div>
           <h2>Computadores</h2>
-          <p>Lista de máquinas que já enviaram heartbeat para a intranet.</p>
+          <p>Lista técnica de máquinas que já enviaram heartbeat para a intranet.</p>
         </div>
       </div>
 
@@ -44,11 +112,11 @@
               <th>Hostname</th>
               <th>Usuário</th>
               <th>IP Local</th>
+              <th>Patrimônio</th>
               <th>Sistema</th>
-              <th>RAM</th>
-              <th>Disco Livre</th>
-              <th>Uso Disco</th>
               <th>Modelo</th>
+              <th>Disco</th>
+              <th>Agente</th>
               <th>Último contato</th>
               <th>Ações</th>
             </tr>
@@ -64,21 +132,21 @@
                     <span class="gsf-badge gsf-badge-danger">OFFLINE</span>
                   {% endif %}
                 </td>
-
                 <td><strong>{{ pc.hostname }}</strong></td>
                 <td>{{ pc.usuario }}</td>
                 <td>{{ pc.ip_local|default:"-" }}</td>
+                <td>{{ pc.patrimonio }}</td>
                 <td>{{ pc.sistema }}</td>
-                <td>{{ pc.ram }}</td>
-                <td>{{ pc.disco_livre }}</td>
-                <td>{{ pc.disco_percentual }}</td>
-                <td>{{ pc.modelo }}</td>
-                <td>{{ pc.ultimo_contato|date:"d/m/Y H:i:s" }}</td>
-
+                <td>{{ pc.fabricante }} {{ pc.modelo }}</td>
                 <td>
-                  <a href="{% url 'inventario_ti_detalhe' pc.id %}" class="btn-link">
-                    Ver
-                  </a>
+                  <strong>{{ pc.disco_percentual }}</strong>
+                  <br>
+                  <small>{{ pc.disco_livre }} livre</small>
+                </td>
+                <td>{{ pc.agent_version }}</td>
+                <td>{{ pc.ultimo_contato|date:"d/m/Y H:i:s" }}</td>
+                <td>
+                  <a href="{% url 'inventario_ti_detalhe' pc.id %}" class="btn-link">Detalhes</a>
                 </td>
               </tr>
             {% endfor %}
@@ -87,7 +155,7 @@
       </div>
     </div>
   {% else %}
-    {% include "components/empty_state.html" with titulo="Nenhum computador encontrado" mensagem="Assim que o agente enviar dados para a API, os computadores aparecerão aqui." %}
+    {% include "components/empty_state.html" with titulo="Nenhum computador encontrado" mensagem="Nenhum computador corresponde aos filtros atuais." %}
   {% endif %}
 
   <br>
@@ -95,7 +163,7 @@
   {% if computadores.has_other_pages %}
     <div class="top-actions">
       {% if computadores.has_previous %}
-        <a class="btn-link" href="?page={{ computadores.previous_page_number }}&busca={{ busca }}">Anterior</a>
+        <a class="btn-link" href="?page={{ computadores.previous_page_number }}{% if query_string %}&{{ query_string }}{% endif %}">Anterior</a>
       {% endif %}
 
       <span class="btn-muted">
@@ -103,7 +171,7 @@
       </span>
 
       {% if computadores.has_next %}
-        <a class="btn-link" href="?page={{ computadores.next_page_number }}&busca={{ busca }}">Próxima</a>
+        <a class="btn-link" href="?page={{ computadores.next_page_number }}{% if query_string %}&{{ query_string }}{% endif %}">Próxima</a>
       {% endif %}
     </div>
   {% endif %}
