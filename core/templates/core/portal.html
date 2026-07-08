@@ -5,39 +5,53 @@
 {% block content %}
 <div class="page">
 
-  {% include "components/page_header.html" with eyebrow="Centro operacional" icon="🏥" title="GSF Hub" subtitle="Painel executivo da intranet hospitalar e operações de TI." %}
+  {% include "components/page_header.html" with eyebrow="Centro operacional" icon="🏥" title="GSF Hub" subtitle="Painel corporativo da intranet hospitalar." %}
 
   <div class="summary-grid">
     {% if pode_ver_painel_tecnico %}
-      {% include "components/kpi_card.html" with icon="??" title="Computadores" value=total_computadores %}
-      {% include "components/kpi_card.html" with icon="??" title="Online" value=total_computadores_online color="success" %}
-      {% include "components/kpi_card.html" with icon="??" title="Offline" value=total_computadores_offline color="danger" %}
-      {% include "components/kpi_card.html" with icon="???" title="Sem patrim?nio" value=total_computadores_sem_patrimonio color="warning" %}
-      {% include "components/kpi_card.html" with icon="??" title="Solicita??es TI" value=total_chamados_ti_abertos color="info" %}
-      {% include "components/kpi_card.html" with icon="??" title="Cr?ticas TI" value=total_chamados_ti_criticos color="danger" %}
+      {% include "components/kpi_card.html" with icon="💻" title="Computadores" value=total_computadores %}
+      {% include "components/kpi_card.html" with icon="🟢" title="Online" value=total_computadores_online color="success" %}
+      {% include "components/kpi_card.html" with icon="🔴" title="Offline" value=total_computadores_offline color="danger" %}
+      {% include "components/kpi_card.html" with icon="🏷️" title="Sem patrimônio" value=total_computadores_sem_patrimonio color="warning" %}
+      {% include "components/kpi_card.html" with icon="📋" title="Solicitações TI" value=total_chamados_ti_abertos color="info" %}
+      {% include "components/kpi_card.html" with icon="🚨" title="Críticas TI" value=total_chamados_ti_criticos color="danger" %}
     {% else %}
-      {% include "components/kpi_card.html" with icon="??" title="Avisos" value=total_avisos color="info" %}
-      {% include "components/kpi_card.html" with icon="??" title="Documentos" value=total_documentos_alerta color="warning" %}
-      {% include "components/kpi_card.html" with icon="??" title="Links ?teis" value=total_links color="success" %}
-      {% include "components/kpi_card.html" with icon="??" title="Manuais" value=total_manuais %}
-      {% if pode_acessar_solicitacoes_ti %}
-        {% include "components/kpi_card.html" with icon="??" title="Minhas solicita??es" value=total_chamados_ti_abertos color="info" %}
-      {% endif %}
-      {% include "components/kpi_card.html" with icon="??" title="Status ativos" value=total_ocorrencias color="danger" %}
+      {% include "components/kpi_card.html" with icon="📢" title="Avisos" value=total_avisos color="info" %}
+      {% include "components/kpi_card.html" with icon="📑" title="Documentos" value=total_documentos_alerta color="warning" %}
+      {% include "components/kpi_card.html" with icon="🔗" title="Links úteis" value=total_links color="success" %}
+      {% include "components/kpi_card.html" with icon="📘" title="Manuais" value=total_manuais %}
+      {% include "components/kpi_card.html" with icon="📡" title="Status ativos" value=total_ocorrencias color="danger" %}
     {% endif %}
   </div>
 
   <div class="hero-box">
 
     <div class="hero-main">
-      <div class="eyebrow">Operação de TI</div>
+      <div class="eyebrow">
+        {% if pode_ver_painel_tecnico %}
+          Operação de TI
+        {% else %}
+          Portal interno
+        {% endif %}
+      </div>
+
       <h1>Bom trabalho, {{ request.user.get_full_name|default:request.user.username }}.</h1>
-      <p>
-        Acompanhe computadores, solicitações, avisos, documentos e status dos sistemas em uma única visão.
-      </p>
+
+      {% if pode_ver_painel_tecnico %}
+        <p>
+          Acompanhe computadores, solicitações, status dos sistemas e eventos operacionais da TI em uma única visão.
+        </p>
+      {% else %}
+        <p>
+          Acesse avisos, documentos, ramais, links úteis, solicitações e informações importantes da sua unidade.
+        </p>
+      {% endif %}
 
       <div class="top-actions">
-        <a href="/portal/modulos/inventario-ti/" class="btn-success">Ver Inventário TI</a>
+        {% if pode_acessar_inventario_ti %}
+          <a href="/portal/modulos/inventario-ti/" class="btn-success">Ver Inventário TI</a>
+        {% endif %}
+
         <a href="/portal/modulos/solicitacoes/" class="btn-link">Solicitações Internas</a>
         <a href="/portal/modulos/status-sistemas/" class="btn-link">Status dos Sistemas</a>
       </div>
@@ -54,16 +68,16 @@
   </div>
 
   {% if pode_acessar_inventario_ti %}
-  <div class="gsf-table-card">
+    <div class="gsf-table-card">
       <div class="gsf-table-header">
         <div>
           <h2>Últimos computadores recebidos</h2>
           <p>Máquinas que enviaram heartbeat recentemente para o GSF Hub.</p>
         </div>
-  
+
         <a href="/portal/modulos/inventario-ti/" class="btn-link">Abrir inventário</a>
       </div>
-  
+
       <div class="gsf-table-wrap">
         <table class="gsf-table">
           <thead>
@@ -77,7 +91,7 @@
               <th>Último contato</th>
             </tr>
           </thead>
-  
+
           <tbody>
             {% for pc in ultimos_computadores %}
               <tr>
@@ -97,33 +111,33 @@
               </tr>
             {% empty %}
               <tr>
-                <td colspan="7">
-                  Nenhum computador enviou heartbeat ainda.
-                </td>
+                <td colspan="7">Nenhum computador enviou heartbeat ainda.</td>
               </tr>
             {% endfor %}
           </tbody>
         </table>
       </div>
     </div>
-  {% endif %}
 
-  <br>
+    <br>
+  {% endif %}
 
   <div class="hero-box">
 
-    <div class="detail-card">
-      <h2>Solicitações TI recentes</h2>
+    {% if pode_acessar_solicitacoes_ti %}
+      <div class="detail-card">
+        <h2>Solicitações TI recentes</h2>
 
-      {% for chamado in ultimos_chamados_ti %}
-        <div class="notification-card">
-          <strong>#{{ chamado.id }} — {{ chamado.titulo }}</strong>
-          <p>{{ chamado.get_status_display }} • {{ chamado.criado_em|date:"d/m/Y H:i" }}</p>
-        </div>
-      {% empty %}
-        <p>Nenhuma solicitação de TI recente.</p>
-      {% endfor %}
-    </div>
+        {% for chamado in ultimos_chamados_ti %}
+          <div class="notification-card">
+            <strong>#{{ chamado.id }} — {{ chamado.titulo }}</strong>
+            <p>{{ chamado.get_status_display }} • {{ chamado.criado_em|date:"d/m/Y H:i" }}</p>
+          </div>
+        {% empty %}
+          <p>Nenhuma solicitação de TI recente.</p>
+        {% endfor %}
+      </div>
+    {% endif %}
 
     <div class="detail-card">
       <h2>Avisos importantes</h2>
