@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from .models import ComputadorInventario
+from .models import ComputadorInventario, HistoricoComputadorInventario
 
 
 @admin.register(ComputadorInventario)
@@ -42,4 +42,42 @@ class ComputadorInventarioAdmin(admin.ModelAdmin):
         "criado_em",
         "atualizado_em",
         "ultimo_contato",
+    ]
+
+
+@admin.register(HistoricoComputadorInventario)
+class HistoricoComputadorInventarioAdmin(admin.ModelAdmin):
+    list_display = [
+        "computador",
+        "tipo",
+        "titulo",
+        "campo",
+        "criado_em",
+    ]
+
+    search_fields = [
+        "computador__hostname",
+        "titulo",
+        "descricao",
+        "campo",
+        "valor_anterior",
+        "valor_novo",
+    ]
+
+    list_filter = [
+        "tipo",
+        "campo",
+        "criado_em",
+    ]
+
+    readonly_fields = [
+        "computador",
+        "tipo",
+        "titulo",
+        "descricao",
+        "campo",
+        "valor_anterior",
+        "valor_novo",
+        "dados",
+        "criado_em",
     ]

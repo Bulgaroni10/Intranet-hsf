@@ -92,5 +92,36 @@
     </div>
   </div>
 
+  <div class="detail-card">
+    <h2>Histórico recente</h2>
+
+    {% for item in historicos %}
+      <div class="notification-card">
+        <strong>{{ item.titulo }}</strong>
+        <p>
+          {{ item.get_tipo_display }} • {{ item.criado_em|date:"d/m/Y H:i:s" }}
+        </p>
+
+        {% if item.campo %}
+          <p>
+            <strong>Campo:</strong> {{ item.campo }}
+            {% if item.valor_anterior or item.valor_novo %}
+              <br>
+              <strong>Antes:</strong> {{ item.valor_anterior|default:"-" }}
+              <br>
+              <strong>Depois:</strong> {{ item.valor_novo|default:"-" }}
+            {% endif %}
+          </p>
+        {% endif %}
+
+        {% if item.descricao %}
+          <p>{{ item.descricao }}</p>
+        {% endif %}
+      </div>
+    {% empty %}
+      <p>Nenhum evento registrado para este computador ainda.</p>
+    {% endfor %}
+  </div>
+
 </div>
 {% endblock %}

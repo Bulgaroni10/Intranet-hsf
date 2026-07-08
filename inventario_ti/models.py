@@ -49,3 +49,38 @@ class ComputadorInventario(models.Model):
     @property
     def status_texto(self):
         return "ONLINE" if self.online else "OFFLINE"
+
+
+class HistoricoComputadorInventario(models.Model):
+    TIPO_CHOICES = [
+        ("cadastro", "Cadastro"),
+        ("alteracao", "Alteração"),
+        ("heartbeat", "Heartbeat"),
+        ("status", "Status"),
+    ]
+
+    computador = models.ForeignKey(
+        ComputadorInventario,
+        on_delete=models.CASCADE,
+        related_name="historicos",
+    )
+    tipo = models.CharField(max_length=30, choices=TIPO_CHOICES)
+    titulo = models.CharField(max_length=180)
+    descricao = models.TextField(blank=True, default="")
+    campo = models.CharField(max_length=80, blank=True, default="")
+    valor_anterior = models.TextField(blank=True, default="")
+    valor_novo = models.TextField(blank=True, default="")
+    dados = models.JSONField(default=dict, blank=True)
+    criado_em = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = "Histórico do computador"
+        verbose_name_plural = "Histórico do inventário TI"
+        ordering = ["-criado_em"]
+        indexes = [
+            models.Index(fields=["computador", "-criado_em"]),
+            models.Index(fields=["tipo", "-criado_em"]),
+        ]
+
+    def __str__(self):
+        return f"{self.computador.hostname} - {self.titulo}"

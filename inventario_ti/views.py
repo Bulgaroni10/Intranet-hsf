@@ -12,6 +12,13 @@ from urllib.parse import urlencode
 from core.services.permissions import usuario_eh_ti
 
 from .models import ComputadorInventario
+from .services import (
+    CAMPOS_MONITORADOS,
+    computador_estava_offline,
+    registrar_alteracoes_inventario,
+    registrar_cadastro_computador,
+    registrar_retorno_online,
+)
 
 
 def usuario_pode_acessar_inventario_ti(user):
@@ -129,6 +136,33 @@ def montar_resumo_inventario(computadores):
     }
 
 
+def montar_defaults_heartbeat(dados, ip_origem):
+    return {
+        "usuario": dados.get("usuario") or "-",
+        "ip_origem": ip_origem,
+        "ip_local": dados.get("ip_local") or None,
+        "mac": dados.get("mac") or "-",
+        "sistema": dados.get("sistema") or "-",
+        "cpu": dados.get("cpu") or "-",
+        "ram": dados.get("ram") or "-",
+        "disco_total": dados.get("disco_total") or "-",
+        "disco_livre": dados.get("disco_livre") or "-",
+        "disco_percentual": dados.get("disco_percentual") or "-",
+        "fabricante": dados.get("fabricante") or "-",
+        "modelo": dados.get("modelo") or "-",
+        "serial": dados.get("serial") or "-",
+        "agent_version": dados.get("agent_version") or "-",
+        "ultimo_contato": timezone.now(),
+    }
+
+
+def capturar_valores_monitorados(computador):
+    return {
+        campo: getattr(computador, campo, "")
+        for campo in CAMPOS_MONITORADOS
+    }
+
+
 @csrf_exempt
 def heartbeat(request):
     if request.method != "POST":
@@ -145,33 +179,45 @@ def heartbeat(request):
         return JsonResponse({"ok": False, "erro": "Hostname obrigatório"}, status=400)
 
     ip_origem = request.META.get("REMOTE_ADDR")
+    defaults = montar_defaults_heartbeat(dados, ip_origem)
+    computador_anterior = ComputadorInventario.objects.filter(hostname=hostname).first()
+    valores_anteriores = {}
+    estava_offline = True
+    ultimo_contato_anterior = None
+
+    if computador_anterior:
+        valores_anteriores = capturar_valores_monitorados(computador_anterior)
+        estava_offline = computador_estava_offline(computador_anterior)
+        ultimo_contato_anterior = computador_anterior.ultimo_contato
 
     computador, criado = ComputadorInventario.objects.update_or_create(
         hostname=hostname,
-        defaults={
-            "usuario": dados.get("usuario") or "-",
-            "ip_origem": ip_origem,
-            "ip_local": dados.get("ip_local") or None,
-            "mac": dados.get("mac") or "-",
-            "sistema": dados.get("sistema") or "-",
-            "cpu": dados.get("cpu") or "-",
-            "ram": dados.get("ram") or "-",
-            "disco_total": dados.get("disco_total") or "-",
-            "disco_livre": dados.get("disco_livre") or "-",
-            "disco_percentual": dados.get("disco_percentual") or "-",
-            "fabricante": dados.get("fabricante") or "-",
-            "modelo": dados.get("modelo") or "-",
-            "serial": dados.get("serial") or "-",
-            "agent_version": dados.get("agent_version") or "-",
-            "ultimo_contato": timezone.now(),
-        }
+        defaults=defaults
     )
+
+    eventos_registrados = 0
+
+    if criado:
+        registrar_cadastro_computador(computador)
+        eventos_registrados += 1
+    else:
+        eventos = registrar_alteracoes_inventario(
+            computador=computador,
+            valores_anteriores=valores_anteriores,
+            novos_valores=defaults,
+        )
+        eventos_registrados += len(eventos)
+
+        if estava_offline:
+            registrar_retorno_online(computador, ultimo_contato_anterior)
+            eventos_registrados += 1
 
     return JsonResponse({
         "ok": True,
         "criado": criado,
         "hostname": computador.hostname,
         "status": computador.status_texto,
+        "eventos_registrados": eventos_registrados,
     })
 
 
@@ -265,6 +311,7 @@ def detalhe(request, computador_id):
         return render(request, "core/sem_permissao.html", status=403)
 
     computador = get_object_or_404(ComputadorInventario, id=computador_id)
+    historicos = computador.historicos.all()[:30]
     disco_critico = computador_tem_disco_critico(computador)
     dados_incompletos = computador_tem_dados_incompletos(computador)
     sem_heartbeat = computador_sem_heartbeat_recente(computador)
@@ -301,4 +348,5 @@ def detalhe(request, computador_id):
         "sem_heartbeat": sem_heartbeat,
         "ficha_hardware": ficha_hardware,
         "ficha_rede": ficha_rede,
+        "historicos": historicos,
     })
