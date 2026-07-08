@@ -1,0 +1,33 @@
+<div class="gsf-timeline">
+
+{% for historico in solicitacao.historicos.all %}
+
+    {% include "components/timeline_item.html" with
+
+        icon="📝"
+
+        titulo=historico.titulo
+
+        usuario=historico.usuario
+
+        data=historico.criado_em
+
+        descricao=historico.descricao
+
+        anterior=historico.valor_anterior
+
+        novo=historico.valor_novo
+
+    %}
+
+{% empty %}
+
+<div class="empty-card">
+
+Nenhum histórico encontrado.
+
+</div>
+
+{% endfor %}
+
+</div>
