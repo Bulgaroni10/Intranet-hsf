@@ -1,0 +1,51 @@
+from django.db import models
+from django.utils import timezone
+from datetime import timedelta
+
+
+class ComputadorInventario(models.Model):
+    hostname = models.CharField(max_length=120, unique=True)
+    usuario = models.CharField(max_length=180, blank=True, default="-")
+
+    ip_origem = models.GenericIPAddressField(null=True, blank=True)
+    ip_local = models.GenericIPAddressField(null=True, blank=True)
+    mac = models.CharField(max_length=50, blank=True, default="-")
+
+    sistema = models.CharField(max_length=180, blank=True, default="-")
+    cpu = models.CharField(max_length=255, blank=True, default="-")
+    ram = models.CharField(max_length=80, blank=True, default="-")
+
+    disco_total = models.CharField(max_length=80, blank=True, default="-")
+    disco_livre = models.CharField(max_length=80, blank=True, default="-")
+    disco_percentual = models.CharField(max_length=80, blank=True, default="-")
+
+    fabricante = models.CharField(max_length=180, blank=True, default="-")
+    modelo = models.CharField(max_length=180, blank=True, default="-")
+    serial = models.CharField(max_length=180, blank=True, default="-")
+
+    patrimonio = models.CharField(max_length=80, blank=True, default="-")
+    agent_version = models.CharField(max_length=50, blank=True, default="-")
+
+    criado_em = models.DateTimeField(auto_now_add=True)
+    atualizado_em = models.DateTimeField(auto_now=True)
+    ultimo_contato = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        verbose_name = "Computador"
+        verbose_name_plural = "Inventário TI"
+        ordering = ["hostname"]
+
+    def __str__(self):
+        return self.hostname
+
+    @property
+    def online(self):
+        if not self.ultimo_contato:
+            return False
+
+        limite = timezone.now() - timedelta(seconds=90)
+        return self.ultimo_contato >= limite
+
+    @property
+    def status_texto(self):
+        return "ONLINE" if self.online else "OFFLINE"

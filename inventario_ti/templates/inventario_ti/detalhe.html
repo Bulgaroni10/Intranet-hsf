@@ -1,0 +1,48 @@
+{% extends "base/base.html" %}
+
+{% block title %}Detalhe do Computador{% endblock %}
+
+{% block content %}
+<div class="page">
+
+  {% include "components/page_header.html" with eyebrow="Inventário TI" icon="🖥️" title=computador.hostname subtitle="Detalhes completos da máquina monitorada." secondary_url_name="inventario_ti_dashboard" secondary_text="Voltar" %}
+
+  <div class="summary-grid">
+    {% include "components/kpi_card.html" with icon="📡" title="Status" value=computador.status_texto %}
+    {% include "components/kpi_card.html" with icon="👤" title="Usuário" value=computador.usuario %}
+    {% include "components/kpi_card.html" with icon="🌐" title="IP Local" value=computador.ip_local %}
+    {% include "components/kpi_card.html" with icon="💾" title="Disco Livre" value=computador.disco_livre %}
+  </div>
+
+  <div class="detail-card">
+    <h2>Hardware e Sistema</h2>
+
+    <p><strong>Hostname:</strong> {{ computador.hostname }}</p>
+    <p><strong>Patrimônio:</strong> {{ computador.patrimonio }}</p>
+    <p><strong>Fabricante:</strong> {{ computador.fabricante }}</p>
+    <p><strong>Modelo:</strong> {{ computador.modelo }}</p>
+    <p><strong>Serial:</strong> {{ computador.serial }}</p>
+    <p><strong>Sistema:</strong> {{ computador.sistema }}</p>
+    <p><strong>CPU:</strong> {{ computador.cpu }}</p>
+    <p><strong>RAM:</strong> {{ computador.ram }}</p>
+    <p><strong>Disco total:</strong> {{ computador.disco_total }}</p>
+    <p><strong>Disco livre:</strong> {{ computador.disco_livre }}</p>
+    <p><strong>Uso do disco:</strong> {{ computador.disco_percentual }}</p>
+  </div>
+
+  <br>
+
+  <div class="detail-card">
+    <h2>Rede e Agente</h2>
+
+    <p><strong>IP origem:</strong> {{ computador.ip_origem|default:"-" }}</p>
+    <p><strong>IP local:</strong> {{ computador.ip_local|default:"-" }}</p>
+    <p><strong>MAC:</strong> {{ computador.mac }}</p>
+    <p><strong>Versão do agente:</strong> {{ computador.agent_version }}</p>
+    <p><strong>Último contato:</strong> {{ computador.ultimo_contato|date:"d/m/Y H:i:s" }}</p>
+    <p><strong>Cadastrado em:</strong> {{ computador.criado_em|date:"d/m/Y H:i:s" }}</p>
+    <p><strong>Atualizado em:</strong> {{ computador.atualizado_em|date:"d/m/Y H:i:s" }}</p>
+  </div>
+
+</div>
+{% endblock %}

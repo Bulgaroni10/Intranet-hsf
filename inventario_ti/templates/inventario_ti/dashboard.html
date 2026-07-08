@@ -1,0 +1,112 @@
+{% extends "base/base.html" %}
+
+{% block title %}Inventário TI{% endblock %}
+
+{% block content %}
+<div class="page">
+
+  {% include "components/page_header.html" with eyebrow="Tecnologia" icon="💻" title="Inventário TI" subtitle="Monitore computadores, usuários, IPs, hardware e último contato dos agentes." %}
+
+  <div class="summary-grid">
+    {% include "components/kpi_card.html" with icon="💻" title="Total" value=totais.total %}
+    {% include "components/kpi_card.html" with icon="🟢" title="Online" value=totais.online color="success" %}
+    {% include "components/kpi_card.html" with icon="🔴" title="Offline" value=totais.offline color="danger" %}
+    {% include "components/kpi_card.html" with icon="🏷️" title="Sem patrimônio" value=totais.sem_patrimonio color="warning" %}
+  </div>
+
+  <div class="form-card">
+    <form method="get" class="form-grid">
+      <div class="form-group">
+        <label>Pesquisar</label>
+        <input type="text" name="busca" value="{{ busca }}" placeholder="Hostname, usuário, IP, MAC, serial, modelo ou patrimônio">
+      </div>
+
+      <button type="submit" class="btn-submit">Filtrar</button>
+    </form>
+  </div>
+
+  <br>
+
+  {% if computadores %}
+    <div class="gsf-table-card">
+      <div class="gsf-table-header">
+        <div>
+          <h2>Computadores</h2>
+          <p>Lista de máquinas que já enviaram heartbeat para a intranet.</p>
+        </div>
+      </div>
+
+      <div class="gsf-table-wrap">
+        <table class="gsf-table">
+          <thead>
+            <tr>
+              <th>Status</th>
+              <th>Hostname</th>
+              <th>Usuário</th>
+              <th>IP Local</th>
+              <th>Sistema</th>
+              <th>RAM</th>
+              <th>Disco Livre</th>
+              <th>Uso Disco</th>
+              <th>Modelo</th>
+              <th>Último contato</th>
+              <th>Ações</th>
+            </tr>
+          </thead>
+
+          <tbody>
+            {% for pc in computadores %}
+              <tr>
+                <td>
+                  {% if pc.online %}
+                    <span class="gsf-badge gsf-badge-success">ONLINE</span>
+                  {% else %}
+                    <span class="gsf-badge gsf-badge-danger">OFFLINE</span>
+                  {% endif %}
+                </td>
+
+                <td><strong>{{ pc.hostname }}</strong></td>
+                <td>{{ pc.usuario }}</td>
+                <td>{{ pc.ip_local|default:"-" }}</td>
+                <td>{{ pc.sistema }}</td>
+                <td>{{ pc.ram }}</td>
+                <td>{{ pc.disco_livre }}</td>
+                <td>{{ pc.disco_percentual }}</td>
+                <td>{{ pc.modelo }}</td>
+                <td>{{ pc.ultimo_contato|date:"d/m/Y H:i:s" }}</td>
+
+                <td>
+                  <a href="{% url 'inventario_ti_detalhe' pc.id %}" class="btn-link">
+                    Ver
+                  </a>
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  {% else %}
+    {% include "components/empty_state.html" with titulo="Nenhum computador encontrado" mensagem="Assim que o agente enviar dados para a API, os computadores aparecerão aqui." %}
+  {% endif %}
+
+  <br>
+
+  {% if computadores.has_other_pages %}
+    <div class="top-actions">
+      {% if computadores.has_previous %}
+        <a class="btn-link" href="?page={{ computadores.previous_page_number }}&busca={{ busca }}">Anterior</a>
+      {% endif %}
+
+      <span class="btn-muted">
+        Página {{ computadores.number }} de {{ computadores.paginator.num_pages }}
+      </span>
+
+      {% if computadores.has_next %}
+        <a class="btn-link" href="?page={{ computadores.next_page_number }}&busca={{ busca }}">Próxima</a>
+      {% endif %}
+    </div>
+  {% endif %}
+
+</div>
+{% endblock %}

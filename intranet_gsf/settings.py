@@ -56,6 +56,7 @@ INSTALLED_APPS = [
     'solicitacoes',
     'conversas',
     'base_conhecimento',
+    'inventario_ti',
 ]
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
