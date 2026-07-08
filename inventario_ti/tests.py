@@ -2,15 +2,18 @@ import json
 
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Group
+from django.contrib.messages.storage.fallback import FallbackStorage
 from django.test import RequestFactory, TestCase
 
-from .models import ComputadorInventario, ErroAgenteInventario
+from .models import ComputadorInventario, ErroAgenteInventario, MovimentacaoPatrimonioTI, PatrimonioTI
 from .views import (
     agent_error,
     erros_agentes,
     exportar_erros_agentes_csv,
     exportar_inventario_csv,
     heartbeat,
+    novo_patrimonio,
+    patrimonios,
 )
 
 
@@ -225,3 +228,51 @@ class ExportacaoCsvTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertIn("PC-ERRO-1", conteudo)
         self.assertNotIn("PC-ERRO-2", conteudo)
+
+
+class PatrimonioTITests(TestCase):
+    def setUp(self):
+        self.factory = RequestFactory()
+        grupo = Group.objects.create(name="TI Suporte")
+        self.user = get_user_model().objects.create_user(
+            username="patrimonio",
+            password="teste",
+        )
+        self.user.groups.add(grupo)
+
+    def test_lista_patrimonios_renderiza_para_ti(self):
+        PatrimonioTI.objects.create(codigo="PAT-001", tipo="computador")
+
+        request = self.factory.get("/portal/modulos/inventario-ti/patrimonios/")
+        request.user = self.user
+
+        response = patrimonios(request)
+
+        self.assertEqual(response.status_code, 200)
+        self.assertIn("PAT-001", response.content.decode())
+
+    def test_novo_patrimonio_vincula_computador_e_registra_movimentacao(self):
+        computador = ComputadorInventario.objects.create(hostname="PC-PAT")
+
+        request = self.factory.post(
+            "/portal/modulos/inventario-ti/patrimonios/novo/",
+            {
+                "codigo": "PAT-002",
+                "tipo": "computador",
+                "status": "em_uso",
+                "computador": str(computador.id),
+                "responsavel": "TI",
+                "ativo": "on",
+            },
+        )
+        request.user = self.user
+        request.session = {}
+        request._messages = FallbackStorage(request)
+
+        response = novo_patrimonio(request)
+        computador.refresh_from_db()
+
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(computador.patrimonio, "PAT-002")
+        self.assertTrue(PatrimonioTI.objects.filter(codigo="PAT-002", computador=computador).exists())
+        self.assertEqual(MovimentacaoPatrimonioTI.objects.filter(patrimonio__codigo="PAT-002").count(), 1)

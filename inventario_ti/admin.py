@@ -1,6 +1,12 @@
 from django.contrib import admin
 
-from .models import ComputadorInventario, ErroAgenteInventario, HistoricoComputadorInventario
+from .models import (
+    ComputadorInventario,
+    ErroAgenteInventario,
+    HistoricoComputadorInventario,
+    MovimentacaoPatrimonioTI,
+    PatrimonioTI,
+)
 
 
 @admin.register(ComputadorInventario)
@@ -116,5 +122,69 @@ class ErroAgenteInventarioAdmin(admin.ModelAdmin):
         "detalhe",
         "payload",
         "ip_origem",
+        "criado_em",
+    ]
+
+
+@admin.register(PatrimonioTI)
+class PatrimonioTIAdmin(admin.ModelAdmin):
+    list_display = [
+        "codigo",
+        "tipo",
+        "status",
+        "computador",
+        "unidade",
+        "setor",
+        "responsavel",
+        "ativo",
+        "atualizado_em",
+    ]
+
+    search_fields = [
+        "codigo",
+        "responsavel",
+        "fabricante",
+        "modelo",
+        "serial",
+        "nota_fiscal",
+        "computador__hostname",
+    ]
+
+    list_filter = [
+        "tipo",
+        "status",
+        "unidade",
+        "setor",
+        "ativo",
+    ]
+
+    readonly_fields = [
+        "criado_em",
+        "atualizado_em",
+    ]
+
+
+@admin.register(MovimentacaoPatrimonioTI)
+class MovimentacaoPatrimonioTIAdmin(admin.ModelAdmin):
+    list_display = [
+        "patrimonio",
+        "tipo",
+        "unidade_origem",
+        "unidade_destino",
+        "usuario",
+        "criado_em",
+    ]
+
+    search_fields = [
+        "patrimonio__codigo",
+        "responsavel_origem",
+        "responsavel_destino",
+        "observacao",
+    ]
+
+    list_filter = [
+        "tipo",
+        "unidade_origem",
+        "unidade_destino",
         "criado_em",
     ]

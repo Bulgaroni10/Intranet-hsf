@@ -1,8 +1,9 @@
 from django.contrib.auth.decorators import login_required
+from django.contrib import messages
 from django.core.paginator import Paginator
 from django.db.models import Count, Q
 from django.http import HttpResponse, JsonResponse
-from django.shortcuts import get_object_or_404, render
+from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
 from django.views.decorators.csrf import csrf_exempt
 import csv
@@ -11,8 +12,9 @@ import re
 from urllib.parse import urlencode
 
 from core.services.permissions import usuario_eh_ti
+from usuarios.models import Setor, Unidade
 
-from .models import ComputadorInventario, ErroAgenteInventario
+from .models import ComputadorInventario, ErroAgenteInventario, MovimentacaoPatrimonioTI, PatrimonioTI
 from .services import (
     CAMPOS_MONITORADOS,
     computador_estava_offline,
@@ -24,6 +26,10 @@ from .services import (
 
 
 def usuario_pode_acessar_inventario_ti(user):
+    return usuario_eh_ti(user)
+
+
+def usuario_pode_gerenciar_patrimonio_ti(user):
     return usuario_eh_ti(user)
 
 
@@ -240,6 +246,166 @@ def filtrar_erros_agentes(filtros):
         erros = erros.filter(criado_em__date__lte=filtros["data_fim"])
 
     return erros
+
+
+def obter_filtros_patrimonio(request):
+    return {
+        "busca": request.GET.get("busca", "").strip(),
+        "tipo": request.GET.get("tipo", "").strip(),
+        "status": request.GET.get("status", "").strip(),
+        "unidade": request.GET.get("unidade", "").strip(),
+        "setor": request.GET.get("setor", "").strip(),
+        "vinculo": request.GET.get("vinculo", "").strip(),
+    }
+
+
+def filtrar_patrimonios(filtros):
+    patrimonios = PatrimonioTI.objects.select_related(
+        "computador",
+        "unidade",
+        "setor",
+    )
+
+    if filtros["busca"]:
+        patrimonios = patrimonios.filter(
+            Q(codigo__icontains=filtros["busca"]) |
+            Q(responsavel__icontains=filtros["busca"]) |
+            Q(fabricante__icontains=filtros["busca"]) |
+            Q(modelo__icontains=filtros["busca"]) |
+            Q(serial__icontains=filtros["busca"]) |
+            Q(nota_fiscal__icontains=filtros["busca"]) |
+            Q(computador__hostname__icontains=filtros["busca"])
+        )
+
+    if filtros["tipo"]:
+        patrimonios = patrimonios.filter(tipo=filtros["tipo"])
+
+    if filtros["status"]:
+        patrimonios = patrimonios.filter(status=filtros["status"])
+
+    if filtros["unidade"]:
+        patrimonios = patrimonios.filter(unidade_id=filtros["unidade"])
+
+    if filtros["setor"]:
+        patrimonios = patrimonios.filter(setor_id=filtros["setor"])
+
+    if filtros["vinculo"] == "vinculado":
+        patrimonios = patrimonios.filter(computador__isnull=False)
+    elif filtros["vinculo"] == "sem_vinculo":
+        patrimonios = patrimonios.filter(computador__isnull=True)
+
+    return patrimonios
+
+
+def montar_form_data_patrimonio(request):
+    return {
+        "codigo": request.POST.get("codigo", "").strip().upper(),
+        "tipo": request.POST.get("tipo", "computador").strip(),
+        "status": request.POST.get("status", "em_uso").strip(),
+        "computador": request.POST.get("computador", "").strip(),
+        "unidade": request.POST.get("unidade", "").strip(),
+        "setor": request.POST.get("setor", "").strip(),
+        "responsavel": request.POST.get("responsavel", "").strip(),
+        "fabricante": request.POST.get("fabricante", "").strip(),
+        "modelo": request.POST.get("modelo", "").strip(),
+        "serial": request.POST.get("serial", "").strip(),
+        "nota_fiscal": request.POST.get("nota_fiscal", "").strip(),
+        "data_aquisicao": request.POST.get("data_aquisicao", "").strip(),
+        "valor_aquisicao": request.POST.get("valor_aquisicao", "").strip().replace(",", "."),
+        "observacao": request.POST.get("observacao", "").strip(),
+        "ativo": request.POST.get("ativo", "on") == "on",
+    }
+
+
+def patrimonio_para_form_data(patrimonio):
+    return {
+        "codigo": patrimonio.codigo,
+        "tipo": patrimonio.tipo,
+        "status": patrimonio.status,
+        "computador": str(patrimonio.computador_id) if patrimonio.computador_id else "",
+        "unidade": str(patrimonio.unidade_id) if patrimonio.unidade_id else "",
+        "setor": str(patrimonio.setor_id) if patrimonio.setor_id else "",
+        "responsavel": patrimonio.responsavel,
+        "fabricante": patrimonio.fabricante,
+        "modelo": patrimonio.modelo,
+        "serial": patrimonio.serial,
+        "nota_fiscal": patrimonio.nota_fiscal,
+        "data_aquisicao": patrimonio.data_aquisicao.isoformat() if patrimonio.data_aquisicao else "",
+        "valor_aquisicao": patrimonio.valor_aquisicao if patrimonio.valor_aquisicao is not None else "",
+        "observacao": patrimonio.observacao,
+        "ativo": patrimonio.ativo,
+    }
+
+
+def contexto_formulario_patrimonio(form_data, patrimonio=None):
+    computadores = ComputadorInventario.objects.order_by("hostname")
+
+    if patrimonio and patrimonio.computador_id:
+        computadores = computadores.filter(
+            Q(patrimonio_vinculado__isnull=True) |
+            Q(id=patrimonio.computador_id)
+        )
+    else:
+        computadores = computadores.filter(patrimonio_vinculado__isnull=True)
+
+    return {
+        "form_data": form_data,
+        "patrimonio": patrimonio,
+        "tipos": PatrimonioTI.TIPO_CHOICES,
+        "status_choices": PatrimonioTI.STATUS_CHOICES,
+        "computadores": computadores,
+        "unidades": Unidade.objects.filter(ativo=True).order_by("nome"),
+        "setores": Setor.objects.filter(ativo=True).order_by("nome"),
+    }
+
+
+def aplicar_form_data_patrimonio(patrimonio, form_data):
+    patrimonio.codigo = form_data["codigo"]
+    patrimonio.tipo = form_data["tipo"]
+    patrimonio.status = form_data["status"]
+    patrimonio.computador_id = form_data["computador"] or None
+    patrimonio.unidade_id = form_data["unidade"] or None
+    patrimonio.setor_id = form_data["setor"] or None
+    patrimonio.responsavel = form_data["responsavel"]
+    patrimonio.fabricante = form_data["fabricante"]
+    patrimonio.modelo = form_data["modelo"]
+    patrimonio.serial = form_data["serial"]
+    patrimonio.nota_fiscal = form_data["nota_fiscal"]
+    patrimonio.data_aquisicao = form_data["data_aquisicao"] or None
+    patrimonio.valor_aquisicao = form_data["valor_aquisicao"] or None
+    patrimonio.observacao = form_data["observacao"]
+    patrimonio.ativo = form_data["ativo"]
+
+
+def sincronizar_patrimonio_computador(patrimonio, computador_anterior_id=None):
+    if computador_anterior_id and computador_anterior_id != patrimonio.computador_id:
+        ComputadorInventario.objects.filter(id=computador_anterior_id).update(patrimonio="-")
+
+    if patrimonio.computador_id:
+        ComputadorInventario.objects.filter(id=patrimonio.computador_id).update(patrimonio=patrimonio.codigo)
+
+
+def registrar_movimentacao_patrimonio(patrimonio, tipo, usuario, observacao="", origem=None):
+    MovimentacaoPatrimonioTI.objects.create(
+        patrimonio=patrimonio,
+        tipo=tipo,
+        unidade_origem=origem.get("unidade") if origem else None,
+        setor_origem=origem.get("setor") if origem else None,
+        responsavel_origem=origem.get("responsavel") if origem else "",
+        unidade_destino=patrimonio.unidade,
+        setor_destino=patrimonio.setor,
+        responsavel_destino=patrimonio.responsavel,
+        observacao=observacao,
+        usuario=usuario,
+    )
+
+
+def snapshot_origem_patrimonio(patrimonio):
+    return {
+        "unidade": patrimonio.unidade,
+        "setor": patrimonio.setor,
+        "responsavel": patrimonio.responsavel,
+    }
 
 
 def montar_defaults_heartbeat(dados, ip_origem):
@@ -570,6 +736,181 @@ def exportar_erros_agentes_csv(request):
         ])
 
     return response
+
+
+@login_required
+def patrimonios(request):
+    if not usuario_pode_acessar_inventario_ti(request.user):
+        return render(request, "core/sem_permissao.html", status=403)
+
+    filtros = obter_filtros_patrimonio(request)
+    patrimonios_qs = filtrar_patrimonios(filtros)
+    patrimonios_base = PatrimonioTI.objects.all()
+
+    totais = {
+        "total": patrimonios_base.count(),
+        "em_uso": patrimonios_base.filter(status="em_uso").count(),
+        "estoque": patrimonios_base.filter(status="estoque").count(),
+        "manutencao": patrimonios_base.filter(status="manutencao").count(),
+        "baixados": patrimonios_base.filter(status="baixado").count(),
+        "sem_vinculo": patrimonios_base.filter(computador__isnull=True).count(),
+        "filtrado": patrimonios_qs.count(),
+    }
+
+    query_string = urlencode({
+        chave: valor for chave, valor in filtros.items() if valor
+    })
+
+    paginator = Paginator(patrimonios_qs, 20)
+    pagina = request.GET.get("page")
+    patrimonios_pagina = paginator.get_page(pagina)
+
+    return render(request, "inventario_ti/patrimonios.html", {
+        "patrimonios": patrimonios_pagina,
+        "filtros": filtros,
+        "query_string": query_string,
+        "totais": totais,
+        "tipos": PatrimonioTI.TIPO_CHOICES,
+        "status_choices": PatrimonioTI.STATUS_CHOICES,
+        "unidades": Unidade.objects.filter(ativo=True).order_by("nome"),
+        "setores": Setor.objects.filter(ativo=True).order_by("nome"),
+    })
+
+
+@login_required
+def novo_patrimonio(request):
+    if not usuario_pode_gerenciar_patrimonio_ti(request.user):
+        return render(request, "core/sem_permissao.html", status=403)
+
+    form_data = {
+        "codigo": "",
+        "tipo": "computador",
+        "status": "em_uso",
+        "computador": "",
+        "unidade": "",
+        "setor": "",
+        "responsavel": "",
+        "fabricante": "",
+        "modelo": "",
+        "serial": "",
+        "nota_fiscal": "",
+        "data_aquisicao": "",
+        "valor_aquisicao": "",
+        "observacao": "",
+        "ativo": True,
+    }
+
+    if request.method == "POST":
+        form_data = montar_form_data_patrimonio(request)
+        erros = []
+
+        if not form_data["codigo"]:
+            erros.append("Informe o código do patrimônio.")
+
+        if PatrimonioTI.objects.filter(codigo=form_data["codigo"]).exists():
+            erros.append("Já existe um patrimônio com este código.")
+
+        if erros:
+            for erro in erros:
+                messages.error(request, erro)
+
+            return render(request, "inventario_ti/formulario_patrimonio.html", {
+                **contexto_formulario_patrimonio(form_data),
+                "titulo": "Novo patrimônio",
+                "modo": "novo",
+            })
+
+        patrimonio = PatrimonioTI()
+        aplicar_form_data_patrimonio(patrimonio, form_data)
+        patrimonio.save()
+        sincronizar_patrimonio_computador(patrimonio)
+        registrar_movimentacao_patrimonio(
+            patrimonio=patrimonio,
+            tipo="cadastro",
+            usuario=request.user,
+            observacao="Patrimônio cadastrado.",
+        )
+        messages.success(request, "Patrimônio cadastrado com sucesso.")
+        return redirect("inventario_ti_patrimonio_detalhe", patrimonio_id=patrimonio.id)
+
+    return render(request, "inventario_ti/formulario_patrimonio.html", {
+        **contexto_formulario_patrimonio(form_data),
+        "titulo": "Novo patrimônio",
+        "modo": "novo",
+    })
+
+
+@login_required
+def editar_patrimonio(request, patrimonio_id):
+    if not usuario_pode_gerenciar_patrimonio_ti(request.user):
+        return render(request, "core/sem_permissao.html", status=403)
+
+    patrimonio = get_object_or_404(PatrimonioTI, id=patrimonio_id)
+    form_data = patrimonio_para_form_data(patrimonio)
+
+    if request.method == "POST":
+        computador_anterior_id = patrimonio.computador_id
+        origem = snapshot_origem_patrimonio(patrimonio)
+        form_data = montar_form_data_patrimonio(request)
+        erros = []
+
+        if not form_data["codigo"]:
+            erros.append("Informe o código do patrimônio.")
+
+        if PatrimonioTI.objects.filter(codigo=form_data["codigo"]).exclude(id=patrimonio.id).exists():
+            erros.append("Já existe outro patrimônio com este código.")
+
+        if erros:
+            for erro in erros:
+                messages.error(request, erro)
+
+            return render(request, "inventario_ti/formulario_patrimonio.html", {
+                **contexto_formulario_patrimonio(form_data, patrimonio),
+                "titulo": "Editar patrimônio",
+                "modo": "editar",
+            })
+
+        aplicar_form_data_patrimonio(patrimonio, form_data)
+        patrimonio.save()
+        sincronizar_patrimonio_computador(patrimonio, computador_anterior_id)
+        registrar_movimentacao_patrimonio(
+            patrimonio=patrimonio,
+            tipo="ajuste",
+            usuario=request.user,
+            observacao="Patrimônio atualizado.",
+            origem=origem,
+        )
+        messages.success(request, "Patrimônio atualizado com sucesso.")
+        return redirect("inventario_ti_patrimonio_detalhe", patrimonio_id=patrimonio.id)
+
+    return render(request, "inventario_ti/formulario_patrimonio.html", {
+        **contexto_formulario_patrimonio(form_data, patrimonio),
+        "titulo": "Editar patrimônio",
+        "modo": "editar",
+    })
+
+
+@login_required
+def detalhe_patrimonio(request, patrimonio_id):
+    if not usuario_pode_acessar_inventario_ti(request.user):
+        return render(request, "core/sem_permissao.html", status=403)
+
+    patrimonio = get_object_or_404(
+        PatrimonioTI.objects.select_related("computador", "unidade", "setor"),
+        id=patrimonio_id,
+    )
+    movimentacoes = patrimonio.movimentacoes.select_related(
+        "unidade_origem",
+        "setor_origem",
+        "unidade_destino",
+        "setor_destino",
+        "usuario",
+    )[:20]
+
+    return render(request, "inventario_ti/detalhe_patrimonio.html", {
+        "patrimonio": patrimonio,
+        "movimentacoes": movimentacoes,
+    })
 
 
 @login_required

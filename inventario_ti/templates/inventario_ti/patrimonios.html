@@ -1,0 +1,148 @@
+{% extends "base/base.html" %}
+
+{% block title %}Patrimônio TI{% endblock %}
+
+{% block content %}
+<div class="page">
+  {% include "components/page_header.html" with eyebrow="Inventário TI" icon="🏷️" title="Patrimônio TI" subtitle="Cadastro patrimonial, vínculo com computadores e movimentações." secondary_url_name="inventario_ti_dashboard" secondary_text="Voltar ao inventário" action_url_name="inventario_ti_patrimonio_novo" action_text="Novo patrimônio" %}
+
+  <div class="summary-grid">
+    {% include "components/kpi_card.html" with icon="🏷️" title="Total" value=totais.total %}
+    {% include "components/kpi_card.html" with icon="✅" title="Em uso" value=totais.em_uso color="success" %}
+    {% include "components/kpi_card.html" with icon="📦" title="Estoque" value=totais.estoque color="info" %}
+    {% include "components/kpi_card.html" with icon="🛠️" title="Manutenção" value=totais.manutencao color="warning" %}
+    {% include "components/kpi_card.html" with icon="⛔" title="Baixados" value=totais.baixados color="danger" %}
+    {% include "components/kpi_card.html" with icon="🔗" title="Sem vínculo" value=totais.sem_vinculo color="warning" %}
+  </div>
+
+  <div class="form-card">
+    <form method="get" class="form-grid">
+      <div class="form-group">
+        <label>Pesquisar</label>
+        <input type="text" name="busca" value="{{ filtros.busca }}" placeholder="Código, responsável, serial, modelo ou hostname">
+      </div>
+
+      <div class="form-group">
+        <label>Tipo</label>
+        <select name="tipo">
+          <option value="">Todos</option>
+          {% for valor, rotulo in tipos %}
+            <option value="{{ valor }}" {% if filtros.tipo == valor %}selected{% endif %}>{{ rotulo }}</option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label>Status</label>
+        <select name="status">
+          <option value="">Todos</option>
+          {% for valor, rotulo in status_choices %}
+            <option value="{{ valor }}" {% if filtros.status == valor %}selected{% endif %}>{{ rotulo }}</option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label>Unidade</label>
+        <select name="unidade">
+          <option value="">Todas</option>
+          {% for unidade in unidades %}
+            <option value="{{ unidade.id }}" {% if filtros.unidade == unidade.id|stringformat:"s" %}selected{% endif %}>{{ unidade.nome }}</option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label>Setor</label>
+        <select name="setor">
+          <option value="">Todos</option>
+          {% for setor in setores %}
+            <option value="{{ setor.id }}" {% if filtros.setor == setor.id|stringformat:"s" %}selected{% endif %}>{{ setor.nome }}</option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label>Vínculo</label>
+        <select name="vinculo">
+          <option value="">Todos</option>
+          <option value="vinculado" {% if filtros.vinculo == "vinculado" %}selected{% endif %}>Vinculado</option>
+          <option value="sem_vinculo" {% if filtros.vinculo == "sem_vinculo" %}selected{% endif %}>Sem vínculo</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label>&nbsp;</label>
+        <button type="submit" class="btn-submit">Filtrar</button>
+      </div>
+    </form>
+
+    <div class="top-actions" style="margin-top: 14px;">
+      <a href="{% url 'inventario_ti_patrimonios' %}" class="btn-link">Limpar filtros</a>
+      <span class="btn-muted">{{ totais.filtrado }} patrimônio(s) encontrado(s)</span>
+    </div>
+  </div>
+
+  <br>
+
+  {% if patrimonios %}
+    <div class="gsf-table-card">
+      <div class="gsf-table-header">
+        <div>
+          <h2>Patrimônios</h2>
+          <p>Itens patrimoniais cadastrados para acompanhamento da TI.</p>
+        </div>
+      </div>
+
+      <div class="gsf-table-wrap">
+        <table class="gsf-table">
+          <thead>
+            <tr>
+              <th>Código</th>
+              <th>Tipo</th>
+              <th>Status</th>
+              <th>Computador</th>
+              <th>Unidade / Setor</th>
+              <th>Responsável</th>
+              <th>Modelo</th>
+              <th>Ações</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for item in patrimonios %}
+              <tr>
+                <td><strong>{{ item.codigo }}</strong></td>
+                <td>{{ item.get_tipo_display }}</td>
+                <td><span class="gsf-badge gsf-badge-info">{{ item.get_status_display }}</span></td>
+                <td>{{ item.computador.hostname|default:"-" }}</td>
+                <td>{{ item.unidade|default:"-" }} / {{ item.setor|default:"-" }}</td>
+                <td>{{ item.responsavel|default:"-" }}</td>
+                <td>{{ item.fabricante }} {{ item.modelo }}</td>
+                <td>
+                  <a href="{% url 'inventario_ti_patrimonio_detalhe' item.id %}" class="btn-link">Detalhes</a>
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  {% else %}
+    {% include "components/empty_state.html" with titulo="Nenhum patrimônio encontrado" mensagem="Nenhum patrimônio corresponde aos filtros atuais." %}
+  {% endif %}
+
+  <br>
+
+  {% if patrimonios.has_other_pages %}
+    <div class="top-actions">
+      {% if patrimonios.has_previous %}
+        <a class="btn-link" href="?page={{ patrimonios.previous_page_number }}{% if query_string %}&{{ query_string }}{% endif %}">Anterior</a>
+      {% endif %}
+      <span class="btn-muted">Página {{ patrimonios.number }} de {{ patrimonios.paginator.num_pages }}</span>
+      {% if patrimonios.has_next %}
+        <a class="btn-link" href="?page={{ patrimonios.next_page_number }}{% if query_string %}&{{ query_string }}{% endif %}">Próxima</a>
+      {% endif %}
+    </div>
+  {% endif %}
+</div>
+{% endblock %}

@@ -1,0 +1,121 @@
+{% extends "base/base.html" %}
+
+{% block title %}{{ titulo }} | Patrimônio TI{% endblock %}
+
+{% block content %}
+<div class="page">
+  {% include "components/page_header.html" with eyebrow="Patrimônio TI" icon="🏷️" title=titulo subtitle="Mantenha o cadastro patrimonial vinculado ao inventário técnico." secondary_url_name="inventario_ti_patrimonios" secondary_text="Voltar" %}
+
+  <div class="form-card">
+    <form method="post" class="form-grid">
+      {% csrf_token %}
+
+      <div class="form-group">
+        <label>Código do patrimônio</label>
+        <input type="text" name="codigo" value="{{ form_data.codigo }}" required>
+      </div>
+
+      <div class="form-group">
+        <label>Tipo</label>
+        <select name="tipo">
+          {% for valor, rotulo in tipos %}
+            <option value="{{ valor }}" {% if form_data.tipo == valor %}selected{% endif %}>{{ rotulo }}</option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label>Status</label>
+        <select name="status">
+          {% for valor, rotulo in status_choices %}
+            <option value="{{ valor }}" {% if form_data.status == valor %}selected{% endif %}>{{ rotulo }}</option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label>Computador vinculado</label>
+        <select name="computador">
+          <option value="">Sem vínculo</option>
+          {% for computador in computadores %}
+            <option value="{{ computador.id }}" {% if form_data.computador == computador.id|stringformat:"s" %}selected{% endif %}>{{ computador.hostname }}</option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label>Unidade</label>
+        <select name="unidade">
+          <option value="">Não informada</option>
+          {% for unidade in unidades %}
+            <option value="{{ unidade.id }}" {% if form_data.unidade == unidade.id|stringformat:"s" %}selected{% endif %}>{{ unidade.nome }}</option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label>Setor</label>
+        <select name="setor">
+          <option value="">Não informado</option>
+          {% for setor in setores %}
+            <option value="{{ setor.id }}" {% if form_data.setor == setor.id|stringformat:"s" %}selected{% endif %}>{{ setor.nome }}</option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label>Responsável</label>
+        <input type="text" name="responsavel" value="{{ form_data.responsavel }}">
+      </div>
+
+      <div class="form-group">
+        <label>Fabricante</label>
+        <input type="text" name="fabricante" value="{{ form_data.fabricante }}">
+      </div>
+
+      <div class="form-group">
+        <label>Modelo</label>
+        <input type="text" name="modelo" value="{{ form_data.modelo }}">
+      </div>
+
+      <div class="form-group">
+        <label>Serial</label>
+        <input type="text" name="serial" value="{{ form_data.serial }}">
+      </div>
+
+      <div class="form-group">
+        <label>Nota fiscal</label>
+        <input type="text" name="nota_fiscal" value="{{ form_data.nota_fiscal }}">
+      </div>
+
+      <div class="form-group">
+        <label>Data de aquisição</label>
+        <input type="date" name="data_aquisicao" value="{{ form_data.data_aquisicao }}">
+      </div>
+
+      <div class="form-group">
+        <label>Valor de aquisição</label>
+        <input type="text" name="valor_aquisicao" value="{{ form_data.valor_aquisicao }}">
+      </div>
+
+      <div class="form-group">
+        <label>Ativo</label>
+        <select name="ativo">
+          <option value="on" {% if form_data.ativo %}selected{% endif %}>Sim</option>
+          <option value="" {% if not form_data.ativo %}selected{% endif %}>Não</option>
+        </select>
+      </div>
+
+      <div class="form-group full">
+        <label>Observação</label>
+        <textarea name="observacao" rows="4">{{ form_data.observacao }}</textarea>
+      </div>
+
+      <div class="top-actions">
+        <button type="submit" class="btn-submit">Salvar</button>
+        <a href="{% url 'inventario_ti_patrimonios' %}" class="btn-link">Cancelar</a>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

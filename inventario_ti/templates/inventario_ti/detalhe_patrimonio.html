@@ -1,0 +1,60 @@
+{% extends "base/base.html" %}
+
+{% block title %}{{ patrimonio.codigo }} | Patrimônio TI{% endblock %}
+
+{% block content %}
+<div class="page">
+  {% url 'inventario_ti_patrimonio_editar' patrimonio.id as editar_url %}
+  {% include "components/page_header.html" with eyebrow="Patrimônio TI" icon="🏷️" title=patrimonio.codigo subtitle="Detalhes patrimoniais e movimentações." secondary_url_name="inventario_ti_patrimonios" secondary_text="Voltar" action_href=editar_url action_text="Editar" %}
+
+  <div class="summary-grid">
+    {% include "components/kpi_card.html" with icon="🏷️" title="Tipo" value=patrimonio.get_tipo_display %}
+    {% include "components/kpi_card.html" with icon="📌" title="Status" value=patrimonio.get_status_display %}
+    {% include "components/kpi_card.html" with icon="💻" title="Computador" value=patrimonio.computador.hostname %}
+    {% include "components/kpi_card.html" with icon="👤" title="Responsável" value=patrimonio.responsavel %}
+  </div>
+
+  <div class="hero-box">
+    <div class="detail-card">
+      <h2>Cadastro</h2>
+      <p><strong>Código:</strong> {{ patrimonio.codigo }}</p>
+      <p><strong>Fabricante:</strong> {{ patrimonio.fabricante|default:"-" }}</p>
+      <p><strong>Modelo:</strong> {{ patrimonio.modelo|default:"-" }}</p>
+      <p><strong>Serial:</strong> {{ patrimonio.serial|default:"-" }}</p>
+      <p><strong>Nota fiscal:</strong> {{ patrimonio.nota_fiscal|default:"-" }}</p>
+      <p><strong>Data aquisição:</strong> {{ patrimonio.data_aquisicao|date:"d/m/Y"|default:"-" }}</p>
+      <p><strong>Valor aquisição:</strong> {{ patrimonio.valor_aquisicao|default:"-" }}</p>
+    </div>
+
+    <div class="detail-card">
+      <h2>Localização</h2>
+      <p><strong>Unidade:</strong> {{ patrimonio.unidade|default:"-" }}</p>
+      <p><strong>Setor:</strong> {{ patrimonio.setor|default:"-" }}</p>
+      <p><strong>Responsável:</strong> {{ patrimonio.responsavel|default:"-" }}</p>
+      <p><strong>Computador:</strong> {{ patrimonio.computador.hostname|default:"-" }}</p>
+      {% if patrimonio.computador %}
+        <p><a class="btn-link" href="{% url 'inventario_ti_detalhe' patrimonio.computador.id %}">Abrir computador</a></p>
+      {% endif %}
+      <p><strong>Observação:</strong> {{ patrimonio.observacao|default:"-" }}</p>
+    </div>
+  </div>
+
+  <div class="detail-card">
+    <h2>Movimentações</h2>
+
+    {% for mov in movimentacoes %}
+      <div class="notification-card">
+        <strong>{{ mov.get_tipo_display }} - {{ mov.criado_em|date:"d/m/Y H:i" }}</strong>
+        <p>
+          {{ mov.unidade_origem|default:"-" }} / {{ mov.setor_origem|default:"-" }}
+          para
+          {{ mov.unidade_destino|default:"-" }} / {{ mov.setor_destino|default:"-" }}
+        </p>
+        <p>{{ mov.observacao|default:"Sem observação." }}</p>
+      </div>
+    {% empty %}
+      <p>Nenhuma movimentação registrada.</p>
+    {% endfor %}
+  </div>
+</div>
+{% endblock %}
