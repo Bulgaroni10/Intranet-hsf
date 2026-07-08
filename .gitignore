@@ -20,6 +20,10 @@ staticfiles/
 
 # Logs
 *.log
+logs/
+
+# GSF Agent local config
+agentes/inventario_ti/config.json
 
 # VS Code
 .vscode/

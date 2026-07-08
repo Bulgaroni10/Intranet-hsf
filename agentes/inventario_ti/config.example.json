@@ -1,0 +1,9 @@
+{
+  "server": "http://intranet.osascohsf.hosp",
+  "endpoint": "/api/inventario/heartbeat/",
+  "interval": 30,
+  "agent_version": "2.1.0",
+  "request_timeout": 8,
+  "log_file": "C:\\ProgramData\\GSF\\Agent\\logs\\gsf-agent.log",
+  "log_level": "INFO"
+}
