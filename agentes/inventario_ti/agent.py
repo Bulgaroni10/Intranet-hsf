@@ -5,8 +5,9 @@ import psutil
 import time
 import uuid
 import subprocess
+from config import SERVER
 
-SERVER = "http://127.0.0.1:8000/api/heartbeat/"
+SERVER = f"{SERVER}/api/heartbeat/"
 AGENT_VERSION = "2.0.0"
 
 
