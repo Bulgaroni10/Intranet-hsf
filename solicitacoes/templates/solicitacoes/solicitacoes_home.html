@@ -8,35 +8,12 @@
   {% include "components/page_header.html" with eyebrow="Operação interna" icon="📋" title="Solicitações Internas" subtitle="Centralize pedidos, acompanhe status e mantenha tudo registrado sem depender de conversa perdida no WhatsApp." action_url_name="nova_solicitacao" action_text="+ Nova Solicitação" %}
 
   <div class="summary-grid">
-    <div class="summary-card">
-      <span>Total</span>
-      <strong>{{ totais.total }}</strong>
-    </div>
-
-    <div class="summary-card">
-      <span>Abertas</span>
-      <strong>{{ totais.abertas }}</strong>
-    </div>
-
-    <div class="summary-card">
-      <span>Em andamento</span>
-      <strong>{{ totais.andamento }}</strong>
-    </div>
-
-    <div class="summary-card alert">
-      <span>Aguardando</span>
-      <strong>{{ totais.aguardando }}</strong>
-    </div>
-
-    <div class="summary-card">
-      <span>Concluídas</span>
-      <strong>{{ totais.concluidas }}</strong>
-    </div>
-
-    <div class="summary-card danger">
-      <span>Críticas</span>
-      <strong>{{ totais.criticas }}</strong>
-    </div>
+    {% include "components/kpi_card.html" with icon="📋" title="Total" value=totais.total %}
+    {% include "components/kpi_card.html" with icon="🟢" title="Abertas" value=totais.abertas color="success" %}
+    {% include "components/kpi_card.html" with icon="🟡" title="Em andamento" value=totais.andamento color="warning" %}
+    {% include "components/kpi_card.html" with icon="🟠" title="Aguardando" value=totais.aguardando color="warning" %}
+    {% include "components/kpi_card.html" with icon="✅" title="Concluídas" value=totais.concluidas color="success" %}
+    {% include "components/kpi_card.html" with icon="🔴" title="Críticas" value=totais.criticas color="danger" %}
   </div>
 
   <div class="form-card">

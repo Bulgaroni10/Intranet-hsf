@@ -577,3 +577,109 @@ textarea:focus {
   gap: 8px;
   flex-wrap: wrap;
 }
+
+/* ===========================
+   KPI CARD
+=========================== */
+
+.gsf-kpi-card{
+
+    display:flex;
+
+    align-items:center;
+
+    gap:18px;
+
+    background:#fff;
+
+    border-radius:18px;
+
+    padding:22px;
+
+    border:1px solid #E2E8F0;
+
+    box-shadow:0 8px 20px rgba(15,23,42,.05);
+
+    transition:.2s;
+
+}
+
+.gsf-kpi-card:hover{
+
+    transform:translateY(-3px);
+
+}
+
+.gsf-kpi-icon{
+
+    width:58px;
+
+    height:58px;
+
+    border-radius:16px;
+
+    display:flex;
+
+    align-items:center;
+
+    justify-content:center;
+
+    font-size:26px;
+
+    background:#ECFEFF;
+
+}
+
+.gsf-kpi-title{
+
+    display:block;
+
+    color:#64748B;
+
+    font-size:13px;
+
+    font-weight:700;
+
+    margin-bottom:4px;
+
+}
+
+.gsf-kpi-value{
+
+    margin:0;
+
+    font-size:34px;
+
+    color:#0F172A;
+
+}
+
+.gsf-kpi-subtitle{
+
+    color:#94A3B8;
+
+}
+
+.gsf-kpi-card.success .gsf-kpi-icon{
+
+    background:#DCFCE7;
+
+}
+
+.gsf-kpi-card.warning .gsf-kpi-icon{
+
+    background:#FEF3C7;
+
+}
+
+.gsf-kpi-card.danger .gsf-kpi-icon{
+
+    background:#FEE2E2;
+
+}
+
+.gsf-kpi-card.info .gsf-kpi-icon{
+
+    background:#DBEAFE;
+
+}

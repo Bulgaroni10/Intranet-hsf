@@ -1,0 +1,25 @@
+<div class="gsf-kpi-card {{ color|default:'default' }}">
+
+    <div class="gsf-kpi-icon">
+        {{ icon }}
+    </div>
+
+    <div class="gsf-kpi-content">
+
+        <span class="gsf-kpi-title">
+            {{ title }}
+        </span>
+
+        <h2 class="gsf-kpi-value">
+            {{ value }}
+        </h2>
+
+        {% if subtitle %}
+            <small class="gsf-kpi-subtitle">
+                {{ subtitle }}
+            </small>
+        {% endif %}
+
+    </div>
+
+</div>
