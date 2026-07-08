@@ -8,12 +8,23 @@
   {% include "components/page_header.html" with eyebrow="Centro operacional" icon="🏥" title="GSF Hub" subtitle="Painel executivo da intranet hospitalar e operações de TI." %}
 
   <div class="summary-grid">
-    {% include "components/kpi_card.html" with icon="💻" title="Computadores" value=total_computadores %}
-    {% include "components/kpi_card.html" with icon="🟢" title="Online" value=total_computadores_online color="success" %}
-    {% include "components/kpi_card.html" with icon="🔴" title="Offline" value=total_computadores_offline color="danger" %}
-    {% include "components/kpi_card.html" with icon="🏷️" title="Sem patrimônio" value=total_computadores_sem_patrimonio color="warning" %}
-    {% include "components/kpi_card.html" with icon="📋" title="Solicitações TI" value=total_chamados_ti_abertos color="info" %}
-    {% include "components/kpi_card.html" with icon="🚨" title="Críticas TI" value=total_chamados_ti_criticos color="danger" %}
+    {% if pode_ver_painel_tecnico %}
+      {% include "components/kpi_card.html" with icon="??" title="Computadores" value=total_computadores %}
+      {% include "components/kpi_card.html" with icon="??" title="Online" value=total_computadores_online color="success" %}
+      {% include "components/kpi_card.html" with icon="??" title="Offline" value=total_computadores_offline color="danger" %}
+      {% include "components/kpi_card.html" with icon="???" title="Sem patrim?nio" value=total_computadores_sem_patrimonio color="warning" %}
+      {% include "components/kpi_card.html" with icon="??" title="Solicita??es TI" value=total_chamados_ti_abertos color="info" %}
+      {% include "components/kpi_card.html" with icon="??" title="Cr?ticas TI" value=total_chamados_ti_criticos color="danger" %}
+    {% else %}
+      {% include "components/kpi_card.html" with icon="??" title="Avisos" value=total_avisos color="info" %}
+      {% include "components/kpi_card.html" with icon="??" title="Documentos" value=total_documentos_alerta color="warning" %}
+      {% include "components/kpi_card.html" with icon="??" title="Links ?teis" value=total_links color="success" %}
+      {% include "components/kpi_card.html" with icon="??" title="Manuais" value=total_manuais %}
+      {% if pode_acessar_solicitacoes_ti %}
+        {% include "components/kpi_card.html" with icon="??" title="Minhas solicita??es" value=total_chamados_ti_abertos color="info" %}
+      {% endif %}
+      {% include "components/kpi_card.html" with icon="??" title="Status ativos" value=total_ocorrencias color="danger" %}
+    {% endif %}
   </div>
 
   <div class="hero-box">
@@ -42,58 +53,60 @@
 
   </div>
 
+  {% if pode_acessar_inventario_ti %}
   <div class="gsf-table-card">
-    <div class="gsf-table-header">
-      <div>
-        <h2>Últimos computadores recebidos</h2>
-        <p>Máquinas que enviaram heartbeat recentemente para o GSF Hub.</p>
+      <div class="gsf-table-header">
+        <div>
+          <h2>Últimos computadores recebidos</h2>
+          <p>Máquinas que enviaram heartbeat recentemente para o GSF Hub.</p>
+        </div>
+  
+        <a href="/portal/modulos/inventario-ti/" class="btn-link">Abrir inventário</a>
       </div>
-
-      <a href="/portal/modulos/inventario-ti/" class="btn-link">Abrir inventário</a>
-    </div>
-
-    <div class="gsf-table-wrap">
-      <table class="gsf-table">
-        <thead>
-          <tr>
-            <th>Status</th>
-            <th>Hostname</th>
-            <th>Usuário</th>
-            <th>IP</th>
-            <th>RAM</th>
-            <th>Disco</th>
-            <th>Último contato</th>
-          </tr>
-        </thead>
-
-        <tbody>
-          {% for pc in ultimos_computadores %}
+  
+      <div class="gsf-table-wrap">
+        <table class="gsf-table">
+          <thead>
             <tr>
-              <td>
-                {% if pc.online %}
-                  <span class="gsf-badge gsf-badge-success">ONLINE</span>
-                {% else %}
-                  <span class="gsf-badge gsf-badge-danger">OFFLINE</span>
-                {% endif %}
-              </td>
-              <td><strong>{{ pc.hostname }}</strong></td>
-              <td>{{ pc.usuario }}</td>
-              <td>{{ pc.ip_local|default:"-" }}</td>
-              <td>{{ pc.ram }}</td>
-              <td>{{ pc.disco_percentual }}</td>
-              <td>{{ pc.ultimo_contato|date:"d/m/Y H:i:s" }}</td>
+              <th>Status</th>
+              <th>Hostname</th>
+              <th>Usuário</th>
+              <th>IP</th>
+              <th>RAM</th>
+              <th>Disco</th>
+              <th>Último contato</th>
             </tr>
-          {% empty %}
-            <tr>
-              <td colspan="7">
-                Nenhum computador enviou heartbeat ainda.
-              </td>
-            </tr>
-          {% endfor %}
-        </tbody>
-      </table>
+          </thead>
+  
+          <tbody>
+            {% for pc in ultimos_computadores %}
+              <tr>
+                <td>
+                  {% if pc.online %}
+                    <span class="gsf-badge gsf-badge-success">ONLINE</span>
+                  {% else %}
+                    <span class="gsf-badge gsf-badge-danger">OFFLINE</span>
+                  {% endif %}
+                </td>
+                <td><strong>{{ pc.hostname }}</strong></td>
+                <td>{{ pc.usuario }}</td>
+                <td>{{ pc.ip_local|default:"-" }}</td>
+                <td>{{ pc.ram }}</td>
+                <td>{{ pc.disco_percentual }}</td>
+                <td>{{ pc.ultimo_contato|date:"d/m/Y H:i:s" }}</td>
+              </tr>
+            {% empty %}
+              <tr>
+                <td colspan="7">
+                  Nenhum computador enviou heartbeat ainda.
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
     </div>
-  </div>
+  {% endif %}
 
   <br>
 

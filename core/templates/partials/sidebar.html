@@ -1,4 +1,7 @@
-{% load static %}
+{% load static core_tags %}
+{% pode_acessar_modulo_link request.user "/portal/modulos/solicitacoes-ti/" as pode_solicitacoes_ti_sidebar %}
+{% usuario_pode_ver_inventario_ti request.user as pode_inventario_ti_sidebar %}
+{% usuario_eh_admin_ti_tag request.user as pode_admin_sidebar %}
 
 <aside class="gsf-sidebar">
 
@@ -33,15 +36,19 @@
       <strong>Solicitações Internas</strong>
     </a>
 
-    <a href="/portal/modulos/solicitacoes-ti/" class="gsf-sidebar-link">
-      <span>🎫</span>
-      <strong>Solicitações TI</strong>
-    </a>
+    {% if pode_solicitacoes_ti_sidebar %}
+      <a href="/portal/modulos/solicitacoes-ti/" class="gsf-sidebar-link">
+        <span>🎫</span>
+        <strong>Solicitações TI</strong>
+      </a>
+    {% endif %}
 
-    <a href="/portal/modulos/inventario-ti/" class="gsf-sidebar-link">
-      <span>💻</span>
-      <strong>Inventário TI</strong>
-    </a>
+    {% if pode_inventario_ti_sidebar %}
+      <a href="/portal/modulos/inventario-ti/" class="gsf-sidebar-link">
+        <span>💻</span>
+        <strong>Inventário TI</strong>
+      </a>
+    {% endif %}
 
     <div class="gsf-sidebar-section">Comunicação</div>
 
@@ -94,7 +101,7 @@
       <strong>Links Úteis</strong>
     </a>
 
-    {% if request.user.is_superuser %}
+    {% if pode_admin_sidebar %}
       <div class="gsf-sidebar-section">Administração</div>
 
       <a href="/portal/administracao/" class="gsf-sidebar-link">

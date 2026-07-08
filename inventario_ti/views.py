@@ -7,7 +7,13 @@ from django.utils import timezone
 from django.views.decorators.csrf import csrf_exempt
 import json
 
+from core.services.permissions import usuario_eh_ti
+
 from .models import ComputadorInventario
+
+
+def usuario_pode_acessar_inventario_ti(user):
+    return usuario_eh_ti(user)
 
 
 @csrf_exempt
@@ -58,6 +64,9 @@ def heartbeat(request):
 
 @login_required
 def dashboard(request):
+    if not usuario_pode_acessar_inventario_ti(request.user):
+        return render(request, "core/sem_permissao.html", status=403)
+
     busca = request.GET.get("busca", "").strip()
 
     computadores = ComputadorInventario.objects.all()
@@ -98,6 +107,9 @@ def dashboard(request):
 
 @login_required
 def detalhe(request, computador_id):
+    if not usuario_pode_acessar_inventario_ti(request.user):
+        return render(request, "core/sem_permissao.html", status=403)
+
     computador = get_object_or_404(ComputadorInventario, id=computador_id)
 
     return render(request, "inventario_ti/detalhe.html", {

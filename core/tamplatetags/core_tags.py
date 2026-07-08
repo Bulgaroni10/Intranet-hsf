@@ -15,6 +15,30 @@ def usuario_eh_admin_ti(user):
     return user.is_superuser or user.groups.filter(name='TI Administrador').exists()
 
 
+def usuario_eh_ti(user):
+    if not user or not user.is_authenticated:
+        return False
+
+    return usuario_eh_admin_ti(user) or user.groups.filter(
+        name__in=['TI Suporte', 'TI']
+    ).exists()
+
+
+@register.simple_tag
+def usuario_eh_admin_ti_tag(user):
+    return usuario_eh_admin_ti(user)
+
+
+@register.simple_tag
+def usuario_pode_ver_inventario_ti(user):
+    return usuario_eh_ti(user)
+
+
+@register.simple_tag
+def pode_acessar_modulo_link(user, link_modulo):
+    return usuario_pode_acessar_modulo_por_link(user, link_modulo)
+
+
 def usuario_pode_acessar_modulo_por_link(user, link_modulo):
     if usuario_eh_admin_ti(user):
         return True
