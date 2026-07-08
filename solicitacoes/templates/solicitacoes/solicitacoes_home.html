@@ -72,40 +72,76 @@
 
   <br>
 
-  <div class="solicitacao-list">
-    {% for solicitacao in solicitacoes %}
-      <div class="solicitacao-card">
-        <div class="solicitacao-icon">🎫</div>
-
+  {% if solicitacoes %}
+    <div class="gsf-table-card">
+      <div class="gsf-table-header">
         <div>
-          <h3>#{{ solicitacao.id }} — {{ solicitacao.titulo }}</h3>
-
-          <p>{{ solicitacao.descricao|truncatechars:140 }}</p>
-
-          <div class="top-actions">
-            <span class="btn-muted">{{ solicitacao.get_status_display }}</span>
-            <span class="btn-muted">Prioridade: {{ solicitacao.get_prioridade_display }}</span>
-
-            {% if solicitacao.categoria %}
-              <span class="btn-muted">{{ solicitacao.categoria.nome }}</span>
-            {% endif %}
-
-            {% if solicitacao.setor %}
-              <span class="btn-muted">{{ solicitacao.setor.nome }}</span>
-            {% endif %}
-          </div>
-
-          <br>
-
-          <a href="{% url 'detalhe_solicitacao' solicitacao.id %}" class="btn-link">
-            Ver detalhes
-          </a>
+          <h2>Lista de solicitações</h2>
+          <p>Acompanhe as solicitações abertas, em andamento e concluídas.</p>
         </div>
       </div>
-    {% empty %}
-      {% include "components/empty_state.html" with titulo="Nenhuma solicitação encontrada" mensagem="Nenhuma solicitação foi encontrada para os filtros atuais." link_url="/portal/modulos/solicitacoes/nova/" link_texto="Abrir solicitação" %}
-    {% endfor %}
-  </div>
+
+      <div class="gsf-table-wrap">
+        <table class="gsf-table">
+          <thead>
+            <tr>
+              <th>Nº</th>
+              <th>Título</th>
+              <th>Status</th>
+              <th>Prioridade</th>
+              <th>Categoria</th>
+              <th>Setor</th>
+              <th>Criado em</th>
+              <th>Ações</th>
+            </tr>
+          </thead>
+
+          <tbody>
+            {% for solicitacao in solicitacoes %}
+              <tr>
+                <td>#{{ solicitacao.id }}</td>
+                <td>
+                  <strong>{{ solicitacao.titulo }}</strong>
+                  <br>
+                  <small>{{ solicitacao.descricao|truncatechars:80 }}</small>
+                </td>
+                <td>
+                  <span class="gsf-badge">{{ solicitacao.get_status_display }}</span>
+                </td>
+                <td>
+                  <span class="gsf-badge">{{ solicitacao.get_prioridade_display }}</span>
+                </td>
+                <td>
+                  {% if solicitacao.categoria %}
+                    {{ solicitacao.categoria.nome }}
+                  {% else %}
+                    -
+                  {% endif %}
+                </td>
+                <td>
+                  {% if solicitacao.setor %}
+                    {{ solicitacao.setor.nome }}
+                  {% else %}
+                    -
+                  {% endif %}
+                </td>
+                <td>{{ solicitacao.criado_em|date:"d/m/Y H:i" }}</td>
+                <td>
+                  <div class="gsf-table-actions">
+                    <a href="{% url 'detalhe_solicitacao' solicitacao.id %}" class="btn-link">
+                      Ver
+                    </a>
+                  </div>
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  {% else %}
+    {% include "components/empty_state.html" with titulo="Nenhuma solicitação encontrada" mensagem="Nenhuma solicitação foi encontrada para os filtros atuais." link_url="/portal/modulos/solicitacoes/nova/" link_texto="Abrir solicitação" %}
+  {% endif %}
 
   <br>
 

@@ -513,3 +513,67 @@ textarea:focus {
     align-items: flex-start;
   }
 }
+
+.gsf-table-card {
+  background: var(--gsf-card);
+  border: 1px solid var(--gsf-border);
+  border-radius: var(--gsf-radius);
+  box-shadow: var(--gsf-shadow);
+  overflow: hidden;
+}
+
+.gsf-table-header {
+  padding: 20px 22px;
+  border-bottom: 1px solid var(--gsf-border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.gsf-table-header h2 {
+  margin: 0 0 4px;
+}
+
+.gsf-table-header p {
+  margin: 0;
+}
+
+.gsf-table-wrap {
+  overflow-x: auto;
+}
+
+.gsf-table {
+  width: 100%;
+  border-collapse: collapse;
+  background: var(--gsf-card);
+}
+
+.gsf-table th {
+  padding: 14px 16px;
+  background: var(--gsf-card-soft);
+  color: var(--gsf-muted);
+  font-size: 12px;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: .06em;
+  border-bottom: 1px solid var(--gsf-border);
+  white-space: nowrap;
+}
+
+.gsf-table td {
+  padding: 14px 16px;
+  color: var(--gsf-text);
+  border-bottom: 1px solid var(--gsf-border);
+  vertical-align: middle;
+}
+
+.gsf-table tbody tr:hover {
+  background: var(--gsf-bg-soft);
+}
+
+.gsf-table-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
