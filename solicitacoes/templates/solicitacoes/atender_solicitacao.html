@@ -5,17 +5,7 @@
 {% block content %}
 <div class="page">
 
-  <div class="section-header">
-    <div>
-      <div class="eyebrow">Atendimento</div>
-      <h1>Atender Solicitação #{{ solicitacao.id }}</h1>
-      <p>{{ solicitacao.titulo }}</p>
-    </div>
-
-    <a href="{% url 'detalhe_solicitacao' solicitacao.id %}" class="btn-link">
-      Voltar
-    </a>
-  </div>
+  {% include "components/page_header.html" with eyebrow="Atendimento" icon="🛠️" title="Atender Solicitação" subtitle=solicitacao.titulo secondary_url_name="detalhe_solicitacao" secondary_text="Voltar" %}
 
   <div class="form-card">
     <form method="post">

@@ -5,51 +5,13 @@
 {% block content %}
 <div class="page">
 
-  <div class="section-header">
-    <div>
-      <div class="eyebrow">Solicitação #{{ solicitacao.id }}</div>
-      <h1>{{ solicitacao.titulo }}</h1>
-      <p>{{ solicitacao.descricao }}</p>
-    </div>
-
-    <div class="top-actions">
-      <a href="{% url 'solicitacoes_home' %}" class="btn-link">Voltar</a>
-      <a href="{% url 'atender_solicitacao' solicitacao.id %}" class="btn-success">Atender</a>
-    </div>
-  </div>
+  {% include "components/page_header.html" with eyebrow="Solicitação" icon="🎫" title=solicitacao.titulo subtitle=solicitacao.descricao secondary_url_name="solicitacoes_home" secondary_text="Voltar" action_url_name="atender_solicitacao" action_text="Atender" %}
 
   <div class="summary-grid">
-    <div class="summary-card">
-      <span>Status</span>
-      <strong>{{ solicitacao.get_status_display }}</strong>
-    </div>
-
-    <div class="summary-card">
-      <span>Prioridade</span>
-      <strong>{{ solicitacao.get_prioridade_display }}</strong>
-    </div>
-
-    <div class="summary-card">
-      <span>Categoria</span>
-      <strong>
-        {% if solicitacao.categoria %}
-          {{ solicitacao.categoria.nome }}
-        {% else %}
-          -
-        {% endif %}
-      </strong>
-    </div>
-
-    <div class="summary-card">
-      <span>Setor</span>
-      <strong>
-        {% if solicitacao.setor %}
-          {{ solicitacao.setor.nome }}
-        {% else %}
-          -
-        {% endif %}
-      </strong>
-    </div>
+    {% include "components/kpi_card.html" with icon="🚦" title="Status" value=solicitacao.get_status_display %}
+    {% include "components/kpi_card.html" with icon="⚡" title="Prioridade" value=solicitacao.get_prioridade_display %}
+    {% include "components/kpi_card.html" with icon="🏷️" title="Categoria" value=solicitacao.categoria|default:"-" %}
+    {% include "components/kpi_card.html" with icon="🏢" title="Setor" value=solicitacao.setor|default:"-" %}
   </div>
 
   <div class="detail-card">
@@ -69,59 +31,9 @@
 
     <div class="gsf-timeline">
       {% for historico in solicitacao.historicos.all %}
-        <div class="gsf-timeline-item">
-          <div class="gsf-timeline-dot">
-            {% if historico.tipo == "criacao" %}
-              🎫
-            {% elif historico.tipo == "status" %}
-              🚦
-            {% elif historico.tipo == "prioridade" %}
-              ⚡
-            {% elif historico.tipo == "responsavel" %}
-              👤
-            {% elif historico.tipo == "comentario" %}
-              💬
-            {% elif historico.tipo == "conclusao" %}
-              ✅
-            {% else %}
-              📝
-            {% endif %}
-          </div>
-
-          <div class="gsf-timeline-content">
-            <strong>{{ historico.titulo }}</strong>
-            <span>
-              {{ historico.criado_em|date:"d/m/Y H:i" }}
-              —
-              {{ historico.usuario|default:"Sistema" }}
-            </span>
-
-            {% if historico.descricao %}
-              <p>{{ historico.descricao }}</p>
-            {% endif %}
-
-            {% if historico.valor_anterior or historico.valor_novo %}
-              <div class="top-actions">
-                {% if historico.valor_anterior %}
-                  <span class="gsf-badge gsf-badge-warning">
-                    De: {{ historico.valor_anterior }}
-                  </span>
-                {% endif %}
-
-                {% if historico.valor_novo %}
-                  <span class="gsf-badge gsf-badge-success">
-                    Para: {{ historico.valor_novo }}
-                  </span>
-                {% endif %}
-              </div>
-            {% endif %}
-          </div>
-        </div>
+        {% include "components/timeline_item.html" with icon="📝" titulo=historico.titulo usuario=historico.usuario data=historico.criado_em descricao=historico.descricao anterior=historico.valor_anterior novo=historico.valor_novo %}
       {% empty %}
-        <div class="empty-card">
-          <h2>Sem histórico ainda</h2>
-          <p>Quando essa solicitação for movimentada, a timeline aparecerá aqui.</p>
-        </div>
+        {% include "components/empty_state.html" with titulo="Sem histórico ainda" mensagem="Quando essa solicitação for movimentada, a timeline aparecerá aqui." %}
       {% endfor %}
     </div>
   </div>

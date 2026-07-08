@@ -5,17 +5,7 @@
 {% block content %}
 <div class="page">
 
-  <div class="section-header">
-    <div>
-      <div class="eyebrow">Nova demanda</div>
-      <h1>Nova Solicitação</h1>
-      <p>Abra uma solicitação interna com descrição clara para acelerar o atendimento.</p>
-    </div>
-
-    <a href="{% url 'solicitacoes_home' %}" class="btn-link">
-      Voltar
-    </a>
-  </div>
+  {% include "components/page_header.html" with eyebrow="Nova demanda" icon="➕" title="Nova Solicitação" subtitle="Abra uma solicitação interna com descrição clara para acelerar o atendimento." secondary_url_name="solicitacoes_home" secondary_text="Voltar" %}
 
   <div class="form-card">
     <form method="post">
