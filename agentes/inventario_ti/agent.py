@@ -19,6 +19,7 @@ AGENT_VERSION = "2.1.0"
 BASE_DIR = Path(__file__).resolve().parent
 DEFAULT_CONFIG = {
     "server": "http://intranet.osascohsf.hosp",
+    "unit_code": "",
     "endpoint": "/api/inventario/heartbeat/",
     "error_endpoint": "/api/inventario/agent-error/",
     "interval": 30,
@@ -43,6 +44,7 @@ def carregar_config(caminho_config=None):
     config["interval"] = max(5, int(config.get("interval", 30)))
     config["request_timeout"] = max(3, int(config.get("request_timeout", 8)))
     config["agent_version"] = str(config.get("agent_version") or AGENT_VERSION)
+    config["unit_code"] = str(config.get("unit_code") or "").strip().upper()
 
     return config
 
@@ -185,6 +187,7 @@ def coletar_dados(config):
 
     return {
         "hostname": get_hostname(),
+        "unit_code": config["unit_code"],
         "usuario": get_usuario_logado(),
         "ip_local": get_ip(),
         "mac": get_mac(),
@@ -204,6 +207,7 @@ def coletar_dados(config):
 def reportar_erro_agente(config, logger, categoria, mensagem, detalhe="", payload=None):
     dados = {
         "hostname": get_hostname(),
+        "unit_code": config["unit_code"],
         "agent_version": config["agent_version"],
         "categoria": categoria,
         "mensagem": str(mensagem)[:4000],

@@ -7,7 +7,8 @@ from usuarios.models import Setor, Unidade
 
 
 class ComputadorInventario(models.Model):
-    hostname = models.CharField(max_length=120, unique=True)
+    unidade = models.ForeignKey(Unidade, on_delete=models.SET_NULL, null=True, blank=True)
+    hostname = models.CharField(max_length=120)
     usuario = models.CharField(max_length=180, blank=True, default="-")
 
     ip_origem = models.GenericIPAddressField(null=True, blank=True)
@@ -37,6 +38,9 @@ class ComputadorInventario(models.Model):
         verbose_name = "Computador"
         verbose_name_plural = "Inventário TI"
         ordering = ["hostname"]
+        constraints = [
+            models.UniqueConstraint(fields=["unidade", "hostname"], name="uniq_computador_unidade_hostname"),
+        ]
 
     def __str__(self):
         return self.hostname
@@ -97,6 +101,7 @@ class ErroAgenteInventario(models.Model):
         null=True,
         blank=True,
     )
+    unidade = models.ForeignKey(Unidade, on_delete=models.SET_NULL, null=True, blank=True)
     hostname = models.CharField(max_length=120)
     agent_version = models.CharField(max_length=50, blank=True, default="-")
     categoria = models.CharField(max_length=80, blank=True, default="geral")

@@ -9,6 +9,7 @@ Copie `config.example.json` para `config.json` no mesmo diretório do agente e a
 ```json
 {
   "server": "http://intranet.osascohsf.hosp",
+  "unit_code": "HSF",
   "endpoint": "/api/inventario/heartbeat/",
   "error_endpoint": "/api/inventario/agent-error/",
   "interval": 30,
@@ -20,6 +21,7 @@ Copie `config.example.json` para `config.json` no mesmo diretório do agente e a
 ```
 
 Não use IP fixo no código. Altere o servidor pelo `config.json`.
+Use um `unit_code` por unidade. O servidor rejeita heartbeat sem unidade válida para evitar mistura de inventários.
 
 O agente registra logs locais e reporta falhas de coleta para a GSF Hub pelo `error_endpoint`.
 Falhas de rede no heartbeat ficam apenas no log local para evitar repetição de erro quando a intranet estiver indisponível.

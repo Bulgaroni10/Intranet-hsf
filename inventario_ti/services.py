@@ -99,12 +99,18 @@ def registrar_alteracoes_inventario(computador, valores_anteriores, novos_valore
     return eventos
 
 
-def registrar_erro_agente(dados, ip_origem=None):
+def registrar_erro_agente(dados, ip_origem=None, unidade=None):
     hostname = normalizar_valor(dados.get("hostname")).upper() or "-"
-    computador = ComputadorInventario.objects.filter(hostname=hostname).first()
+    computadores = ComputadorInventario.objects.filter(hostname=hostname)
+
+    if unidade:
+        computadores = computadores.filter(unidade=unidade)
+
+    computador = computadores.first()
 
     erro = ErroAgenteInventario.objects.create(
         computador=computador,
+        unidade=unidade or (computador.unidade if computador else None),
         hostname=hostname,
         agent_version=normalizar_valor(dados.get("agent_version")) or "-",
         categoria=normalizar_valor(dados.get("categoria")) or "geral",

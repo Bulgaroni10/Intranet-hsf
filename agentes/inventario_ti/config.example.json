@@ -1,5 +1,6 @@
 {
   "server": "http://intranet.osascohsf.hosp",
+  "unit_code": "HSF",
   "endpoint": "/api/inventario/heartbeat/",
   "error_endpoint": "/api/inventario/agent-error/",
   "interval": 30,

@@ -5,6 +5,8 @@ from django.contrib.auth.models import Group
 from django.contrib.messages.storage.fallback import FallbackStorage
 from django.test import RequestFactory, TestCase
 
+from usuarios.models import Unidade
+
 from .models import ComputadorInventario, ErroAgenteInventario, MovimentacaoPatrimonioTI, PatrimonioTI
 from .views import (
     agent_error,
@@ -20,8 +22,10 @@ from .views import (
 class HeartbeatHistoricoTests(TestCase):
     def setUp(self):
         self.factory = RequestFactory()
+        self.unidade = Unidade.objects.create(nome="Hospital Teste", sigla="HT")
         self.payload = {
             "hostname": "PC-TESTE",
+            "unit_code": "HT",
             "usuario": "usuario1",
             "ip_local": "10.0.0.10",
             "mac": "AA-BB-CC",
@@ -79,6 +83,7 @@ class HeartbeatHistoricoTests(TestCase):
 class AgentErrorTests(TestCase):
     def setUp(self):
         self.factory = RequestFactory()
+        self.unidade = Unidade.objects.create(nome="Hospital Teste", sigla="HT")
 
     def postar_erro(self, payload):
         request = self.factory.post(
@@ -93,6 +98,7 @@ class AgentErrorTests(TestCase):
     def test_agent_error_cria_registro_sem_computador(self):
         response = self.postar_erro({
             "hostname": "PC-SEM-CADASTRO",
+            "unit_code": "HT",
             "agent_version": "2.1.0",
             "categoria": "coleta",
             "mensagem": "Falha ao coletar dados.",
@@ -106,10 +112,11 @@ class AgentErrorTests(TestCase):
         self.assertEqual(erro.categoria, "coleta")
 
     def test_agent_error_vincula_computador_e_cria_historico(self):
-        computador = ComputadorInventario.objects.create(hostname="PC-TESTE")
+        computador = ComputadorInventario.objects.create(hostname="PC-TESTE", unidade=self.unidade)
 
         response = self.postar_erro({
             "hostname": "PC-TESTE",
+            "unit_code": "HT",
             "agent_version": "2.1.0",
             "categoria": "coleta",
             "mensagem": "Falha ao coletar dados.",
@@ -125,15 +132,18 @@ class AgentErrorTests(TestCase):
 class PainelErrosAgentesTests(TestCase):
     def setUp(self):
         self.factory = RequestFactory()
+        self.unidade = Unidade.objects.create(nome="Hospital Teste", sigla="HT")
         grupo = Group.objects.create(name="TI Suporte")
         self.user = get_user_model().objects.create_user(
             username="tecnico",
             password="teste",
+            unidade=self.unidade,
         )
         self.user.groups.add(grupo)
 
     def test_painel_erros_agentes_renderiza_para_ti(self):
         ErroAgenteInventario.objects.create(
+            unidade=self.unidade,
             hostname="PC-TESTE",
             agent_version="2.1.0",
             categoria="coleta",
@@ -149,12 +159,14 @@ class PainelErrosAgentesTests(TestCase):
 
     def test_painel_erros_agentes_filtra_por_categoria(self):
         ErroAgenteInventario.objects.create(
+            unidade=self.unidade,
             hostname="PC-TESTE",
             agent_version="2.1.0",
             categoria="coleta",
             mensagem="Falha ao coletar dados.",
         )
         ErroAgenteInventario.objects.create(
+            unidade=self.unidade,
             hostname="PC-TESTE-2",
             agent_version="2.1.0",
             categoria="rede",
@@ -178,16 +190,18 @@ class PainelErrosAgentesTests(TestCase):
 class ExportacaoCsvTests(TestCase):
     def setUp(self):
         self.factory = RequestFactory()
+        self.unidade = Unidade.objects.create(nome="Hospital Teste", sigla="HT")
         grupo = Group.objects.create(name="TI Suporte")
         self.user = get_user_model().objects.create_user(
             username="exportador",
             password="teste",
+            unidade=self.unidade,
         )
         self.user.groups.add(grupo)
 
     def test_exportar_inventario_csv_respeita_filtro_busca(self):
-        ComputadorInventario.objects.create(hostname="PC-CSV-1", usuario="usuario1")
-        ComputadorInventario.objects.create(hostname="PC-CSV-2", usuario="usuario2")
+        ComputadorInventario.objects.create(hostname="PC-CSV-1", usuario="usuario1", unidade=self.unidade)
+        ComputadorInventario.objects.create(hostname="PC-CSV-2", usuario="usuario2", unidade=self.unidade)
 
         request = self.factory.get(
             "/portal/modulos/inventario-ti/exportar-csv/",
@@ -202,14 +216,30 @@ class ExportacaoCsvTests(TestCase):
         self.assertIn("PC-CSV-1", conteudo)
         self.assertNotIn("PC-CSV-2", conteudo)
 
+    def test_exportar_inventario_csv_nao_mistura_unidades(self):
+        outra_unidade = Unidade.objects.create(nome="Outra Unidade", sigla="OU")
+        ComputadorInventario.objects.create(hostname="PC-HT", usuario="usuario1", unidade=self.unidade)
+        ComputadorInventario.objects.create(hostname="PC-OU", usuario="usuario2", unidade=outra_unidade)
+
+        request = self.factory.get("/portal/modulos/inventario-ti/exportar-csv/")
+        request.user = self.user
+
+        response = exportar_inventario_csv(request)
+        conteudo = response.content.decode("utf-8-sig")
+
+        self.assertIn("PC-HT", conteudo)
+        self.assertNotIn("PC-OU", conteudo)
+
     def test_exportar_erros_agentes_csv_respeita_filtro_categoria(self):
         ErroAgenteInventario.objects.create(
+            unidade=self.unidade,
             hostname="PC-ERRO-1",
             agent_version="2.1.0",
             categoria="coleta",
             mensagem="Falha ao coletar dados.",
         )
         ErroAgenteInventario.objects.create(
+            unidade=self.unidade,
             hostname="PC-ERRO-2",
             agent_version="2.1.0",
             categoria="rede",
@@ -233,15 +263,17 @@ class ExportacaoCsvTests(TestCase):
 class PatrimonioTITests(TestCase):
     def setUp(self):
         self.factory = RequestFactory()
+        self.unidade = Unidade.objects.create(nome="Hospital Teste", sigla="HT")
         grupo = Group.objects.create(name="TI Suporte")
         self.user = get_user_model().objects.create_user(
             username="patrimonio",
             password="teste",
+            unidade=self.unidade,
         )
         self.user.groups.add(grupo)
 
     def test_lista_patrimonios_renderiza_para_ti(self):
-        PatrimonioTI.objects.create(codigo="PAT-001", tipo="computador")
+        PatrimonioTI.objects.create(codigo="PAT-001", tipo="computador", unidade=self.unidade)
 
         request = self.factory.get("/portal/modulos/inventario-ti/patrimonios/")
         request.user = self.user
@@ -252,7 +284,7 @@ class PatrimonioTITests(TestCase):
         self.assertIn("PAT-001", response.content.decode())
 
     def test_novo_patrimonio_vincula_computador_e_registra_movimentacao(self):
-        computador = ComputadorInventario.objects.create(hostname="PC-PAT")
+        computador = ComputadorInventario.objects.create(hostname="PC-PAT", unidade=self.unidade)
 
         request = self.factory.post(
             "/portal/modulos/inventario-ti/patrimonios/novo/",

@@ -33,6 +33,34 @@ def usuario_pode_gerenciar_patrimonio_ti(user):
     return usuario_eh_ti(user)
 
 
+def obter_unidade_usuario(user):
+    return getattr(user, "unidade", None)
+
+
+def aplicar_escopo_unidade(queryset, user, campo="unidade"):
+    unidade = obter_unidade_usuario(user)
+
+    if unidade:
+        return queryset.filter(**{campo: unidade})
+
+    return queryset
+
+
+def resolver_unidade_payload(dados):
+    sigla = (
+        dados.get("unit_code") or
+        dados.get("unidade_sigla") or
+        dados.get("unidade") or
+        ""
+    )
+    sigla = str(sigla).strip().upper()
+
+    if not sigla:
+        return None
+
+    return Unidade.objects.filter(sigla__iexact=sigla, ativo=True).first()
+
+
 def valor_informado(valor):
     return bool(valor and str(valor).strip() not in ["", "-"])
 
@@ -173,8 +201,11 @@ def obter_filtros_inventario(request):
     }
 
 
-def filtrar_computadores_inventario(filtros):
+def filtrar_computadores_inventario(filtros, user=None):
     computadores = ComputadorInventario.objects.all()
+
+    if user:
+        computadores = aplicar_escopo_unidade(computadores, user)
 
     if filtros["busca"]:
         computadores = computadores.filter(
@@ -216,8 +247,11 @@ def obter_filtros_erros_agentes(request):
     }
 
 
-def filtrar_erros_agentes(filtros):
+def filtrar_erros_agentes(filtros, user=None):
     erros = ErroAgenteInventario.objects.select_related("computador").all()
+
+    if user:
+        erros = aplicar_escopo_unidade(erros, user)
 
     if filtros["busca"]:
         erros = erros.filter(
@@ -259,12 +293,15 @@ def obter_filtros_patrimonio(request):
     }
 
 
-def filtrar_patrimonios(filtros):
+def filtrar_patrimonios(filtros, user=None):
     patrimonios = PatrimonioTI.objects.select_related(
         "computador",
         "unidade",
         "setor",
     )
+
+    if user:
+        patrimonios = aplicar_escopo_unidade(patrimonios, user)
 
     if filtros["busca"]:
         patrimonios = patrimonios.filter(
@@ -337,8 +374,12 @@ def patrimonio_para_form_data(patrimonio):
     }
 
 
-def contexto_formulario_patrimonio(form_data, patrimonio=None):
+def contexto_formulario_patrimonio(form_data, patrimonio=None, user=None):
     computadores = ComputadorInventario.objects.order_by("hostname")
+    unidade_usuario = obter_unidade_usuario(user)
+
+    if unidade_usuario:
+        computadores = computadores.filter(unidade=unidade_usuario)
 
     if patrimonio and patrimonio.computador_id:
         computadores = computadores.filter(
@@ -354,7 +395,7 @@ def contexto_formulario_patrimonio(form_data, patrimonio=None):
         "tipos": PatrimonioTI.TIPO_CHOICES,
         "status_choices": PatrimonioTI.STATUS_CHOICES,
         "computadores": computadores,
-        "unidades": Unidade.objects.filter(ativo=True).order_by("nome"),
+        "unidades": Unidade.objects.filter(id=unidade_usuario.id).order_by("nome") if unidade_usuario else Unidade.objects.filter(ativo=True).order_by("nome"),
         "setores": Setor.objects.filter(ativo=True).order_by("nome"),
     }
 
@@ -375,6 +416,25 @@ def aplicar_form_data_patrimonio(patrimonio, form_data):
     patrimonio.valor_aquisicao = form_data["valor_aquisicao"] or None
     patrimonio.observacao = form_data["observacao"]
     patrimonio.ativo = form_data["ativo"]
+
+
+def aplicar_unidade_usuario_form_data(form_data, user):
+    unidade_usuario = obter_unidade_usuario(user)
+
+    if unidade_usuario:
+        form_data["unidade"] = str(unidade_usuario.id)
+
+    return form_data
+
+
+def computador_pode_ser_vinculado(computador_id, user):
+    if not computador_id:
+        return True
+
+    computadores = ComputadorInventario.objects.filter(id=computador_id)
+    computadores = aplicar_escopo_unidade(computadores, user)
+
+    return computadores.exists()
 
 
 def sincronizar_patrimonio_computador(patrimonio, computador_anterior_id=None):
@@ -408,8 +468,9 @@ def snapshot_origem_patrimonio(patrimonio):
     }
 
 
-def montar_defaults_heartbeat(dados, ip_origem):
+def montar_defaults_heartbeat(dados, ip_origem, unidade=None):
     return {
+        "unidade": unidade,
         "usuario": dados.get("usuario") or "-",
         "ip_origem": ip_origem,
         "ip_local": dados.get("ip_local") or None,
@@ -451,8 +512,16 @@ def heartbeat(request):
         return JsonResponse({"ok": False, "erro": "Hostname obrigatório"}, status=400)
 
     ip_origem = request.META.get("REMOTE_ADDR")
-    defaults = montar_defaults_heartbeat(dados, ip_origem)
-    computador_anterior = ComputadorInventario.objects.filter(hostname=hostname).first()
+    unidade = resolver_unidade_payload(dados)
+
+    if not unidade:
+        return JsonResponse({"ok": False, "erro": "Unidade obrigatória ou inválida"}, status=400)
+
+    defaults = montar_defaults_heartbeat(dados, ip_origem, unidade)
+    computador_anterior = ComputadorInventario.objects.filter(
+        hostname=hostname,
+        unidade=unidade,
+    ).first()
     valores_anteriores = {}
     estava_offline = True
     ultimo_contato_anterior = None
@@ -464,6 +533,7 @@ def heartbeat(request):
 
     computador, criado = ComputadorInventario.objects.update_or_create(
         hostname=hostname,
+        unidade=unidade,
         defaults=defaults
     )
 
@@ -489,6 +559,7 @@ def heartbeat(request):
         "criado": criado,
         "hostname": computador.hostname,
         "status": computador.status_texto,
+        "unidade": computador.unidade.sigla if computador.unidade else "",
         "eventos_registrados": eventos_registrados,
     })
 
@@ -512,12 +583,18 @@ def agent_error(request):
     if not mensagem:
         return JsonResponse({"ok": False, "erro": "Mensagem obrigatória"}, status=400)
 
+    unidade = resolver_unidade_payload(dados)
+
+    if not unidade:
+        return JsonResponse({"ok": False, "erro": "Unidade obrigatória ou inválida"}, status=400)
+
     erro = registrar_erro_agente(
         dados={
             **dados,
             "hostname": hostname,
         },
         ip_origem=request.META.get("REMOTE_ADDR"),
+        unidade=resolver_unidade_payload(dados),
     )
 
     return JsonResponse({
@@ -534,7 +611,8 @@ def dashboard(request):
 
     filtros = obter_filtros_inventario(request)
 
-    fabricantes = ComputadorInventario.objects.exclude(
+    fabricantes_qs = aplicar_escopo_unidade(ComputadorInventario.objects.all(), request.user)
+    fabricantes = fabricantes_qs.exclude(
         fabricante__in=["", "-"]
     ).order_by(
         "fabricante"
@@ -543,7 +621,7 @@ def dashboard(request):
         flat=True
     ).distinct()
 
-    sistemas = ComputadorInventario.objects.exclude(
+    sistemas = fabricantes_qs.exclude(
         sistema__in=["", "-"]
     ).order_by(
         "sistema"
@@ -552,7 +630,7 @@ def dashboard(request):
         flat=True
     ).distinct()
 
-    lista_base, lista = filtrar_computadores_inventario(filtros)
+    lista_base, lista = filtrar_computadores_inventario(filtros, request.user)
     totais = montar_resumo_inventario(lista_base)
 
     query_string = urlencode({
@@ -580,13 +658,13 @@ def erros_agentes(request):
         return render(request, "core/sem_permissao.html", status=403)
 
     filtros = obter_filtros_erros_agentes(request)
-    erros = filtrar_erros_agentes(filtros)
+    erros = filtrar_erros_agentes(filtros, request.user)
 
     agora = timezone.now()
     ultimas_24h = agora - timezone.timedelta(hours=24)
     ultimos_7_dias = agora - timezone.timedelta(days=7)
 
-    erros_base = ErroAgenteInventario.objects.all()
+    erros_base = aplicar_escopo_unidade(ErroAgenteInventario.objects.all(), request.user)
     totais = {
         "total": erros_base.count(),
         "ultimas_24h": erros_base.filter(criado_em__gte=ultimas_24h).count(),
@@ -596,7 +674,7 @@ def erros_agentes(request):
         "filtrado": erros.count(),
     }
 
-    categorias = ErroAgenteInventario.objects.exclude(
+    categorias = erros_base.exclude(
         categoria=""
     ).order_by(
         "categoria"
@@ -605,7 +683,7 @@ def erros_agentes(request):
         flat=True
     ).distinct()
 
-    versoes = ErroAgenteInventario.objects.exclude(
+    versoes = erros_base.exclude(
         agent_version__in=["", "-"]
     ).order_by(
         "agent_version"
@@ -648,11 +726,12 @@ def exportar_inventario_csv(request):
         return render(request, "core/sem_permissao.html", status=403)
 
     filtros = obter_filtros_inventario(request)
-    _, computadores = filtrar_computadores_inventario(filtros)
+    _, computadores = filtrar_computadores_inventario(filtros, request.user)
     response = montar_response_csv("inventario_ti.csv")
     writer = csv.writer(response, delimiter=";")
 
     writer.writerow([
+        "Unidade",
         "Status",
         "Hostname",
         "Usuario",
@@ -677,6 +756,7 @@ def exportar_inventario_csv(request):
 
     for computador in computadores:
         writer.writerow([
+            computador.unidade.sigla if computador.unidade else "",
             computador.status_texto,
             computador.hostname,
             computador.usuario,
@@ -708,12 +788,13 @@ def exportar_erros_agentes_csv(request):
         return render(request, "core/sem_permissao.html", status=403)
 
     filtros = obter_filtros_erros_agentes(request)
-    erros = filtrar_erros_agentes(filtros)
+    erros = filtrar_erros_agentes(filtros, request.user)
     response = montar_response_csv("erros_agentes.csv")
     writer = csv.writer(response, delimiter=";")
 
     writer.writerow([
         "Data",
+        "Unidade",
         "Hostname",
         "Computador vinculado",
         "Versao agente",
@@ -726,6 +807,7 @@ def exportar_erros_agentes_csv(request):
     for erro in erros:
         writer.writerow([
             formatar_data_hora_csv(erro.criado_em),
+            erro.unidade.sigla if erro.unidade else "",
             erro.hostname,
             erro.computador.hostname if erro.computador else "",
             erro.agent_version,
@@ -744,8 +826,8 @@ def patrimonios(request):
         return render(request, "core/sem_permissao.html", status=403)
 
     filtros = obter_filtros_patrimonio(request)
-    patrimonios_qs = filtrar_patrimonios(filtros)
-    patrimonios_base = PatrimonioTI.objects.all()
+    patrimonios_qs = filtrar_patrimonios(filtros, request.user)
+    patrimonios_base = aplicar_escopo_unidade(PatrimonioTI.objects.all(), request.user)
 
     totais = {
         "total": patrimonios_base.count(),
@@ -772,7 +854,7 @@ def patrimonios(request):
         "totais": totais,
         "tipos": PatrimonioTI.TIPO_CHOICES,
         "status_choices": PatrimonioTI.STATUS_CHOICES,
-        "unidades": Unidade.objects.filter(ativo=True).order_by("nome"),
+        "unidades": Unidade.objects.filter(id=obter_unidade_usuario(request.user).id).order_by("nome") if obter_unidade_usuario(request.user) else Unidade.objects.filter(ativo=True).order_by("nome"),
         "setores": Setor.objects.filter(ativo=True).order_by("nome"),
     })
 
@@ -799,9 +881,10 @@ def novo_patrimonio(request):
         "observacao": "",
         "ativo": True,
     }
+    form_data = aplicar_unidade_usuario_form_data(form_data, request.user)
 
     if request.method == "POST":
-        form_data = montar_form_data_patrimonio(request)
+        form_data = aplicar_unidade_usuario_form_data(montar_form_data_patrimonio(request), request.user)
         erros = []
 
         if not form_data["codigo"]:
@@ -810,12 +893,15 @@ def novo_patrimonio(request):
         if PatrimonioTI.objects.filter(codigo=form_data["codigo"]).exists():
             erros.append("Já existe um patrimônio com este código.")
 
+        if not computador_pode_ser_vinculado(form_data["computador"], request.user):
+            erros.append("O computador selecionado não pertence à sua unidade.")
+
         if erros:
             for erro in erros:
                 messages.error(request, erro)
 
             return render(request, "inventario_ti/formulario_patrimonio.html", {
-                **contexto_formulario_patrimonio(form_data),
+                **contexto_formulario_patrimonio(form_data, user=request.user),
                 "titulo": "Novo patrimônio",
                 "modo": "novo",
             })
@@ -834,7 +920,7 @@ def novo_patrimonio(request):
         return redirect("inventario_ti_patrimonio_detalhe", patrimonio_id=patrimonio.id)
 
     return render(request, "inventario_ti/formulario_patrimonio.html", {
-        **contexto_formulario_patrimonio(form_data),
+        **contexto_formulario_patrimonio(form_data, user=request.user),
         "titulo": "Novo patrimônio",
         "modo": "novo",
     })
@@ -845,13 +931,16 @@ def editar_patrimonio(request, patrimonio_id):
     if not usuario_pode_gerenciar_patrimonio_ti(request.user):
         return render(request, "core/sem_permissao.html", status=403)
 
-    patrimonio = get_object_or_404(PatrimonioTI, id=patrimonio_id)
+    patrimonio = get_object_or_404(
+        aplicar_escopo_unidade(PatrimonioTI.objects.all(), request.user),
+        id=patrimonio_id,
+    )
     form_data = patrimonio_para_form_data(patrimonio)
 
     if request.method == "POST":
         computador_anterior_id = patrimonio.computador_id
         origem = snapshot_origem_patrimonio(patrimonio)
-        form_data = montar_form_data_patrimonio(request)
+        form_data = aplicar_unidade_usuario_form_data(montar_form_data_patrimonio(request), request.user)
         erros = []
 
         if not form_data["codigo"]:
@@ -860,12 +949,15 @@ def editar_patrimonio(request, patrimonio_id):
         if PatrimonioTI.objects.filter(codigo=form_data["codigo"]).exclude(id=patrimonio.id).exists():
             erros.append("Já existe outro patrimônio com este código.")
 
+        if not computador_pode_ser_vinculado(form_data["computador"], request.user):
+            erros.append("O computador selecionado não pertence à sua unidade.")
+
         if erros:
             for erro in erros:
                 messages.error(request, erro)
 
             return render(request, "inventario_ti/formulario_patrimonio.html", {
-                **contexto_formulario_patrimonio(form_data, patrimonio),
+                **contexto_formulario_patrimonio(form_data, patrimonio, request.user),
                 "titulo": "Editar patrimônio",
                 "modo": "editar",
             })
@@ -884,7 +976,7 @@ def editar_patrimonio(request, patrimonio_id):
         return redirect("inventario_ti_patrimonio_detalhe", patrimonio_id=patrimonio.id)
 
     return render(request, "inventario_ti/formulario_patrimonio.html", {
-        **contexto_formulario_patrimonio(form_data, patrimonio),
+        **contexto_formulario_patrimonio(form_data, patrimonio, request.user),
         "titulo": "Editar patrimônio",
         "modo": "editar",
     })
@@ -896,7 +988,10 @@ def detalhe_patrimonio(request, patrimonio_id):
         return render(request, "core/sem_permissao.html", status=403)
 
     patrimonio = get_object_or_404(
-        PatrimonioTI.objects.select_related("computador", "unidade", "setor"),
+        aplicar_escopo_unidade(
+            PatrimonioTI.objects.select_related("computador", "unidade", "setor"),
+            request.user,
+        ),
         id=patrimonio_id,
     )
     movimentacoes = patrimonio.movimentacoes.select_related(
@@ -918,7 +1013,10 @@ def detalhe(request, computador_id):
     if not usuario_pode_acessar_inventario_ti(request.user):
         return render(request, "core/sem_permissao.html", status=403)
 
-    computador = get_object_or_404(ComputadorInventario, id=computador_id)
+    computador = get_object_or_404(
+        aplicar_escopo_unidade(ComputadorInventario.objects.all(), request.user),
+        id=computador_id,
+    )
     historicos = computador.historicos.all()[:30]
     disco_critico = computador_tem_disco_critico(computador)
     dados_incompletos = computador_tem_dados_incompletos(computador)
@@ -939,6 +1037,7 @@ def detalhe(request, computador_id):
     ]
 
     ficha_rede = [
+        ("Unidade", computador.unidade.nome if computador.unidade else "-"),
         ("IP origem", computador.ip_origem or "-"),
         ("IP local", computador.ip_local or "-"),
         ("MAC", computador.mac),

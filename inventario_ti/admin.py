@@ -12,6 +12,7 @@ from .models import (
 @admin.register(ComputadorInventario)
 class ComputadorInventarioAdmin(admin.ModelAdmin):
     list_display = [
+        "unidade",
         "hostname",
         "usuario",
         "ip_local",
@@ -38,6 +39,7 @@ class ComputadorInventarioAdmin(admin.ModelAdmin):
     ]
 
     list_filter = [
+        "unidade",
         "fabricante",
         "sistema",
         "agent_version",
@@ -92,6 +94,7 @@ class HistoricoComputadorInventarioAdmin(admin.ModelAdmin):
 @admin.register(ErroAgenteInventario)
 class ErroAgenteInventarioAdmin(admin.ModelAdmin):
     list_display = [
+        "unidade",
         "hostname",
         "agent_version",
         "categoria",
@@ -108,6 +111,7 @@ class ErroAgenteInventarioAdmin(admin.ModelAdmin):
     ]
 
     list_filter = [
+        "unidade",
         "categoria",
         "agent_version",
         "criado_em",
@@ -115,6 +119,7 @@ class ErroAgenteInventarioAdmin(admin.ModelAdmin):
 
     readonly_fields = [
         "computador",
+        "unidade",
         "hostname",
         "agent_version",
         "categoria",
