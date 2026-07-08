@@ -1,0 +1,11 @@
+<div class="empty-card">
+  <h2>{{ titulo|default:"Nada encontrado" }}</h2>
+  <p>{{ mensagem|default:"Nenhum registro foi encontrado para os filtros atuais." }}</p>
+
+  {% if link_url and link_texto %}
+    <br>
+    <a href="{{ link_url }}" class="btn-success">
+      {{ link_texto }}
+    </a>
+  {% endif %}
+</div>
