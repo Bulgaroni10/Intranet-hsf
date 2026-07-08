@@ -1,9 +1,11 @@
 import json
 
+from django.contrib.auth import get_user_model
+from django.contrib.auth.models import Group
 from django.test import RequestFactory, TestCase
 
 from .models import ComputadorInventario, ErroAgenteInventario
-from .views import agent_error, heartbeat
+from .views import agent_error, erros_agentes, heartbeat
 
 
 class HeartbeatHistoricoTests(TestCase):
@@ -109,3 +111,56 @@ class AgentErrorTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertEqual(erro.computador, computador)
         self.assertEqual(computador.historicos.filter(campo="agent_error").count(), 1)
+
+
+class PainelErrosAgentesTests(TestCase):
+    def setUp(self):
+        self.factory = RequestFactory()
+        grupo = Group.objects.create(name="TI Suporte")
+        self.user = get_user_model().objects.create_user(
+            username="tecnico",
+            password="teste",
+        )
+        self.user.groups.add(grupo)
+
+    def test_painel_erros_agentes_renderiza_para_ti(self):
+        ErroAgenteInventario.objects.create(
+            hostname="PC-TESTE",
+            agent_version="2.1.0",
+            categoria="coleta",
+            mensagem="Falha ao coletar dados.",
+        )
+
+        request = self.factory.get("/portal/modulos/inventario-ti/erros-agentes/")
+        request.user = self.user
+
+        response = erros_agentes(request)
+
+        self.assertEqual(response.status_code, 200)
+
+    def test_painel_erros_agentes_filtra_por_categoria(self):
+        ErroAgenteInventario.objects.create(
+            hostname="PC-TESTE",
+            agent_version="2.1.0",
+            categoria="coleta",
+            mensagem="Falha ao coletar dados.",
+        )
+        ErroAgenteInventario.objects.create(
+            hostname="PC-TESTE-2",
+            agent_version="2.1.0",
+            categoria="rede",
+            mensagem="Falha de rede.",
+        )
+
+        request = self.factory.get(
+            "/portal/modulos/inventario-ti/erros-agentes/",
+            {"categoria": "coleta"},
+        )
+        request.user = self.user
+
+        response = erros_agentes(request)
+        html = response.content.decode()
+
+        self.assertEqual(response.status_code, 200)
+        self.assertIn("PC-TESTE", html)
+        self.assertNotIn("PC-TESTE-2", html)

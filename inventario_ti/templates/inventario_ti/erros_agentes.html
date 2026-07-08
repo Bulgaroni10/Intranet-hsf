@@ -1,0 +1,173 @@
+{% extends "base/base.html" %}
+
+{% block title %}Erros dos Agentes | Inventário TI{% endblock %}
+
+{% block content %}
+<div class="page">
+
+  {% include "components/page_header.html" with eyebrow="Inventário TI" icon="🧭" title="Erros dos Agentes" subtitle="Acompanhe falhas reportadas pelos agentes de inventário." secondary_url_name="inventario_ti_dashboard" secondary_text="Voltar ao inventário" %}
+
+  <div class="summary-grid">
+    {% include "components/kpi_card.html" with icon="🧾" title="Total" value=totais.total %}
+    {% include "components/kpi_card.html" with icon="⏱️" title="Últimas 24h" value=totais.ultimas_24h color="warning" %}
+    {% include "components/kpi_card.html" with icon="📆" title="Últimos 7 dias" value=totais.ultimos_7_dias color="info" %}
+    {% include "components/kpi_card.html" with icon="💻" title="Hosts afetados" value=totais.hosts_afetados color="danger" %}
+    {% include "components/kpi_card.html" with icon="🔗" title="Sem vínculo" value=totais.sem_vinculo color="warning" %}
+    {% include "components/kpi_card.html" with icon="🔎" title="Filtrados" value=totais.filtrado %}
+  </div>
+
+  <div class="form-card">
+    <form method="get" class="form-grid">
+      <div class="form-group">
+        <label>Pesquisar</label>
+        <input type="text" name="busca" value="{{ filtros.busca }}" placeholder="Hostname, categoria, versão, mensagem ou detalhe">
+      </div>
+
+      <div class="form-group">
+        <label>Categoria</label>
+        <select name="categoria">
+          <option value="">Todas</option>
+          {% for item in categorias %}
+            <option value="{{ item }}" {% if filtros.categoria == item %}selected{% endif %}>{{ item }}</option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label>Versão</label>
+        <select name="agent_version">
+          <option value="">Todas</option>
+          {% for item in versoes %}
+            <option value="{{ item }}" {% if filtros.agent_version == item %}selected{% endif %}>{{ item }}</option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label>Vínculo</label>
+        <select name="vinculo">
+          <option value="">Todos</option>
+          <option value="vinculado" {% if filtros.vinculo == "vinculado" %}selected{% endif %}>Vinculado</option>
+          <option value="sem_vinculo" {% if filtros.vinculo == "sem_vinculo" %}selected{% endif %}>Sem vínculo</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label>Data inicial</label>
+        <input type="date" name="data_inicio" value="{{ filtros.data_inicio }}">
+      </div>
+
+      <div class="form-group">
+        <label>Data final</label>
+        <input type="date" name="data_fim" value="{{ filtros.data_fim }}">
+      </div>
+
+      <div class="form-group">
+        <label>&nbsp;</label>
+        <button type="submit" class="btn-submit">Filtrar</button>
+      </div>
+    </form>
+
+    <div class="top-actions" style="margin-top: 14px;">
+      <a href="{% url 'inventario_ti_erros_agentes' %}" class="btn-link">Limpar filtros</a>
+      <span class="btn-muted">{{ totais.filtrado }} erro(s) encontrado(s)</span>
+    </div>
+  </div>
+
+  <br>
+
+  <div class="detail-card">
+    <h2>Resumo por categoria</h2>
+
+    <div class="top-actions">
+      {% for item in categorias_resumo %}
+        <span class="btn-muted">{{ item.categoria|default:"geral" }}: {{ item.total }}</span>
+      {% empty %}
+        <span class="btn-muted">Nenhum erro registrado</span>
+      {% endfor %}
+    </div>
+  </div>
+
+  <br>
+
+  {% if erros %}
+    <div class="gsf-table-card">
+      <div class="gsf-table-header">
+        <div>
+          <h2>Eventos de erro</h2>
+          <p>Falhas reportadas pelos agentes instalados nos computadores monitorados.</p>
+        </div>
+      </div>
+
+      <div class="gsf-table-wrap">
+        <table class="gsf-table">
+          <thead>
+            <tr>
+              <th>Data</th>
+              <th>Hostname</th>
+              <th>Categoria</th>
+              <th>Versão</th>
+              <th>Mensagem</th>
+              <th>IP origem</th>
+              <th>Vínculo</th>
+            </tr>
+          </thead>
+
+          <tbody>
+            {% for erro in erros %}
+              <tr>
+                <td>{{ erro.criado_em|date:"d/m/Y H:i:s" }}</td>
+                <td>
+                  <strong>{{ erro.hostname }}</strong>
+                  {% if erro.computador %}
+                    <br>
+                    <a class="btn-link" href="{% url 'inventario_ti_detalhe' erro.computador.id %}">Abrir computador</a>
+                  {% endif %}
+                </td>
+                <td><span class="gsf-badge gsf-badge-warning">{{ erro.categoria }}</span></td>
+                <td>{{ erro.agent_version }}</td>
+                <td>
+                  <strong>{{ erro.mensagem|truncatechars:140 }}</strong>
+                  {% if erro.detalhe %}
+                    <br>
+                    <small>{{ erro.detalhe|truncatechars:180 }}</small>
+                  {% endif %}
+                </td>
+                <td>{{ erro.ip_origem|default:"-" }}</td>
+                <td>
+                  {% if erro.computador %}
+                    <span class="gsf-badge gsf-badge-success">Vinculado</span>
+                  {% else %}
+                    <span class="gsf-badge gsf-badge-danger">Sem vínculo</span>
+                  {% endif %}
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  {% else %}
+    {% include "components/empty_state.html" with titulo="Nenhum erro encontrado" mensagem="Nenhum erro dos agentes corresponde aos filtros atuais." %}
+  {% endif %}
+
+  <br>
+
+  {% if erros.has_other_pages %}
+    <div class="top-actions">
+      {% if erros.has_previous %}
+        <a class="btn-link" href="?page={{ erros.previous_page_number }}{% if query_string %}&{{ query_string }}{% endif %}">Anterior</a>
+      {% endif %}
+
+      <span class="btn-muted">
+        Página {{ erros.number }} de {{ erros.paginator.num_pages }}
+      </span>
+
+      {% if erros.has_next %}
+        <a class="btn-link" href="?page={{ erros.next_page_number }}{% if query_string %}&{{ query_string }}{% endif %}">Próxima</a>
+      {% endif %}
+    </div>
+  {% endif %}
+
+</div>
+{% endblock %}

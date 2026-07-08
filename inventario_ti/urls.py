@@ -5,6 +5,7 @@ from . import views
 
 urlpatterns = [
     path("portal/modulos/inventario-ti/", views.dashboard, name="inventario_ti_dashboard"),
+    path("portal/modulos/inventario-ti/erros-agentes/", views.erros_agentes, name="inventario_ti_erros_agentes"),
     path("portal/modulos/inventario-ti/<int:computador_id>/", views.detalhe, name="inventario_ti_detalhe"),
 
     path("api/heartbeat/", views.heartbeat, name="inventario_ti_heartbeat_compat"),

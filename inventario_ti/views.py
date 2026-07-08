@@ -1,6 +1,6 @@
 from django.contrib.auth.decorators import login_required
 from django.core.paginator import Paginator
-from django.db.models import Q
+from django.db.models import Count, Q
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, render
 from django.utils import timezone
@@ -11,7 +11,7 @@ from urllib.parse import urlencode
 
 from core.services.permissions import usuario_eh_ti
 
-from .models import ComputadorInventario
+from .models import ComputadorInventario, ErroAgenteInventario
 from .services import (
     CAMPOS_MONITORADOS,
     computador_estava_offline,
@@ -337,6 +337,115 @@ def dashboard(request):
         "sistemas": sistemas,
         "totais": totais,
         "total_filtrado": len(lista),
+    })
+
+
+@login_required
+def erros_agentes(request):
+    if not usuario_pode_acessar_inventario_ti(request.user):
+        return render(request, "core/sem_permissao.html", status=403)
+
+    busca = request.GET.get("busca", "").strip()
+    categoria = request.GET.get("categoria", "").strip()
+    agent_version = request.GET.get("agent_version", "").strip()
+    vinculo = request.GET.get("vinculo", "").strip()
+    data_inicio = request.GET.get("data_inicio", "").strip()
+    data_fim = request.GET.get("data_fim", "").strip()
+
+    erros = ErroAgenteInventario.objects.select_related("computador").all()
+
+    if busca:
+        erros = erros.filter(
+            Q(hostname__icontains=busca) |
+            Q(agent_version__icontains=busca) |
+            Q(categoria__icontains=busca) |
+            Q(mensagem__icontains=busca) |
+            Q(detalhe__icontains=busca)
+        )
+
+    if categoria:
+        erros = erros.filter(categoria=categoria)
+
+    if agent_version:
+        erros = erros.filter(agent_version=agent_version)
+
+    if vinculo == "vinculado":
+        erros = erros.filter(computador__isnull=False)
+    elif vinculo == "sem_vinculo":
+        erros = erros.filter(computador__isnull=True)
+
+    if data_inicio:
+        erros = erros.filter(criado_em__date__gte=data_inicio)
+
+    if data_fim:
+        erros = erros.filter(criado_em__date__lte=data_fim)
+
+    agora = timezone.now()
+    ultimas_24h = agora - timezone.timedelta(hours=24)
+    ultimos_7_dias = agora - timezone.timedelta(days=7)
+
+    erros_base = ErroAgenteInventario.objects.all()
+    totais = {
+        "total": erros_base.count(),
+        "ultimas_24h": erros_base.filter(criado_em__gte=ultimas_24h).count(),
+        "ultimos_7_dias": erros_base.filter(criado_em__gte=ultimos_7_dias).count(),
+        "hosts_afetados": erros_base.values("hostname").distinct().count(),
+        "sem_vinculo": erros_base.filter(computador__isnull=True).count(),
+        "filtrado": erros.count(),
+    }
+
+    categorias = ErroAgenteInventario.objects.exclude(
+        categoria=""
+    ).order_by(
+        "categoria"
+    ).values_list(
+        "categoria",
+        flat=True
+    ).distinct()
+
+    versoes = ErroAgenteInventario.objects.exclude(
+        agent_version__in=["", "-"]
+    ).order_by(
+        "agent_version"
+    ).values_list(
+        "agent_version",
+        flat=True
+    ).distinct()
+
+    categorias_resumo = erros_base.values(
+        "categoria"
+    ).annotate(
+        total=Count("id")
+    ).order_by(
+        "-total",
+        "categoria"
+    )[:8]
+
+    filtros = {
+        "busca": busca,
+        "categoria": categoria,
+        "agent_version": agent_version,
+        "vinculo": vinculo,
+        "data_inicio": data_inicio,
+        "data_fim": data_fim,
+    }
+
+    query_string = urlencode({
+        chave: valor for chave, valor in filtros.items() if valor
+    })
+
+    paginator = Paginator(erros, 20)
+    pagina = request.GET.get("page")
+    erros_pagina = paginator.get_page(pagina)
+
+    return render(request, "inventario_ti/erros_agentes.html", {
+        "erros": erros_pagina,
+        "filtros": filtros,
+        "query_string": query_string,
+        "categorias": categorias,
+        "versoes": versoes,
+        "categorias_resumo": categorias_resumo,
+        "totais": totais,
     })
 
 
