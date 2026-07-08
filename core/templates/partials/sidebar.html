@@ -1,7 +1,9 @@
-{% load static core_tags %}
-{% pode_acessar_modulo_link request.user "/portal/modulos/solicitacoes-ti/" as pode_solicitacoes_ti_sidebar %}
-{% usuario_pode_ver_inventario_ti request.user as pode_inventario_ti_sidebar %}
-{% usuario_eh_admin_ti_tag request.user as pode_admin_sidebar %}
+{% load static %}
+{% load core_tags %}
+
+{% usuario_pode_ver_inventario_ti request.user as pode_ver_inventario %}
+{% usuario_pode_acessar_solicitacoes_ti_tag request.user as pode_ver_solicitacoes_ti %}
+{% usuario_pode_acessar_administracao_tag request.user as pode_ver_admin %}
 
 <aside class="gsf-sidebar">
 
@@ -18,7 +20,7 @@
 
     <div>
       <strong>GSF Hub</strong>
-      <span>Plataforma Corporativa</span>
+      <span>Operação Hospitalar</span>
     </div>
   </div>
 
@@ -36,14 +38,14 @@
       <strong>Solicitações Internas</strong>
     </a>
 
-    {% if pode_solicitacoes_ti_sidebar %}
+    {% if pode_ver_solicitacoes_ti %}
       <a href="/portal/modulos/solicitacoes-ti/" class="gsf-sidebar-link">
         <span>🎫</span>
         <strong>Solicitações TI</strong>
       </a>
     {% endif %}
 
-    {% if pode_inventario_ti_sidebar %}
+    {% if pode_ver_inventario %}
       <a href="/portal/modulos/inventario-ti/" class="gsf-sidebar-link">
         <span>💻</span>
         <strong>Inventário TI</strong>
@@ -86,8 +88,13 @@
 
     <div class="gsf-sidebar-section">Hospital</div>
 
-    <a href="/portal/modulos/convenios/" class="gsf-sidebar-link">
+    <a href="/portal/modulos/mv/" class="gsf-sidebar-link">
       <span>🏥</span>
+      <strong>MV</strong>
+    </a>
+
+    <a href="/portal/modulos/convenios/" class="gsf-sidebar-link">
+      <span>🤝</span>
       <strong>Convênios</strong>
     </a>
 
@@ -101,12 +108,17 @@
       <strong>Links Úteis</strong>
     </a>
 
-    {% if pode_admin_sidebar %}
+    {% if pode_ver_admin %}
       <div class="gsf-sidebar-section">Administração</div>
 
       <a href="/portal/administracao/" class="gsf-sidebar-link">
         <span>⚙️</span>
         <strong>Administração</strong>
+      </a>
+
+      <a href="/admin/" class="gsf-sidebar-link">
+        <span>🛡️</span>
+        <strong>Django Admin</strong>
       </a>
     {% endif %}
 
@@ -114,7 +126,6 @@
 
   <div class="gsf-sidebar-user">
     <strong>{{ request.user.get_full_name|default:request.user.username }}</strong>
-
     <span>
       {% if request.user.setor %}
         {{ request.user.setor.nome }}
