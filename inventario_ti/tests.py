@@ -5,7 +5,13 @@ from django.contrib.auth.models import Group
 from django.test import RequestFactory, TestCase
 
 from .models import ComputadorInventario, ErroAgenteInventario
-from .views import agent_error, erros_agentes, heartbeat
+from .views import (
+    agent_error,
+    erros_agentes,
+    exportar_erros_agentes_csv,
+    exportar_inventario_csv,
+    heartbeat,
+)
 
 
 class HeartbeatHistoricoTests(TestCase):
@@ -164,3 +170,58 @@ class PainelErrosAgentesTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertIn("PC-TESTE", html)
         self.assertNotIn("PC-TESTE-2", html)
+
+
+class ExportacaoCsvTests(TestCase):
+    def setUp(self):
+        self.factory = RequestFactory()
+        grupo = Group.objects.create(name="TI Suporte")
+        self.user = get_user_model().objects.create_user(
+            username="exportador",
+            password="teste",
+        )
+        self.user.groups.add(grupo)
+
+    def test_exportar_inventario_csv_respeita_filtro_busca(self):
+        ComputadorInventario.objects.create(hostname="PC-CSV-1", usuario="usuario1")
+        ComputadorInventario.objects.create(hostname="PC-CSV-2", usuario="usuario2")
+
+        request = self.factory.get(
+            "/portal/modulos/inventario-ti/exportar-csv/",
+            {"busca": "PC-CSV-1"},
+        )
+        request.user = self.user
+
+        response = exportar_inventario_csv(request)
+        conteudo = response.content.decode("utf-8-sig")
+
+        self.assertEqual(response.status_code, 200)
+        self.assertIn("PC-CSV-1", conteudo)
+        self.assertNotIn("PC-CSV-2", conteudo)
+
+    def test_exportar_erros_agentes_csv_respeita_filtro_categoria(self):
+        ErroAgenteInventario.objects.create(
+            hostname="PC-ERRO-1",
+            agent_version="2.1.0",
+            categoria="coleta",
+            mensagem="Falha ao coletar dados.",
+        )
+        ErroAgenteInventario.objects.create(
+            hostname="PC-ERRO-2",
+            agent_version="2.1.0",
+            categoria="rede",
+            mensagem="Falha de rede.",
+        )
+
+        request = self.factory.get(
+            "/portal/modulos/inventario-ti/erros-agentes/exportar-csv/",
+            {"categoria": "coleta"},
+        )
+        request.user = self.user
+
+        response = exportar_erros_agentes_csv(request)
+        conteudo = response.content.decode("utf-8-sig")
+
+        self.assertEqual(response.status_code, 200)
+        self.assertIn("PC-ERRO-1", conteudo)
+        self.assertNotIn("PC-ERRO-2", conteudo)

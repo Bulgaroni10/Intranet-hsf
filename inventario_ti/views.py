@@ -1,10 +1,11 @@
 from django.contrib.auth.decorators import login_required
 from django.core.paginator import Paginator
 from django.db.models import Count, Q
-from django.http import JsonResponse
+from django.http import HttpResponse, JsonResponse
 from django.shortcuts import get_object_or_404, render
 from django.utils import timezone
 from django.views.decorators.csrf import csrf_exempt
+import csv
 import json
 import re
 from urllib.parse import urlencode
@@ -137,6 +138,110 @@ def montar_resumo_inventario(computadores):
     }
 
 
+def formatar_data_hora_csv(data_hora):
+    if not data_hora:
+        return ""
+
+    try:
+        return timezone.localtime(data_hora).strftime("%d/%m/%Y %H:%M:%S")
+    except Exception:
+        return data_hora.strftime("%d/%m/%Y %H:%M:%S")
+
+
+def montar_response_csv(nome_arquivo):
+    response = HttpResponse(content_type="text/csv; charset=utf-8-sig")
+    response["Content-Disposition"] = f'attachment; filename="{nome_arquivo}"'
+    response.write("\ufeff")
+    return response
+
+
+def obter_filtros_inventario(request):
+    return {
+        "busca": request.GET.get("busca", "").strip(),
+        "status": request.GET.get("status", "").strip(),
+        "patrimonio": request.GET.get("patrimonio", "").strip(),
+        "saude": request.GET.get("saude", "").strip(),
+        "fabricante": request.GET.get("fabricante", "").strip(),
+        "sistema": request.GET.get("sistema", "").strip(),
+        "ordenacao": request.GET.get("ordenacao", "hostname").strip() or "hostname",
+    }
+
+
+def filtrar_computadores_inventario(filtros):
+    computadores = ComputadorInventario.objects.all()
+
+    if filtros["busca"]:
+        computadores = computadores.filter(
+            Q(hostname__icontains=filtros["busca"]) |
+            Q(usuario__icontains=filtros["busca"]) |
+            Q(ip_local__icontains=filtros["busca"]) |
+            Q(mac__icontains=filtros["busca"]) |
+            Q(serial__icontains=filtros["busca"]) |
+            Q(modelo__icontains=filtros["busca"]) |
+            Q(patrimonio__icontains=filtros["busca"])
+        )
+
+    if filtros["fabricante"]:
+        computadores = computadores.filter(fabricante=filtros["fabricante"])
+
+    if filtros["sistema"]:
+        computadores = computadores.filter(sistema=filtros["sistema"])
+
+    lista_base = list(computadores)
+    lista = aplicar_filtros_memoria(
+        lista_base,
+        filtros["status"],
+        filtros["patrimonio"],
+        filtros["saude"],
+    )
+    lista = ordenar_computadores(lista, filtros["ordenacao"])
+
+    return lista_base, lista
+
+
+def obter_filtros_erros_agentes(request):
+    return {
+        "busca": request.GET.get("busca", "").strip(),
+        "categoria": request.GET.get("categoria", "").strip(),
+        "agent_version": request.GET.get("agent_version", "").strip(),
+        "vinculo": request.GET.get("vinculo", "").strip(),
+        "data_inicio": request.GET.get("data_inicio", "").strip(),
+        "data_fim": request.GET.get("data_fim", "").strip(),
+    }
+
+
+def filtrar_erros_agentes(filtros):
+    erros = ErroAgenteInventario.objects.select_related("computador").all()
+
+    if filtros["busca"]:
+        erros = erros.filter(
+            Q(hostname__icontains=filtros["busca"]) |
+            Q(agent_version__icontains=filtros["busca"]) |
+            Q(categoria__icontains=filtros["busca"]) |
+            Q(mensagem__icontains=filtros["busca"]) |
+            Q(detalhe__icontains=filtros["busca"])
+        )
+
+    if filtros["categoria"]:
+        erros = erros.filter(categoria=filtros["categoria"])
+
+    if filtros["agent_version"]:
+        erros = erros.filter(agent_version=filtros["agent_version"])
+
+    if filtros["vinculo"] == "vinculado":
+        erros = erros.filter(computador__isnull=False)
+    elif filtros["vinculo"] == "sem_vinculo":
+        erros = erros.filter(computador__isnull=True)
+
+    if filtros["data_inicio"]:
+        erros = erros.filter(criado_em__date__gte=filtros["data_inicio"])
+
+    if filtros["data_fim"]:
+        erros = erros.filter(criado_em__date__lte=filtros["data_fim"])
+
+    return erros
+
+
 def montar_defaults_heartbeat(dados, ip_origem):
     return {
         "usuario": dados.get("usuario") or "-",
@@ -261,32 +366,7 @@ def dashboard(request):
     if not usuario_pode_acessar_inventario_ti(request.user):
         return render(request, "core/sem_permissao.html", status=403)
 
-    busca = request.GET.get("busca", "").strip()
-    status = request.GET.get("status", "").strip()
-    patrimonio = request.GET.get("patrimonio", "").strip()
-    saude = request.GET.get("saude", "").strip()
-    fabricante = request.GET.get("fabricante", "").strip()
-    sistema = request.GET.get("sistema", "").strip()
-    ordenacao = request.GET.get("ordenacao", "hostname").strip() or "hostname"
-
-    computadores = ComputadorInventario.objects.all()
-
-    if busca:
-        computadores = computadores.filter(
-            Q(hostname__icontains=busca) |
-            Q(usuario__icontains=busca) |
-            Q(ip_local__icontains=busca) |
-            Q(mac__icontains=busca) |
-            Q(serial__icontains=busca) |
-            Q(modelo__icontains=busca) |
-            Q(patrimonio__icontains=busca)
-        )
-
-    if fabricante:
-        computadores = computadores.filter(fabricante=fabricante)
-
-    if sistema:
-        computadores = computadores.filter(sistema=sistema)
+    filtros = obter_filtros_inventario(request)
 
     fabricantes = ComputadorInventario.objects.exclude(
         fabricante__in=["", "-"]
@@ -306,20 +386,8 @@ def dashboard(request):
         flat=True
     ).distinct()
 
-    lista_base = list(computadores)
+    lista_base, lista = filtrar_computadores_inventario(filtros)
     totais = montar_resumo_inventario(lista_base)
-    lista = aplicar_filtros_memoria(lista_base, status, patrimonio, saude)
-    lista = ordenar_computadores(lista, ordenacao)
-
-    filtros = {
-        "busca": busca,
-        "status": status,
-        "patrimonio": patrimonio,
-        "saude": saude,
-        "fabricante": fabricante,
-        "sistema": sistema,
-        "ordenacao": ordenacao,
-    }
 
     query_string = urlencode({
         chave: valor for chave, valor in filtros.items() if valor
@@ -345,40 +413,8 @@ def erros_agentes(request):
     if not usuario_pode_acessar_inventario_ti(request.user):
         return render(request, "core/sem_permissao.html", status=403)
 
-    busca = request.GET.get("busca", "").strip()
-    categoria = request.GET.get("categoria", "").strip()
-    agent_version = request.GET.get("agent_version", "").strip()
-    vinculo = request.GET.get("vinculo", "").strip()
-    data_inicio = request.GET.get("data_inicio", "").strip()
-    data_fim = request.GET.get("data_fim", "").strip()
-
-    erros = ErroAgenteInventario.objects.select_related("computador").all()
-
-    if busca:
-        erros = erros.filter(
-            Q(hostname__icontains=busca) |
-            Q(agent_version__icontains=busca) |
-            Q(categoria__icontains=busca) |
-            Q(mensagem__icontains=busca) |
-            Q(detalhe__icontains=busca)
-        )
-
-    if categoria:
-        erros = erros.filter(categoria=categoria)
-
-    if agent_version:
-        erros = erros.filter(agent_version=agent_version)
-
-    if vinculo == "vinculado":
-        erros = erros.filter(computador__isnull=False)
-    elif vinculo == "sem_vinculo":
-        erros = erros.filter(computador__isnull=True)
-
-    if data_inicio:
-        erros = erros.filter(criado_em__date__gte=data_inicio)
-
-    if data_fim:
-        erros = erros.filter(criado_em__date__lte=data_fim)
+    filtros = obter_filtros_erros_agentes(request)
+    erros = filtrar_erros_agentes(filtros)
 
     agora = timezone.now()
     ultimas_24h = agora - timezone.timedelta(hours=24)
@@ -421,15 +457,6 @@ def erros_agentes(request):
         "categoria"
     )[:8]
 
-    filtros = {
-        "busca": busca,
-        "categoria": categoria,
-        "agent_version": agent_version,
-        "vinculo": vinculo,
-        "data_inicio": data_inicio,
-        "data_fim": data_fim,
-    }
-
     query_string = urlencode({
         chave: valor for chave, valor in filtros.items() if valor
     })
@@ -447,6 +474,102 @@ def erros_agentes(request):
         "categorias_resumo": categorias_resumo,
         "totais": totais,
     })
+
+
+@login_required
+def exportar_inventario_csv(request):
+    if not usuario_pode_acessar_inventario_ti(request.user):
+        return render(request, "core/sem_permissao.html", status=403)
+
+    filtros = obter_filtros_inventario(request)
+    _, computadores = filtrar_computadores_inventario(filtros)
+    response = montar_response_csv("inventario_ti.csv")
+    writer = csv.writer(response, delimiter=";")
+
+    writer.writerow([
+        "Status",
+        "Hostname",
+        "Usuario",
+        "IP origem",
+        "IP local",
+        "MAC",
+        "Sistema",
+        "CPU",
+        "RAM",
+        "Disco total",
+        "Disco livre",
+        "Uso disco",
+        "Fabricante",
+        "Modelo",
+        "Serial",
+        "Patrimonio",
+        "Versao agente",
+        "Ultimo contato",
+        "Criado em",
+        "Atualizado em",
+    ])
+
+    for computador in computadores:
+        writer.writerow([
+            computador.status_texto,
+            computador.hostname,
+            computador.usuario,
+            computador.ip_origem or "",
+            computador.ip_local or "",
+            computador.mac,
+            computador.sistema,
+            computador.cpu,
+            computador.ram,
+            computador.disco_total,
+            computador.disco_livre,
+            computador.disco_percentual,
+            computador.fabricante,
+            computador.modelo,
+            computador.serial,
+            computador.patrimonio,
+            computador.agent_version,
+            formatar_data_hora_csv(computador.ultimo_contato),
+            formatar_data_hora_csv(computador.criado_em),
+            formatar_data_hora_csv(computador.atualizado_em),
+        ])
+
+    return response
+
+
+@login_required
+def exportar_erros_agentes_csv(request):
+    if not usuario_pode_acessar_inventario_ti(request.user):
+        return render(request, "core/sem_permissao.html", status=403)
+
+    filtros = obter_filtros_erros_agentes(request)
+    erros = filtrar_erros_agentes(filtros)
+    response = montar_response_csv("erros_agentes.csv")
+    writer = csv.writer(response, delimiter=";")
+
+    writer.writerow([
+        "Data",
+        "Hostname",
+        "Computador vinculado",
+        "Versao agente",
+        "Categoria",
+        "Mensagem",
+        "Detalhe",
+        "IP origem",
+    ])
+
+    for erro in erros:
+        writer.writerow([
+            formatar_data_hora_csv(erro.criado_em),
+            erro.hostname,
+            erro.computador.hostname if erro.computador else "",
+            erro.agent_version,
+            erro.categoria,
+            erro.mensagem,
+            erro.detalhe,
+            erro.ip_origem or "",
+        ])
+
+    return response
 
 
 @login_required

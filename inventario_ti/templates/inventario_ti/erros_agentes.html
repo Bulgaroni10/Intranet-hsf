@@ -70,6 +70,7 @@
 
     <div class="top-actions" style="margin-top: 14px;">
       <a href="{% url 'inventario_ti_erros_agentes' %}" class="btn-link">Limpar filtros</a>
+      <a href="{% url 'inventario_ti_erros_agentes_exportar_csv' %}{% if query_string %}?{{ query_string }}{% endif %}" class="btn-success">Exportar CSV</a>
       <span class="btn-muted">{{ totais.filtrado }} erro(s) encontrado(s)</span>
     </div>
   </div>
