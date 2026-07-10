@@ -27,3 +27,9 @@
 - Pesquisa integrada em módulos, documentos, conhecimento, ramais, avisos e solicitações TI.
 - Resultados respeitam grupos, usuário, setor e unidade no backend.
 - Adicionados testes contra vazamento de ramais e chamados entre usuários/unidades.
+# 2026-07-10 — Segurança de produção
+
+- `DEBUG`, `SECRET_KEY` e `ALLOWED_HOSTS` passaram a ser configuráveis pelo ambiente do NSSM.
+- Removida a chave fixa do código atual e documentada a rotação obrigatória no servidor.
+- Configurado `STATIC_ROOT` para o fluxo real de `collectstatic`.
+- Atualizado o procedimento de deploy com backup, migrations e check de produção.

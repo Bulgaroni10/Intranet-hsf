@@ -10,6 +10,7 @@ venv/
 venv_intranet/
 .env
 .env.*
+!.env.example
 *.env
 
 # Django
