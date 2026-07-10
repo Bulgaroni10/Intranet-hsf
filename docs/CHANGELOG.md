@@ -33,3 +33,8 @@
 - Removida a chave fixa do código atual e documentada a rotação obrigatória no servidor.
 - Configurado `STATIC_ROOT` para o fluxo real de `collectstatic`.
 - Atualizado o procedimento de deploy com backup, migrations e check de produção.
+# 2026-07-10 — Arquivos estáticos em produção
+
+- Adicionado WhiteNoise para servir CSS e JavaScript com `DEBUG=False`.
+- Criado `requirements.txt` na raiz e atualizado o deploy para instalar dependências.
+- Corrigido o login inoperante causado por 404 em `/static/core/js/home.js`.

@@ -2,7 +2,7 @@ import json
 
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Group
-from django.test import RequestFactory, TestCase
+from django.test import RequestFactory, TestCase, override_settings
 from django.urls import reverse
 
 from modulos.models import Modulo
@@ -199,3 +199,10 @@ class BuscaGlobalPermissoesTests(TestCase):
     def test_dono_encontra_seu_chamado(self):
         resultados = self._buscar(self.usuario_b, 'segredo operacional')
         self.assertEqual([item['tipo'] for item in resultados], ['Solicitação TI'])
+
+
+class ArquivosEstaticosProducaoTests(TestCase):
+    @override_settings(DEBUG=False)
+    def test_javascript_do_login_e_servido_com_debug_desligado(self):
+        resposta = self.client.get('/static/core/js/home.js')
+        self.assertEqual(resposta.status_code, 200)

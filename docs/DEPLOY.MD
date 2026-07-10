@@ -22,6 +22,7 @@ Nunca registre a chave em arquivo versionado, chamado ou captura de tela.
 cd C:\Projetos\intranet_gsf
 Copy-Item .\db.sqlite3 .\db_backup_antes_deploy.sqlite3
 git pull origin main
+C:\Projetos\venv_intranet\Scripts\python.exe -m pip install -r requirements.txt
 C:\Projetos\venv_intranet\Scripts\python.exe manage.py migrate
 C:\Projetos\venv_intranet\Scripts\python.exe manage.py collectstatic --noinput
 C:\Projetos\venv_intranet\Scripts\python.exe manage.py check --deploy
