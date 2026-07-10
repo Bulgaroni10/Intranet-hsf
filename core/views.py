@@ -14,3 +14,4 @@ from .view_modules.links import *  # noqa: F401,F403
 from .view_modules.notifications import *  # noqa: F401,F403
 from .view_modules.favorites import *  # noqa: F401,F403
 from .view_modules.search import *  # noqa: F401,F403
+from .view_modules.noc import *  # noqa: F401,F403

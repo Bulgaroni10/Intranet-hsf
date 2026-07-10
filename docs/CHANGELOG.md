@@ -38,3 +38,10 @@
 - Adicionado WhiteNoise para servir CSS e JavaScript com `DEBUG=False`.
 - Criado `requirements.txt` na raiz e atualizado o deploy para instalar dependências.
 - Corrigido o login inoperante causado por 404 em `/static/core/js/home.js`.
+# 2026-07-10 — NOC 1.0
+
+- Criada tela NOC restrita à TI, otimizada para monitor/TV e atualização a cada 30 segundos.
+- Computadores usam heartbeat real de 90 segundos e respeitam a unidade do usuário TI.
+- Sistemas exibem ocorrências ativas e distinguem “sem incidente registrado” de monitoramento confirmado.
+- Reservados painéis de impressoras, AD e capacidade sem inventar telemetria inexistente.
+- Adicionados testes de acesso, unidade e indicadores online.

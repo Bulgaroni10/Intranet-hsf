@@ -18,6 +18,7 @@ urlpatterns = [
     path('', views.home, name='home'),
     path('portal/', views.portal, name='portal'),
     path('portal/busca/', views.busca_global, name='busca_global'),
+    path('portal/noc/', views.painel_noc, name='painel_noc'),
 
     # Notificações individuais
     path('api/notificacoes/', views.api_listar_notificacoes, name='api_listar_notificacoes'),

@@ -13,6 +13,9 @@ from solicitacoes_ti.models import SolicitacaoTI
 from usuarios.models import Unidade
 from ramais_contatos.models import RamalContato
 from core.services.search import buscar_global
+from core.services.noc import montar_contexto_noc
+from inventario_ti.models import ComputadorInventario
+from django.utils import timezone
 
 
 class ConveniosRoutingTests(TestCase):
@@ -206,3 +209,31 @@ class ArquivosEstaticosProducaoTests(TestCase):
     def test_javascript_do_login_e_servido_com_debug_desligado(self):
         resposta = self.client.get('/static/core/js/home.js')
         self.assertEqual(resposta.status_code, 200)
+
+
+class PainelNOCTests(TestCase):
+    def setUp(self):
+        User = get_user_model()
+        self.unidade_a = Unidade.objects.create(nome='NOC A', sigla='NA')
+        self.unidade_b = Unidade.objects.create(nome='NOC B', sigla='NB')
+        self.ti = User.objects.create_user('noc.ti', unidade=self.unidade_a)
+        self.ti.groups.add(Group.objects.create(name='TI Suporte'))
+        self.comum = User.objects.create_user('noc.comum', unidade=self.unidade_a)
+        ComputadorInventario.objects.create(hostname='PC-A', unidade=self.unidade_a, ultimo_contato=timezone.now())
+        ComputadorInventario.objects.create(hostname='PC-B', unidade=self.unidade_b, ultimo_contato=timezone.now())
+
+    def test_ti_ve_apenas_computadores_da_sua_unidade(self):
+        contexto = montar_contexto_noc(self.ti)
+        self.assertEqual([pc.hostname for pc in contexto['computadores']], ['PC-A'])
+        self.assertEqual(contexto['total_online'], 1)
+
+    def test_usuario_comum_recebe_403(self):
+        self.client.force_login(self.comum)
+        self.assertEqual(self.client.get(reverse('painel_noc')).status_code, 403)
+
+    def test_ti_acessa_noc(self):
+        self.client.force_login(self.ti)
+        resposta = self.client.get(reverse('painel_noc'))
+        self.assertEqual(resposta.status_code, 200)
+        self.assertContains(resposta, 'PC-A')
+        self.assertNotContains(resposta, 'PC-B')
