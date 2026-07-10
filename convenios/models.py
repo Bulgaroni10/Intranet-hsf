@@ -222,6 +222,26 @@ class ProcedimentoProibidoPlano(models.Model):
         return f'{self.convenio.nome} - {self.plano.nome} - {self.codigo_procedimento} - {self.descricao_procedimento}'
 
 
+class ProcedimentoTUSS(models.Model):
+    codigo_tuss = models.CharField(max_length=20, unique=True, db_index=True)
+    descricao = models.CharField(max_length=300, db_index=True)
+    grupo = models.CharField(max_length=160, blank=True, db_index=True)
+    subgrupo = models.CharField(max_length=160, blank=True)
+    codigo_mv = models.CharField(max_length=40, blank=True, db_index=True)
+    observacao = models.TextField(blank=True)
+    ativo = models.BooleanField(default=True, db_index=True)
+    criado_em = models.DateTimeField(auto_now_add=True)
+    atualizado_em = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = 'Procedimento TUSS'
+        verbose_name_plural = 'Procedimentos TUSS'
+        ordering = ['descricao', 'codigo_tuss']
+
+    def __str__(self):
+        return f'{self.codigo_tuss} - {self.descricao}'
+
+
 class ImportacaoMV(models.Model):
     TIPO_CHOICES = [
         ('convenios_planos', 'Convênios e planos'),

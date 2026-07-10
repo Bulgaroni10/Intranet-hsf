@@ -1,0 +1,23 @@
+{% extends "base/base.html" %}
+{% block title %}Código TUSS | GSF Hub{% endblock %}
+{% block content %}
+<div class="page">
+  {% include "components/ui/hero.html" with eyebrow="Plataforma Assistencial" icone="🏥" titulo="Catálogo TUSS" subtitulo="Consulte códigos e correspondências validadas para os procedimentos." %}
+  <section class="gsf-workspace-card">
+    <form method="get" class="gsf-filter-grid">
+      <label>Busca<input name="busca" value="{{ busca }}" placeholder="Código TUSS, descrição ou código MV"></label>
+      <label>Grupo<select name="grupo"><option value="">Todos</option>{% for item in grupos %}<option value="{{ item }}" {% if grupo == item %}selected{% endif %}>{{ item }}</option>{% endfor %}</select></label>
+      <button class="gsf-btn gsf-btn-primary" type="submit">Pesquisar</button>
+      <a class="gsf-btn gsf-btn-secondary" href="{% url 'catalogo_tuss' %}">Limpar</a>
+    </form>
+  </section>
+  <section class="gsf-workspace-card">
+    <div class="gsf-workspace-card-header"><div><h2>Procedimentos</h2><p>{{ total_procedimentos }} procedimentos ativos no catálogo.</p></div></div>
+    <div class="gsf-table-wrap"><table class="gsf-table"><thead><tr><th>TUSS</th><th>Descrição</th><th>Grupo</th><th>Código MV</th></tr></thead><tbody>
+      {% for item in pagina %}<tr><td><strong>{{ item.codigo_tuss }}</strong></td><td>{{ item.descricao }}</td><td>{{ item.grupo|default:"—" }}</td><td>{{ item.codigo_mv|default:"—" }}</td></tr>
+      {% empty %}<tr><td colspan="4">{% include "components/empty_state.html" with titulo="Nenhum procedimento encontrado" descricao="Revise a busca ou os filtros informados." %}</td></tr>{% endfor %}
+    </tbody></table></div>
+    {% if pagina.has_other_pages %}<nav class="gsf-pagination">{% if pagina.has_previous %}<a href="?busca={{ busca|urlencode }}&grupo={{ grupo|urlencode }}&pagina={{ pagina.previous_page_number }}">Anterior</a>{% endif %}<span>Página {{ pagina.number }} de {{ pagina.paginator.num_pages }}</span>{% if pagina.has_next %}<a href="?busca={{ busca|urlencode }}&grupo={{ grupo|urlencode }}&pagina={{ pagina.next_page_number }}">Próxima</a>{% endif %}</nav>{% endif %}
+  </section>
+</div>
+{% endblock %}

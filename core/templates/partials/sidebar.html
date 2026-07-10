@@ -5,6 +5,7 @@
 {% usuario_pode_acessar_solicitacoes_ti_tag request.user as pode_ver_solicitacoes_ti %}
 {% usuario_pode_acessar_administracao_tag request.user as pode_ver_admin %}
 {% pode_acessar_modulo_nome request.user "MV / Sistema Hospitalar" as pode_ver_mv %}
+{% pode_acessar_modulo_nome request.user "Código TUSS" as pode_ver_tuss %}
 
 <aside class="gsf-sidebar">
 
@@ -108,6 +109,10 @@
           <strong>{{ favorito.modulo.nome }}</strong>
         </a>
       {% endfor %}
+    {% endif %}
+
+    {% if pode_ver_tuss %}
+      <a href="{% url 'catalogo_tuss' %}" class="gsf-sidebar-link"><span>🔎</span><strong>Código TUSS</strong></a>
     {% endif %}
     {% endif %}
 

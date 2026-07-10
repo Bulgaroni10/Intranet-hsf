@@ -10,6 +10,7 @@ from conversas import views as conversas_views
 from usuarios import views as usuarios_views
 from convenios import views as convenios_views
 from convenios import conteudos_mv_views
+from convenios import tuss_views
 from base_conhecimento import views as base_conhecimento_views
 
 
@@ -74,6 +75,7 @@ urlpatterns = [
     path('portal/modulos/mv/', views.modulo_mv, name='modulo_mv'),
     path('portal/modulos/mv/manuais/', views.mv_manuais, name='mv_manuais'),
     path('portal/modulos/mv/convenios/', views.mv_convenios, name='mv_convenios'),
+    path('portal/modulos/tuss/', tuss_views.catalogo_tuss, name='catalogo_tuss'),
     path('portal/modulos/convenios/', views.redirect_convenios_legacy, name='convenios_legacy'),
     path('portal/convenios/', views.redirect_convenios_legacy, name='convenios_legacy_curta'),
 

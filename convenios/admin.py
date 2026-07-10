@@ -6,9 +6,18 @@ from .models import (
     Especialidade,
     RegraAtendimentoConvenio,
     ProcedimentoProibidoPlano,
+    ProcedimentoTUSS,
     ImportacaoMV,
     ItemImportacaoMV,
 )
+
+
+@admin.register(ProcedimentoTUSS)
+class ProcedimentoTUSSAdmin(admin.ModelAdmin):
+    list_display = ('codigo_tuss', 'descricao', 'grupo', 'codigo_mv', 'ativo', 'atualizado_em')
+    list_filter = ('ativo', 'grupo')
+    search_fields = ('codigo_tuss', 'descricao', 'codigo_mv', 'grupo', 'subgrupo')
+    ordering = ('descricao', 'codigo_tuss')
 
 
 class PlanoConvenioInline(admin.TabularInline):

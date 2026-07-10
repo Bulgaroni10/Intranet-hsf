@@ -15,3 +15,9 @@
 - `core.0001_initial`: notificações individuais.
 - `core.0002_favoritomodulo`: favoritos por usuário e módulo.
 - `conversas.0003_anexomensagem_statususuariochat`: anexos e disponibilidade no chat.
+# 2026-07-10 — Fundação do catálogo TUSS
+
+- Criado catálogo TUSS separado das regras de procedimentos proibidos por plano.
+- Adicionadas pesquisa por código/descrição/código MV, filtro por grupo e paginação.
+- Criadas permissões por módulo e acesso pela Sidebar.
+- Adicionada importação CSV idempotente com modo `--simular`.
