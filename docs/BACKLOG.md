@@ -1,5 +1,9 @@
 # Backlog — Intranet GSF
 
+## NOC Operacional
+
+Visão inicial registrada em `docs/NOC_VISAO_INICIAL.md`. Implementação deve começar somente após a conclusão e homologação das entregas atuais.
+
 ## Código TUSS Inteligente
 
 ### Objetivo
