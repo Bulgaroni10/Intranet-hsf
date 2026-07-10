@@ -1,11 +1,16 @@
+import json
+
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Group
 from django.test import TestCase
 from django.urls import reverse
 
 from modulos.models import Modulo
-from core.models import NotificacaoUsuario
+from core.models import FavoritoModulo, NotificacaoUsuario
+from core.services.dashboard import buscar_resumo_chamados_ti
 from core.services.notifications import criar_notificacao_usuario
+from solicitacoes_ti.models import SolicitacaoTI
+from usuarios.models import Unidade
 
 
 class ConveniosRoutingTests(TestCase):
@@ -99,3 +104,66 @@ class NotificacoesUsuarioTests(TestCase):
             reverse('api_marcar_notificacao_lida', args=[self.notificacao_a.id])
         )
         self.assertEqual(resposta.json()['nao_lidas'], 0)
+
+
+class DashboardChamadosPermissoesTests(TestCase):
+    def setUp(self):
+        User = get_user_model()
+        self.unidade_a = Unidade.objects.create(nome='Unidade A', sigla='UA')
+        self.unidade_b = Unidade.objects.create(nome='Unidade B', sigla='UB')
+        self.comum_a = User.objects.create_user('comum.a', unidade=self.unidade_a)
+        self.outro_a = User.objects.create_user('outro.a', unidade=self.unidade_a)
+        self.outro_b = User.objects.create_user('outro.b', unidade=self.unidade_b)
+        self.ti_a = User.objects.create_user('tecnico.a', unidade=self.unidade_a)
+        grupo_ti = Group.objects.create(name='TI')
+        self.ti_a.groups.add(grupo_ti)
+        for usuario, titulo in (
+            (self.comum_a, 'Próprio'), (self.outro_a, 'Mesma unidade'),
+            (self.outro_b, 'Outra unidade'),
+        ):
+            SolicitacaoTI.objects.create(
+                titulo=titulo, descricao='Teste', solicitante=usuario,
+                unidade=usuario.unidade,
+            )
+
+    def test_usuario_comum_ve_somente_os_proprios_chamados(self):
+        resumo = buscar_resumo_chamados_ti(self.comum_a)
+        self.assertEqual(resumo['total_chamados_ti'], 1)
+        self.assertEqual(resumo['ultimos_chamados_ti'][0].titulo, 'Próprio')
+
+    def test_ti_ve_todos_da_unidade_e_nenhum_de_outra(self):
+        resumo = buscar_resumo_chamados_ti(self.ti_a)
+        titulos = set(resumo['ultimos_chamados_ti'].values_list('titulo', flat=True))
+        self.assertEqual(titulos, {'Próprio', 'Mesma unidade'})
+        self.assertEqual(resumo['total_chamados_ti'], 2)
+
+
+class LoginUnidadeEFavoritosTests(TestCase):
+    def setUp(self):
+        self.unidade = Unidade.objects.create(nome='Hospital Teste', sigla='HT')
+        self.user = get_user_model().objects.create_user(
+            'login.teste', password='senha-segura', unidade=self.unidade,
+        )
+        self.modulo = Modulo.objects.create(
+            nome='Módulo Teste', categoria='administrativo', link='/teste/',
+        )
+
+    def test_login_sem_seletor_define_unidade_na_sessao(self):
+        resposta = self.client.post(
+            reverse('login_intranet'),
+            data=json.dumps({'username': 'login.teste', 'password': 'senha-segura'}),
+            content_type='application/json',
+        )
+        self.assertEqual(resposta.status_code, 200)
+        self.assertEqual(self.client.session['unidade_id'], self.unidade.id)
+
+    def test_favorito_alterna_e_e_individual(self):
+        self.client.force_login(self.user)
+        url = reverse('alternar_favorito_modulo', args=[self.modulo.id])
+        resposta = self.client.post(url, HTTP_X_REQUESTED_WITH='XMLHttpRequest')
+        self.assertTrue(resposta.json()['favorito'])
+        self.assertTrue(FavoritoModulo.objects.filter(usuario=self.user, modulo=self.modulo).exists())
+
+        resposta = self.client.post(url, HTTP_X_REQUESTED_WITH='XMLHttpRequest')
+        self.assertFalse(resposta.json()['favorito'])
+        self.assertFalse(FavoritoModulo.objects.filter(usuario=self.user, modulo=self.modulo).exists())

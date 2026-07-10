@@ -7,6 +7,8 @@
 - Login seleciona automaticamente a única unidade vinculada ao usuário.
 - Favoritos individuais no Dashboard e na Sidebar.
 - Conversas com datas agrupadas, disponibilidade, anexos seguros e notificações por destinatário.
+- Adicionados testes de regressão para isolamento de chamados, login/unidade, favoritos, notificações e anexos de conversa.
+- Adicionado roteiro reproduzível de homologação funcional.
 
 ## Migrations
 
