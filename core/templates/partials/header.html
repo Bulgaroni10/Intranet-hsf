@@ -17,11 +17,11 @@
   </div>
 
   <div class="gsf-topbar-center">
-    <button class="gsf-command-search" type="button" onclick="alert('Busca Global em desenvolvimento — em breve Ctrl + K')">
+    <a class="gsf-command-search" href="{% url 'busca_global' %}" id="gsf-global-search-trigger">
       <span>🔍</span>
       <strong>Pesquisar computadores, ramais, documentos...</strong>
       <kbd>Ctrl K</kbd>
-    </button>
+    </a>
   </div>
 
   <div class="gsf-topbar-right">
@@ -117,3 +117,4 @@
     window.location.reload();
   });
 </script>
+<script>document.addEventListener('keydown',(e)=>{if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='k'){e.preventDefault();window.location.href='{% url "busca_global" %}';}});</script>

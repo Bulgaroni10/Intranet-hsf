@@ -21,3 +21,9 @@
 - Adicionadas pesquisa por código/descrição/código MV, filtro por grupo e paginação.
 - Criadas permissões por módulo e acesso pela Sidebar.
 - Adicionada importação CSV idempotente com modo `--simular`.
+# 2026-07-10 — Busca Global
+
+- Substituído o placeholder da topbar por busca funcional com atalho `Ctrl + K`.
+- Pesquisa integrada em módulos, documentos, conhecimento, ramais, avisos e solicitações TI.
+- Resultados respeitam grupos, usuário, setor e unidade no backend.
+- Adicionados testes contra vazamento de ramais e chamados entre usuários/unidades.

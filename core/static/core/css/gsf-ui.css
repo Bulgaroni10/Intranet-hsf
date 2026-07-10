@@ -1654,3 +1654,11 @@ TIMELINE
   font-size: 20px;
   padding: 6px;
 }
+.gsf-search-page-form { display:flex; gap:12px; align-items:center; }
+.gsf-search-page-form input { flex:1; min-width:0; }
+.gsf-search-results { display:grid; gap:10px; }
+.gsf-search-result { display:flex; gap:14px; padding:14px; border:1px solid var(--gsf-border); border-radius:14px; color:var(--gsf-text); text-decoration:none; background:var(--gsf-card); }
+.gsf-search-result:hover { border-color:var(--gsf-primary); }
+.gsf-search-result div { display:grid; gap:3px; }
+.gsf-search-result small, .gsf-search-result p { color:var(--gsf-muted); margin:0; }
+@media (max-width: 640px) { .gsf-search-page-form { align-items:stretch; flex-direction:column; } }

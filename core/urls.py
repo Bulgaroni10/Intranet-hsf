@@ -17,6 +17,7 @@ from base_conhecimento import views as base_conhecimento_views
 urlpatterns = [
     path('', views.home, name='home'),
     path('portal/', views.portal, name='portal'),
+    path('portal/busca/', views.busca_global, name='busca_global'),
 
     # Notificações individuais
     path('api/notificacoes/', views.api_listar_notificacoes, name='api_listar_notificacoes'),

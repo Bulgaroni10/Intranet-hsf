@@ -31,3 +31,7 @@ Alta.
 
 ### Status
 Backlog futuro.
+
+### Dependência externa — 10/07/2026
+
+Implementação pausada até definição formal com a MV sobre APIs para procedimentos TUSS e exames, incluindo autenticação, escopo dos dados, limites, ambiente de homologação e licenciamento. Não avançar com OCR ou códigos de barras antes dessa validação.

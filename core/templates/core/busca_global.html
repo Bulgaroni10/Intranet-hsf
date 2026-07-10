@@ -1,0 +1,15 @@
+{% extends "base/base.html" %}
+{% block title %}Busca Global | GSF Hub{% endblock %}
+{% block content %}
+<div class="page">
+  {% include "components/ui/hero.html" with eyebrow="Navegação" icone="🔎" titulo="Busca Global" subtitulo="Resultados limitados ao seu perfil, unidade e setor." %}
+  <section class="gsf-workspace-card"><form method="get" class="gsf-search-page-form"><input autofocus name="q" value="{{ termo }}" minlength="2" placeholder="Pesquisar módulos, documentos, ramais, avisos ou solicitações"><button class="gsf-btn gsf-btn-primary">Pesquisar</button></form></section>
+  <section class="gsf-workspace-card">
+    {% if termo %}<div class="gsf-workspace-card-header"><div><h2>Resultados para “{{ termo }}”</h2><p>{{ resultados|length }} item(ns) encontrado(s).</p></div></div>{% endif %}
+    <div class="gsf-search-results">
+      {% for item in resultados %}<a class="gsf-search-result" href="{{ item.url }}"><span>{{ item.icone }}</span><div><small>{{ item.tipo }}</small><strong>{{ item.titulo }}</strong><p>{{ item.descricao }}</p></div></a>
+      {% empty %}{% if termo %}{% include "components/empty_state.html" with titulo="Nenhum resultado encontrado" descricao="Tente outro termo ou confira a grafia." %}{% endif %}{% endfor %}
+    </div>
+  </section>
+</div>
+{% endblock %}

@@ -2,7 +2,7 @@ import json
 
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Group
-from django.test import TestCase
+from django.test import RequestFactory, TestCase
 from django.urls import reverse
 
 from modulos.models import Modulo
@@ -11,6 +11,8 @@ from core.services.dashboard import buscar_resumo_chamados_ti
 from core.services.notifications import criar_notificacao_usuario
 from solicitacoes_ti.models import SolicitacaoTI
 from usuarios.models import Unidade
+from ramais_contatos.models import RamalContato
+from core.services.search import buscar_global
 
 
 class ConveniosRoutingTests(TestCase):
@@ -167,3 +169,33 @@ class LoginUnidadeEFavoritosTests(TestCase):
         resposta = self.client.post(url, HTTP_X_REQUESTED_WITH='XMLHttpRequest')
         self.assertFalse(resposta.json()['favorito'])
         self.assertFalse(FavoritoModulo.objects.filter(usuario=self.user, modulo=self.modulo).exists())
+
+
+class BuscaGlobalPermissoesTests(TestCase):
+    def setUp(self):
+        User = get_user_model()
+        self.factory = RequestFactory()
+        self.unidade_a = Unidade.objects.create(nome='Busca A', sigla='BA')
+        self.unidade_b = Unidade.objects.create(nome='Busca B', sigla='BB')
+        self.usuario_a = User.objects.create_user('busca.a', unidade=self.unidade_a)
+        self.usuario_b = User.objects.create_user('busca.b', unidade=self.unidade_b)
+        RamalContato.objects.create(nome='Ramal secreto B', ramal='9999', unidade=self.unidade_b)
+        SolicitacaoTI.objects.create(
+            titulo='Chamado secreto B', descricao='segredo operacional',
+            solicitante=self.usuario_b, unidade=self.unidade_b,
+        )
+
+    def _buscar(self, usuario, termo):
+        request = self.factory.get('/portal/busca/', {'q': termo})
+        request.user = usuario
+        return buscar_global(request, termo)
+
+    def test_usuario_nao_encontra_ramal_de_outra_unidade(self):
+        self.assertEqual(self._buscar(self.usuario_a, '9999'), [])
+
+    def test_usuario_nao_encontra_chamado_de_outro_usuario(self):
+        self.assertEqual(self._buscar(self.usuario_a, 'segredo operacional'), [])
+
+    def test_dono_encontra_seu_chamado(self):
+        resultados = self._buscar(self.usuario_b, 'segredo operacional')
+        self.assertEqual([item['tipo'] for item in resultados], ['Solicitação TI'])
