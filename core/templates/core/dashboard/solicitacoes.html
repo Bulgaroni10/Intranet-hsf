@@ -1,0 +1,46 @@
+{% if pode_acessar_solicitacoes_ti %}
+  <section class="gsf-workspace-card">
+    <div class="gsf-workspace-card-header">
+      <div>
+        <span class="gsf-dashboard-kicker">Atendimento</span>
+        <h2>Solicitações TI recentes</h2>
+        <p>Últimos chamados registrados na central de TI.</p>
+      </div>
+
+      <a href="/portal/modulos/solicitacoes-ti/" class="gsf-btn gsf-btn-secondary">
+        Ver solicitações
+      </a>
+    </div>
+
+    <div class="gsf-ticket-list">
+      {% for chamado in ultimos_chamados_ti %}
+        <a
+          href="/portal/modulos/solicitacoes-ti/?busca={{ chamado.id }}"
+          class="gsf-ticket-item"
+        >
+          <div class="gsf-ticket-id">
+            #{{ chamado.id }}
+          </div>
+
+          <div class="gsf-ticket-content">
+            <strong>{{ chamado.titulo }}</strong>
+
+            <span>
+              {{ chamado.get_status_display }}
+              •
+              {{ chamado.criado_em|date:"d/m/Y H:i" }}
+            </span>
+          </div>
+
+          <span class="gsf-ticket-arrow">→</span>
+        </a>
+      {% empty %}
+        <div class="gsf-workspace-empty">
+          <span>🎫</span>
+          <strong>Nenhuma solicitação recente</strong>
+          <p>Os novos chamados aparecerão nesta área.</p>
+        </div>
+      {% endfor %}
+    </div>
+  </section>
+{% endif %}

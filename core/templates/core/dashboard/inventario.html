@@ -1,0 +1,62 @@
+<section class="gsf-workspace-card">
+  <div class="gsf-workspace-card-header">
+    <div>
+      <span class="gsf-dashboard-kicker">Infraestrutura</span>
+      <h2>Computadores recentes</h2>
+      <p>Últimas máquinas que enviaram heartbeat ao GSF Hub.</p>
+    </div>
+
+    <a href="/portal/modulos/inventario-ti/" class="gsf-btn gsf-btn-secondary">
+      Abrir inventário
+    </a>
+  </div>
+
+  <div class="gsf-table-wrap">
+    <table class="gsf-table">
+      <thead>
+        <tr>
+          <th>Status</th>
+          <th>Hostname</th>
+          <th>Usuário</th>
+          <th>IP</th>
+          <th>RAM</th>
+          <th>Disco</th>
+          <th>Último contato</th>
+        </tr>
+      </thead>
+
+      <tbody>
+        {% for pc in ultimos_computadores %}
+          <tr>
+            <td>
+              {% if pc.online %}
+                <span class="gsf-badge gsf-badge-success">ONLINE</span>
+              {% else %}
+                <span class="gsf-badge gsf-badge-danger">OFFLINE</span>
+              {% endif %}
+            </td>
+
+            <td>
+              <strong>{{ pc.hostname }}</strong>
+            </td>
+
+            <td>{{ pc.usuario|default:"-" }}</td>
+            <td>{{ pc.ip_local|default:"-" }}</td>
+            <td>{{ pc.ram|default:"-" }}</td>
+            <td>{{ pc.disco_percentual|default:"-" }}</td>
+            <td>{{ pc.ultimo_contato|date:"d/m/Y H:i:s" }}</td>
+          </tr>
+        {% empty %}
+          <tr>
+            <td colspan="7">
+              <div class="gsf-workspace-empty gsf-workspace-empty-table">
+                <strong>Nenhum computador recebido</strong>
+                <p>O inventário aparecerá quando os agentes enviarem heartbeat.</p>
+              </div>
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</section>

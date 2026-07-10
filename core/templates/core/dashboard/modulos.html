@@ -1,0 +1,39 @@
+<section class="gsf-workspace-card gsf-modules-workspace">
+  <div class="gsf-workspace-card-header">
+    <div>
+      <span class="gsf-dashboard-kicker">Plataforma</span>
+      <h2>Módulos disponíveis</h2>
+      <p>Recursos liberados para seu usuário.</p>
+    </div>
+
+    <span class="gsf-workspace-counter">
+      {{ total_modulos }}
+    </span>
+  </div>
+
+  <div class="gsf-module-groups">
+    {% for categoria in categorias %}
+      <div class="gsf-module-group">
+        <h3>{{ categoria.nome }}</h3>
+
+        <div class="gsf-module-grid">
+          {% for modulo in categoria.modulos %}
+            <a href="{{ modulo.link }}" class="gsf-module-item">
+              <span class="gsf-module-icon">
+                {{ modulo.icone|default:"🧩" }}
+              </span>
+
+              <span>{{ modulo.nome }}</span>
+            </a>
+          {% endfor %}
+        </div>
+      </div>
+    {% empty %}
+      <div class="gsf-workspace-empty">
+        <span>🧩</span>
+        <strong>Nenhum módulo disponível</strong>
+        <p>Seu usuário ainda não possui módulos liberados.</p>
+      </div>
+    {% endfor %}
+  </div>
+</section>

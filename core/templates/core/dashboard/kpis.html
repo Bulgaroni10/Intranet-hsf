@@ -1,0 +1,26 @@
+<section class="gsf-dashboard-section">
+  <div class="gsf-dashboard-section-heading">
+    <div>
+      <span class="gsf-dashboard-kicker">Visão geral</span>
+      <h2>Indicadores principais</h2>
+    </div>
+  </div>
+
+  <div class="summary-grid gsf-dashboard-kpis">
+    {% if pode_ver_painel_tecnico %}
+      {% include "components/kpi_card.html" with icon="💻" title="Computadores" value=total_computadores %}
+      {% include "components/kpi_card.html" with icon="🟢" title="Online" value=total_computadores_online color="success" %}
+      {% include "components/kpi_card.html" with icon="🔴" title="Offline" value=total_computadores_offline color="danger" %}
+      {% include "components/kpi_card.html" with icon="🏷️" title="Sem patrimônio" value=total_computadores_sem_patrimonio color="warning" %}
+      {% include "components/kpi_card.html" with icon="📋" title="Solicitações TI" value=total_chamados_ti_abertos color="info" %}
+      {% include "components/kpi_card.html" with icon="🚨" title="Críticas TI" value=total_chamados_ti_criticos color="danger" %}
+    {% else %}
+      {% include "components/kpi_card.html" with icon="📢" title="Avisos" value=total_avisos color="info" %}
+      {% include "components/kpi_card.html" with icon="📑" title="Documentos" value=total_documentos_alerta color="warning" %}
+      {% include "components/kpi_card.html" with icon="🔗" title="Links úteis" value=total_links color="success" %}
+      {% include "components/kpi_card.html" with icon="📘" title="Manuais" value=total_manuais %}
+      {% include "components/kpi_card.html" with icon="📡" title="Ocorrências" value=total_ocorrencias color="danger" %}
+      {% include "components/kpi_card.html" with icon="🧩" title="Módulos" value=total_modulos color="info" %}
+    {% endif %}
+  </div>
+</section>

@@ -1,0 +1,81 @@
+<section class="gsf-workspace-card gsf-quick-access-card">
+  <div class="gsf-workspace-card-header">
+    <div>
+      <span class="gsf-dashboard-kicker">Navegação</span>
+      <h2>Acesso rápido</h2>
+      <p>Abra os recursos mais utilizados.</p>
+    </div>
+  </div>
+
+  <div class="gsf-quick-access-grid">
+
+    {% if pode_acessar_inventario_ti %}
+      <a href="/portal/modulos/inventario-ti/" class="gsf-quick-access-item">
+        <span class="gsf-quick-access-icon">💻</span>
+        <div>
+          <strong>Inventário TI</strong>
+          <small>Computadores e ativos</small>
+        </div>
+      </a>
+    {% endif %}
+
+    {% if pode_acessar_solicitacoes_ti %}
+      <a href="/portal/modulos/solicitacoes-ti/" class="gsf-quick-access-item">
+        <span class="gsf-quick-access-icon">🎫</span>
+        <div>
+          <strong>Solicitações TI</strong>
+          <small>Chamados e atendimento</small>
+        </div>
+      </a>
+    {% endif %}
+
+    <a href="/portal/modulos/solicitacoes/" class="gsf-quick-access-item">
+      <span class="gsf-quick-access-icon">📋</span>
+      <div>
+        <strong>Solicitações</strong>
+        <small>Pedidos internos</small>
+      </div>
+    </a>
+
+    <a href="/portal/modulos/documentos/" class="gsf-quick-access-item">
+      <span class="gsf-quick-access-icon">📑</span>
+      <div>
+        <strong>Documentos</strong>
+        <small>Protocolos e arquivos</small>
+      </div>
+    </a>
+
+    <a href="/portal/modulos/ramais-contatos/" class="gsf-quick-access-item">
+      <span class="gsf-quick-access-icon">☎️</span>
+      <div>
+        <strong>Ramais</strong>
+        <small>Contatos internos</small>
+      </div>
+    </a>
+
+    <a href="/portal/modulos/convenios/" class="gsf-quick-access-item">
+      <span class="gsf-quick-access-icon">🤝</span>
+      <div>
+        <strong>Convênios</strong>
+        <small>Regras e informações</small>
+      </div>
+    </a>
+
+    <a href="/portal/modulos/status-sistemas/" class="gsf-quick-access-item">
+      <span class="gsf-quick-access-icon">📡</span>
+      <div>
+        <strong>Status</strong>
+        <small>Sistemas monitorados</small>
+      </div>
+    </a>
+
+    <a href="/portal/modulos/links-uteis/" class="gsf-quick-access-item">
+      <span class="gsf-quick-access-icon">🔗</span>
+      <div>
+        <strong>Links úteis</strong>
+        <small>Sistemas internos</small>
+      </div>
+    </a>
+
+  </div>
+</section>

@@ -4,259 +4,39 @@
 {% block title %}Dashboard | GSF Hub{% endblock %}
 
 {% block content %}
-<div class="page">
+<div class="page gsf-dashboard-workspace">
 
-  {% gsf_hero titulo="GSF Hub" subtitulo="Acompanhe informações, solicitações e operações da plataforma em uma única visão." eyebrow="Centro operacional" icone="🏥" %}
+  {% include "core/dashboard/hero.html" %}
 
-  <div class="summary-grid">
-    {% if pode_ver_painel_tecnico %}
-      {% include "components/kpi_card.html" with icon="💻" title="Computadores" value=total_computadores %}
-      {% include "components/kpi_card.html" with icon="🟢" title="Online" value=total_computadores_online color="success" %}
-      {% include "components/kpi_card.html" with icon="🔴" title="Offline" value=total_computadores_offline color="danger" %}
-      {% include "components/kpi_card.html" with icon="🏷️" title="Sem patrimônio" value=total_computadores_sem_patrimonio color="warning" %}
-      {% include "components/kpi_card.html" with icon="📋" title="Solicitações TI" value=total_chamados_ti_abertos color="info" %}
-      {% include "components/kpi_card.html" with icon="🚨" title="Críticas TI" value=total_chamados_ti_criticos color="danger" %}
-    {% else %}
-      {% include "components/kpi_card.html" with icon="📢" title="Avisos" value=total_avisos color="info" %}
-      {% include "components/kpi_card.html" with icon="📑" title="Documentos" value=total_documentos_alerta color="warning" %}
-      {% include "components/kpi_card.html" with icon="🔗" title="Links úteis" value=total_links color="success" %}
-      {% include "components/kpi_card.html" with icon="📘" title="Manuais" value=total_manuais %}
-      {% include "components/kpi_card.html" with icon="📡" title="Status ativos" value=total_ocorrencias color="danger" %}
-    {% endif %}
-  </div>
+  {% include "core/dashboard/kpis.html" %}
 
-  <div class="hero-box">
-    <div class="hero-main">
-      <div class="eyebrow">
-        {% if pode_ver_painel_tecnico %}
-          Operação de TI
-        {% else %}
-          Portal interno
-        {% endif %}
-      </div>
+  <div class="gsf-dashboard-main-grid">
 
-      <h1>
-        Bom trabalho,
-        {{ request.user.get_full_name|default:request.user.username }}.
-      </h1>
+    <div class="gsf-dashboard-main-column">
 
       {% if pode_ver_painel_tecnico %}
-        <p>
-          Acompanhe computadores, solicitações, status dos sistemas e eventos
-          operacionais da TI em uma única visão.
-        </p>
-      {% else %}
-        <p>
-          Acesse avisos, documentos, ramais, links úteis, solicitações e
-          informações importantes da sua unidade.
-        </p>
+        {% include "core/dashboard/timeline.html" %}
       {% endif %}
 
-      <div class="top-actions">
-        {% if pode_acessar_inventario_ti %}
-          <a href="/portal/modulos/inventario-ti/" class="btn-success">
-            Ver Inventário TI
-          </a>
-        {% endif %}
+      {% if pode_acessar_inventario_ti %}
+        {% include "core/dashboard/inventario.html" %}
+      {% endif %}
 
-        <a href="/portal/modulos/solicitacoes/" class="btn-link">
-          Solicitações Internas
-        </a>
+      {% include "core/dashboard/solicitacoes.html" %}
 
-        <a href="/portal/modulos/status-sistemas/" class="btn-link">
-          Status dos Sistemas
-        </a>
-      </div>
     </div>
 
-    <div class="hero-side">
-      <h2>Resumo rápido</h2>
+    <aside class="gsf-dashboard-side-column">
 
-      <p>
-        <strong>Módulos ativos:</strong>
-        {{ total_modulos }}
-      </p>
+      {% include "core/dashboard/atalhos.html" %}
 
-      <p>
-        <strong>Ocorrências ativas:</strong>
-        {{ total_ocorrencias }}
-      </p>
+      {% include "core/dashboard/avisos.html" %}
 
-      <p>
-        <strong>Avisos no dashboard:</strong>
-        {{ total_avisos }}
-      </p>
+    </aside>
 
-      <p>
-        <strong>Documentos em alerta:</strong>
-        {{ total_documentos_alerta }}
-      </p>
-    </div>
   </div>
 
-  {% if pode_acessar_inventario_ti %}
-    <div class="gsf-table-card">
-      <div class="gsf-table-header">
-        <div>
-          <h2>Últimos computadores recebidos</h2>
-
-          <p>
-            Máquinas que enviaram heartbeat recentemente para o GSF Hub.
-          </p>
-        </div>
-
-        <a href="/portal/modulos/inventario-ti/" class="btn-link">
-          Abrir inventário
-        </a>
-      </div>
-
-      <div class="gsf-table-wrap">
-        <table class="gsf-table">
-          <thead>
-            <tr>
-              <th>Status</th>
-              <th>Hostname</th>
-              <th>Usuário</th>
-              <th>IP</th>
-              <th>RAM</th>
-              <th>Disco</th>
-              <th>Último contato</th>
-            </tr>
-          </thead>
-
-          <tbody>
-            {% for pc in ultimos_computadores %}
-              <tr>
-                <td>
-                  {% if pc.online %}
-                    <span class="gsf-badge gsf-badge-success">
-                      ONLINE
-                    </span>
-                  {% else %}
-                    <span class="gsf-badge gsf-badge-danger">
-                      OFFLINE
-                    </span>
-                  {% endif %}
-                </td>
-
-                <td>
-                  <strong>{{ pc.hostname }}</strong>
-                </td>
-
-                <td>{{ pc.usuario }}</td>
-                <td>{{ pc.ip_local|default:"-" }}</td>
-                <td>{{ pc.ram }}</td>
-                <td>{{ pc.disco_percentual }}</td>
-                <td>{{ pc.ultimo_contato|date:"d/m/Y H:i:s" }}</td>
-              </tr>
-            {% empty %}
-              <tr>
-                <td colspan="7">
-                  Nenhum computador enviou heartbeat ainda.
-                </td>
-              </tr>
-            {% endfor %}
-          </tbody>
-        </table>
-      </div>
-    </div>
-
-    <br>
-  {% endif %}
-
-  <div class="hero-box">
-    {% if pode_acessar_solicitacoes_ti %}
-      <div class="detail-card">
-        <h2>Solicitações TI recentes</h2>
-
-        {% for chamado in ultimos_chamados_ti %}
-          <div class="notification-card">
-            <strong>
-              #{{ chamado.id }} — {{ chamado.titulo }}
-            </strong>
-
-            <p>
-              {{ chamado.get_status_display }}
-              •
-              {{ chamado.criado_em|date:"d/m/Y H:i" }}
-            </p>
-          </div>
-        {% empty %}
-          <p>Nenhuma solicitação de TI recente.</p>
-        {% endfor %}
-      </div>
-    {% endif %}
-
-    <div class="detail-card">
-      <h2>Avisos importantes</h2>
-
-      {% for aviso in avisos_dashboard %}
-        <div class="notification-card">
-          <strong>{{ aviso.titulo }}</strong>
-
-          <p>
-            {{ aviso.publicado_em|date:"d/m/Y H:i" }}
-          </p>
-        </div>
-      {% empty %}
-        <p>Nenhum aviso ativo no dashboard.</p>
-      {% endfor %}
-    </div>
-  </div>
-
-  {% if pode_ver_painel_tecnico %}
-    <div class="detail-card">
-      <h2>Timeline operacional</h2>
-
-      {% for evento in timeline_global %}
-        <div class="notification-card">
-          <strong>
-            {{ evento.icone }} {{ evento.titulo }}
-          </strong>
-
-          <p>
-            {{ evento.origem }}
-            •
-            {{ evento.data|date:"d/m/Y H:i" }}
-          </p>
-
-          {% if evento.descricao %}
-            <p>{{ evento.descricao }}</p>
-          {% endif %}
-
-          {% if evento.link %}
-            <a href="{{ evento.link }}" class="btn-link">
-              Abrir
-            </a>
-          {% endif %}
-        </div>
-      {% empty %}
-        <p>Nenhum evento operacional recente.</p>
-      {% endfor %}
-    </div>
-
-    <br>
-  {% endif %}
-
-  <div class="detail-card">
-    <h2>Módulos disponíveis</h2>
-
-    {% for categoria in categorias %}
-      <h3>{{ categoria.nome }}</h3>
-
-      <div class="top-actions">
-        {% for modulo in categoria.modulos %}
-          <a href="{{ modulo.link }}" class="btn-muted">
-            {{ modulo.icone }} {{ modulo.nome }}
-          </a>
-        {% endfor %}
-      </div>
-
-      <br>
-    {% empty %}
-      <p>Nenhum módulo disponível para seu usuário.</p>
-    {% endfor %}
-  </div>
+  {% include "core/dashboard/modulos.html" %}
 
 </div>
 {% endblock %}

@@ -1,0 +1,52 @@
+<section class="gsf-workspace-card">
+  <div class="gsf-workspace-card-header">
+    <div>
+      <span class="gsf-dashboard-kicker">Tempo real</span>
+      <h2>Timeline operacional</h2>
+      <p>Últimos eventos identificados pela plataforma.</p>
+    </div>
+
+    <span class="gsf-workspace-counter">
+      {{ timeline_global|length }}
+    </span>
+  </div>
+
+  <div class="gsf-workspace-list">
+    {% for evento in timeline_global %}
+      <a
+        href="{{ evento.link|default:'#' }}"
+        class="gsf-workspace-event gsf-workspace-event-{{ evento.tipo|default:'info' }}"
+      >
+        <span class="gsf-workspace-event-icon">
+          {{ evento.icone|default:"ℹ️" }}
+        </span>
+
+        <div class="gsf-workspace-event-content">
+          <div class="gsf-workspace-event-top">
+            <strong>{{ evento.titulo }}</strong>
+
+            <time>
+              {{ evento.data|date:"d/m H:i" }}
+            </time>
+          </div>
+
+          <p>
+            {% if evento.origem %}
+              <span>{{ evento.origem }}</span>
+            {% endif %}
+
+            {% if evento.descricao %}
+              {{ evento.descricao }}
+            {% endif %}
+          </p>
+        </div>
+      </a>
+    {% empty %}
+      <div class="gsf-workspace-empty">
+        <span>🕊️</span>
+        <strong>Nenhum evento operacional recente</strong>
+        <p>Quando algo acontecer na plataforma, aparecerá aqui.</p>
+      </div>
+    {% endfor %}
+  </div>
+</section>

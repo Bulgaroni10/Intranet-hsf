@@ -1,0 +1,7 @@
+{% load gsf_tags %}
+
+{% if pode_ver_painel_tecnico %}
+  {% gsf_hero titulo="GSF Hub" subtitulo="Acompanhe inventário, solicitações, alertas e operações de TI em uma única visão." eyebrow="Centro operacional de TI" icone="🏥" acao_texto="Abrir Inventário" acao_url="/portal/modulos/inventario-ti/" acao_secundaria_texto="Nova solicitação" acao_secundaria_url="/portal/modulos/solicitacoes/nova/" %}
+{% else %}
+  {% gsf_hero titulo="GSF Hub" subtitulo="Acesse serviços, documentos, avisos e informações importantes da sua unidade." eyebrow="Portal corporativo" icone="🏥" acao_texto="Nova solicitação" acao_url="/portal/modulos/solicitacoes/nova/" %}
+{% endif %}

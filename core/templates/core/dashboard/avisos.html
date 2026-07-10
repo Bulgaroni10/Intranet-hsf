@@ -1,0 +1,31 @@
+<section class="gsf-workspace-card">
+  <div class="gsf-workspace-card-header">
+    <div>
+      <span class="gsf-dashboard-kicker">Comunicação</span>
+      <h2>Avisos importantes</h2>
+      <p>Comunicados ativos para seu perfil e unidade.</p>
+    </div>
+  </div>
+
+  <div class="gsf-notice-list">
+    {% for aviso in avisos_dashboard %}
+      <div class="gsf-notice-item">
+        <span class="gsf-notice-icon">📢</span>
+
+        <div>
+          <strong>{{ aviso.titulo }}</strong>
+
+          <p>
+            {{ aviso.publicado_em|date:"d/m/Y H:i" }}
+          </p>
+        </div>
+      </div>
+    {% empty %}
+      <div class="gsf-workspace-empty">
+        <span>✅</span>
+        <strong>Nenhum aviso ativo</strong>
+        <p>Não existem comunicados importantes neste momento.</p>
+      </div>
+    {% endfor %}
+  </div>
+</section>
