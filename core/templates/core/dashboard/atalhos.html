@@ -29,14 +29,6 @@
       </a>
     {% endif %}
 
-    <a href="/portal/modulos/solicitacoes/" class="gsf-quick-access-item">
-      <span class="gsf-quick-access-icon">📋</span>
-      <div>
-        <strong>Solicitações</strong>
-        <small>Pedidos internos</small>
-      </div>
-    </a>
-
     <a href="/portal/modulos/documentos/" class="gsf-quick-access-item">
       <span class="gsf-quick-access-icon">📑</span>
       <div>
@@ -53,13 +45,15 @@
       </div>
     </a>
 
-    <a href="/portal/modulos/convenios/" class="gsf-quick-access-item">
+    {% if pode_acessar_mv %}
+    <a href="{% url 'mv_convenios' %}" class="gsf-quick-access-item">
       <span class="gsf-quick-access-icon">🤝</span>
       <div>
         <strong>Convênios</strong>
         <small>Regras e informações</small>
       </div>
     </a>
+    {% endif %}
 
     <a href="/portal/modulos/status-sistemas/" class="gsf-quick-access-item">
       <span class="gsf-quick-access-icon">📡</span>

@@ -17,14 +17,13 @@ def login_intranet(request):
             'message': 'Requisição inválida.'
         }, status=400)
 
-    unidade_sigla = data.get('unidade', '').strip()
     username = data.get('username', '').strip().lower()
     password = data.get('password', '')
 
-    if not unidade_sigla or not username or not password:
+    if not username or not password:
         return JsonResponse({
             'ok': False,
-            'message': 'Preencha unidade, usuário e senha.'
+            'message': 'Preencha usuário e senha.'
         }, status=400)
 
     user = authenticate(request, username=username, password=password)
@@ -47,13 +46,8 @@ def login_intranet(request):
             'message': 'Usuário sem unidade vinculada. Procure a Tecnologia da Informação.'
         }, status=403)
 
-    if user.unidade.sigla != unidade_sigla:
-        return JsonResponse({
-            'ok': False,
-            'message': 'A unidade selecionada não corresponde ao cadastro do usuário.'
-        }, status=403)
-
     login(request, user)
+    request.session['unidade_id'] = user.unidade_id
 
     grupos = list(user.groups.values_list('name', flat=True))
 

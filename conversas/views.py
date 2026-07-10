@@ -2,11 +2,57 @@ from django.contrib.auth import get_user_model
 from django.contrib.auth.decorators import login_required
 from django.db.models import Q
 from django.http import JsonResponse
+from django.http import FileResponse
 from django.shortcuts import get_object_or_404, render
 from django.utils import timezone
 from django.views.decorators.http import require_GET, require_POST
 
-from .models import ConversaChat, MensagemChat
+from pathlib import Path
+
+from core.services.notifications import criar_notificacao_usuario
+from core.models import NotificacaoUsuario
+from .models import AnexoMensagem, ConversaChat, MensagemChat, StatusUsuarioChat
+
+
+EXTENSOES_ANEXO_PERMITIDAS = {
+    '.jpg', '.jpeg', '.png', '.gif', '.webp', '.pdf', '.doc', '.docx',
+    '.xls', '.xlsx', '.csv', '.txt', '.zip',
+}
+MIMES_POR_EXTENSAO = {
+    '.jpg': {'image/jpeg'}, '.jpeg': {'image/jpeg'}, '.png': {'image/png'},
+    '.gif': {'image/gif'}, '.webp': {'image/webp'}, '.pdf': {'application/pdf'},
+    '.txt': {'text/plain'}, '.csv': {'text/csv', 'application/vnd.ms-excel'},
+    '.doc': {'application/msword'},
+    '.docx': {'application/vnd.openxmlformats-officedocument.wordprocessingml.document'},
+    '.xls': {'application/vnd.ms-excel'},
+    '.xlsx': {'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'},
+    '.zip': {'application/zip', 'application/x-zip-compressed'},
+}
+TAMANHO_MAXIMO_ANEXO = 10 * 1024 * 1024
+
+
+def registrar_atividade(usuario):
+    status, _ = StatusUsuarioChat.objects.get_or_create(usuario=usuario)
+    status.ultima_atividade = timezone.now()
+    if status.status_expira_em and status.status_expira_em <= timezone.now():
+        status.status_disponibilidade = 'online'
+        status.mensagem_status = ''
+        status.status_expira_em = None
+    status.save()
+    return status
+
+
+def status_usuario_json(usuario):
+    status, _ = StatusUsuarioChat.objects.get_or_create(usuario=usuario)
+    agora = timezone.now()
+    disponibilidade = status.status_disponibilidade
+    if disponibilidade == 'online' and status.ultima_atividade < agora - timezone.timedelta(minutes=5):
+        disponibilidade = 'offline'
+    return {
+        'status': disponibilidade,
+        'mensagem': status.mensagem_status,
+        'ultima_atividade': timezone.localtime(status.ultima_atividade).strftime('%d/%m/%Y %H:%M'),
+    }
 
 
 def usuario_nome(usuario):
@@ -34,7 +80,7 @@ def usuario_descricao(usuario):
 
 
 def usuario_para_json(usuario):
-    return {
+    dados = {
         'id': usuario.id,
         'nome': usuario_nome(usuario),
         'username': usuario.username,
@@ -43,6 +89,8 @@ def usuario_para_json(usuario):
         'unidade': usuario.unidade.sigla if getattr(usuario, 'unidade', None) else '',
         'setor': usuario.setor.nome if getattr(usuario, 'setor', None) else '',
     }
+    dados.update(status_usuario_json(usuario))
+    return dados
 
 
 def contar_conversas_nao_lidas(usuario):
@@ -95,6 +143,14 @@ def nomes_leitores_mensagem(mensagem):
 
 def mensagem_para_json(mensagem, usuario_logado):
     minha = mensagem.remetente_id == usuario_logado.id
+    data_local = timezone.localtime(mensagem.criado_em)
+    hoje = timezone.localdate()
+    if data_local.date() == hoje:
+        separador_data = 'Hoje'
+    elif data_local.date() == hoje - timezone.timedelta(days=1):
+        separador_data = 'Ontem'
+    else:
+        separador_data = data_local.strftime('%d/%m/%Y')
     lida_destinatarios = mensagem_foi_lida_por_destinatarios(mensagem)
 
     status_leitura = ''
@@ -105,11 +161,20 @@ def mensagem_para_json(mensagem, usuario_logado):
         else:
             status_leitura = 'Enviado'
 
+    anexos = [{
+        'id': anexo.id,
+        'nome': anexo.nome_original,
+        'mime': anexo.tipo_mime,
+        'tamanho': anexo.tamanho,
+        'url': f'/conversas/anexos/{anexo.id}/',
+        'imagem': anexo.tipo_mime.startswith('image/'),
+    } for anexo in mensagem.anexos.all()]
     return {
         'id': mensagem.id,
         'texto': mensagem.texto,
         'criado_em': timezone.localtime(mensagem.criado_em).strftime('%d/%m/%Y %H:%M'),
         'hora': timezone.localtime(mensagem.criado_em).strftime('%H:%M'),
+        'separador_data': separador_data,
         'minha': minha,
         'lida_destinatarios': lida_destinatarios,
         'status_leitura': status_leitura,
@@ -119,6 +184,7 @@ def mensagem_para_json(mensagem, usuario_logado):
             'nome': usuario_nome(mensagem.remetente),
             'username': mensagem.remetente.username,
         },
+        'anexos': anexos,
     }
 
 
@@ -160,6 +226,12 @@ def conversa_titulo_descricao(conversa, usuario_logado):
 def conversa_para_json(conversa, usuario_logado):
     ultima_mensagem = conversa.mensagens.order_by('-criado_em').first()
     usuario_json = conversa_titulo_descricao(conversa, usuario_logado)
+    if conversa.tipo == 'individual':
+        disponibilidade = usuario_json.get('status', 'offline').replace('_', ' ')
+        usuario_json['descricao'] = (
+            f"{usuario_json['descricao']} • {disponibilidade} • "
+            f"última atividade {usuario_json.get('ultima_atividade', '')}"
+        ).strip(' •')
 
     nao_lidas = conversa.mensagens.exclude(
         remetente=usuario_logado
@@ -189,6 +261,7 @@ def conversa_para_json(conversa, usuario_logado):
 
 @login_required(login_url='/login/')
 def conversas_home(request):
+    registrar_atividade(request.user)
     User = get_user_model()
 
     usuarios = User.objects.filter(
@@ -599,6 +672,7 @@ def api_sair_grupo(request):
 @login_required(login_url='/login/')
 @require_GET
 def api_mensagens_conversa(request, conversa_id):
+    registrar_atividade(request.user)
     conversa = get_object_or_404(
         ConversaChat.objects.filter(
             ativo=True,
@@ -621,10 +695,18 @@ def api_mensagens_conversa(request, conversa_id):
     for mensagem in mensagens_nao_lidas:
         mensagem.lida_por.add(request.user)
 
+    NotificacaoUsuario.objects.filter(
+        usuario=request.user,
+        origem='conversa',
+        objeto_id__startswith=f'{conversa.id}:',
+        lida=False,
+    ).update(lida=True, lida_em=timezone.now())
+
     mensagens = conversa.mensagens.select_related(
         'remetente'
     ).prefetch_related(
         'lida_por',
+        'anexos',
         'conversa__participantes'
     ).order_by(
         'criado_em'
@@ -646,6 +728,7 @@ def api_mensagens_conversa(request, conversa_id):
 def api_enviar_mensagem(request):
     conversa_id = request.POST.get('conversa_id')
     texto = request.POST.get('texto', '').strip()
+    arquivo = request.FILES.get('arquivo')
 
     if not conversa_id:
         return JsonResponse({
@@ -653,11 +736,23 @@ def api_enviar_mensagem(request):
             'message': 'Conversa não informada.'
         }, status=400)
 
-    if not texto:
+    if not texto and not arquivo:
         return JsonResponse({
             'ok': False,
-            'message': 'Digite uma mensagem antes de enviar.'
+            'message': 'Digite uma mensagem ou selecione um arquivo antes de enviar.'
         }, status=400)
+
+    if arquivo:
+        extensao = Path(arquivo.name).suffix.lower()
+        if extensao not in EXTENSOES_ANEXO_PERMITIDAS:
+            return JsonResponse({'ok': False, 'message': 'Tipo de arquivo não permitido.'}, status=400)
+        if arquivo.size > TAMANHO_MAXIMO_ANEXO:
+            return JsonResponse({'ok': False, 'message': 'O arquivo excede o limite de 10 MB.'}, status=400)
+        tipo_mime = arquivo.content_type or 'application/octet-stream'
+        if tipo_mime not in MIMES_POR_EXTENSAO.get(extensao, set()):
+            return JsonResponse({'ok': False, 'message': 'O conteúdo do arquivo não corresponde à extensão.'}, status=400)
+        if tipo_mime in {'application/x-msdownload', 'application/x-sh', 'text/x-python'}:
+            return JsonResponse({'ok': False, 'message': 'Arquivo potencialmente perigoso.'}, status=400)
 
     conversa = get_object_or_404(
         ConversaChat.objects.filter(
@@ -675,8 +770,69 @@ def api_enviar_mensagem(request):
 
     mensagem.lida_por.add(request.user)
 
+    if arquivo:
+        AnexoMensagem.objects.create(
+            mensagem=mensagem,
+            arquivo=arquivo,
+            nome_original=Path(arquivo.name).name,
+            tipo_mime=tipo_mime,
+            tamanho=arquivo.size,
+        )
+
+    for destinatario in conversa.participantes.exclude(id=request.user.id):
+        criar_notificacao_usuario(
+            usuario=destinatario,
+            titulo=f'Nova mensagem de {usuario_nome(request.user)}',
+            descricao=texto[:160] or 'Arquivo anexado',
+            origem='conversa',
+            objeto_id=f'{conversa.id}:{mensagem.id}',
+            icone='💬',
+            link=f'/conversas/?conversa_id={conversa.id}',
+        )
+
     return JsonResponse({
         'ok': True,
         'mensagem': mensagem_para_json(mensagem, request.user),
         'conversa': conversa_para_json(conversa, request.user),
     })
+
+
+@login_required(login_url='/login/')
+@require_GET
+def baixar_anexo_mensagem(request, anexo_id):
+    anexo = get_object_or_404(
+        AnexoMensagem.objects.select_related('mensagem__conversa'),
+        id=anexo_id,
+        mensagem__conversa__ativo=True,
+        mensagem__conversa__participantes=request.user,
+    )
+    return FileResponse(
+        anexo.arquivo.open('rb'),
+        as_attachment=not anexo.tipo_mime.startswith('image/'),
+        filename=anexo.nome_original,
+        content_type=anexo.tipo_mime,
+    )
+
+
+@login_required(login_url='/login/')
+@require_POST
+def api_atualizar_status(request):
+    status = request.POST.get('status', '').strip()
+    validos = dict(StatusUsuarioChat.STATUS_CHOICES)
+    if status not in validos:
+        return JsonResponse({'ok': False, 'message': 'Status inválido.'}, status=400)
+    registro = registrar_atividade(request.user)
+    registro.status_disponibilidade = status
+    registro.mensagem_status = request.POST.get('mensagem', '').strip()[:160]
+    expira_em = request.POST.get('expira_em', '').strip()
+    if expira_em:
+        try:
+            registro.status_expira_em = timezone.make_aware(
+                timezone.datetime.fromisoformat(expira_em)
+            )
+        except ValueError:
+            return JsonResponse({'ok': False, 'message': 'Expiração inválida.'}, status=400)
+    else:
+        registro.status_expira_em = None
+    registro.save()
+    return JsonResponse({'ok': True, **status_usuario_json(request.user)})

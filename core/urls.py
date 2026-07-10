@@ -17,6 +17,12 @@ urlpatterns = [
     path('', views.home, name='home'),
     path('portal/', views.portal, name='portal'),
 
+    # Notificações individuais
+    path('api/notificacoes/', views.api_listar_notificacoes, name='api_listar_notificacoes'),
+    path('api/notificacoes/<int:notificacao_id>/lida/', views.api_marcar_notificacao_lida, name='api_marcar_notificacao_lida'),
+    path('api/notificacoes/marcar-todas-lidas/', views.api_marcar_todas_notificacoes_lidas, name='api_marcar_todas_notificacoes_lidas'),
+    path('favoritos/<int:modulo_id>/alternar/', views.alternar_favorito_modulo, name='alternar_favorito_modulo'),
+
     # Conversas
     path('conversas/', conversas_views.conversas_home, name='conversas_home'),
     path('conversas/contador-nao-lidas/', conversas_views.contador_mensagens_nao_lidas, name='contador_mensagens_nao_lidas'),
@@ -28,6 +34,8 @@ urlpatterns = [
     path('conversas/api/grupos/sair/', conversas_views.api_sair_grupo, name='api_sair_grupo_conversa'),
     path('conversas/api/<int:conversa_id>/mensagens/', conversas_views.api_mensagens_conversa, name='api_mensagens_conversa'),
     path('conversas/api/enviar/', conversas_views.api_enviar_mensagem, name='api_enviar_mensagem'),
+    path('conversas/api/status/', conversas_views.api_atualizar_status, name='api_atualizar_status'),
+    path('conversas/anexos/<int:anexo_id>/', conversas_views.baixar_anexo_mensagem, name='baixar_anexo_mensagem'),
 
     # Administração
     path('portal/administracao/', usuarios_views.administracao_intranet, name='administracao_intranet'),
@@ -66,6 +74,8 @@ urlpatterns = [
     path('portal/modulos/mv/', views.modulo_mv, name='modulo_mv'),
     path('portal/modulos/mv/manuais/', views.mv_manuais, name='mv_manuais'),
     path('portal/modulos/mv/convenios/', views.mv_convenios, name='mv_convenios'),
+    path('portal/modulos/convenios/', views.redirect_convenios_legacy, name='convenios_legacy'),
+    path('portal/convenios/', views.redirect_convenios_legacy, name='convenios_legacy_curta'),
 
     path('portal/modulos/mv/contingencia/', convenios_views.mv_contingencia, name='mv_contingencia'),
     path('portal/modulos/mv/chamados/', convenios_views.mv_chamados, name='mv_chamados'),

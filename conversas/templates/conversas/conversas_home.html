@@ -9,6 +9,9 @@
   <title>Conversas | Intranet</title>
 
   <link rel="stylesheet" href="{% static 'core/css/home.css' %}">
+  <link rel="stylesheet" href="{% static 'core/css/theme.css' %}">
+  <link rel="stylesheet" href="{% static 'core/css/gsf-ui.css' %}">
+  <link rel="stylesheet" href="{% static 'core/css/gsf-layout.css' %}">
 
   <style>
     body {
@@ -579,6 +582,9 @@
         height: 640px;
       }
     }
+    .chat-date-separator { text-align:center; color:var(--gsf-muted, #94a3b8); font-size:12px; margin:14px 0; }
+    .chat-image-preview { display:block; max-width:280px; max-height:220px; border-radius:12px; margin-top:8px; }
+    .chat-file-card { display:block; color:var(--gsf-info, #38bdf8); margin-top:8px; text-decoration:none; }
   </style>
 </head>
 
@@ -691,6 +697,10 @@
         </div>
 
         <div class="chat-main-actions">
+          <select id="meu-status-chat" class="chat-small-btn" aria-label="Minha disponibilidade">
+            <option value="online">Disponível</option><option value="ocupado">Ocupado</option>
+            <option value="nao_perturbe">Não perturbe</option><option value="ausente">Ausente</option>
+          </select>
           <button id="btn-gerenciar-grupo" class="chat-small-btn chat-hidden" type="button">
             Gerenciar grupo
           </button>
@@ -713,7 +723,8 @@
         </div>
       </div>
 
-      <form id="chat-compose" class="chat-compose">
+      <form id="chat-compose" class="chat-compose" enctype="multipart/form-data">
+        <label class="chat-small-btn" title="Anexar arquivo">📎<input id="chat-arquivo" type="file" hidden disabled></label>
         <textarea id="chat-texto" placeholder="Digite sua mensagem..." disabled></textarea>
         <button id="chat-send" class="chat-send-btn" type="submit" disabled>Enviar</button>
       </form>
@@ -878,6 +889,7 @@
 
     function habilitarComposicao(habilitar) {
       document.getElementById('chat-texto').disabled = !habilitar;
+      document.getElementById('chat-arquivo').disabled = !habilitar;
       document.getElementById('chat-send').disabled = !habilitar;
     }
 
@@ -993,17 +1005,27 @@
       }
 
       let html = '';
+      let ultimoSeparador = '';
 
       mensagens.forEach((mensagem) => {
         const classe = mensagem.minha ? 'mine' : 'theirs';
         const vistoClasse = mensagem.lida_destinatarios ? 'ok' : '';
         const leitores = (mensagem.lida_por_nomes || []).join(', ');
 
+        if (mensagem.separador_data !== ultimoSeparador) {
+          html += `<div class="chat-date-separator">${escapeHtml(mensagem.separador_data)}</div>`;
+          ultimoSeparador = mensagem.separador_data;
+        }
+        const anexos = (mensagem.anexos || []).map((anexo) => anexo.imagem
+          ? `<a href="${anexo.url}" target="_blank"><img class="chat-image-preview" src="${anexo.url}" alt="${escapeHtml(anexo.nome)}"></a>`
+          : `<a class="chat-file-card" href="${anexo.url}">📎 ${escapeHtml(anexo.nome)}</a>`
+        ).join('');
         html += `
           <div class="message-row ${classe}">
             <div class="message-bubble">
               ${!mensagem.minha ? `<div class="message-author">${escapeHtml(mensagem.remetente.nome)}</div>` : ''}
               <div class="message-text">${escapeHtml(mensagem.texto)}</div>
+              ${anexos}
               <div class="message-time">${escapeHtml(mensagem.hora)}</div>
               ${mensagem.minha ? `<div class="message-seen ${vistoClasse}" title="${escapeHtml(leitores)}">${escapeHtml(mensagem.status_leitura)}</div>` : ''}
             </div>
@@ -1383,16 +1405,20 @@
 
       const textarea = document.getElementById('chat-texto');
       const texto = textarea.value.trim();
+      const arquivoInput = document.getElementById('chat-arquivo');
+      const arquivo = arquivoInput.files[0];
 
-      if (!conversaAtualId || !texto) {
+      if (!conversaAtualId || (!texto && !arquivo)) {
         return;
       }
 
       const formData = new FormData();
       formData.append('conversa_id', conversaAtualId);
       formData.append('texto', texto);
+      if (arquivo) formData.append('arquivo', arquivo);
 
       textarea.value = '';
+      arquivoInput.value = '';
       textarea.focus();
 
       try {
@@ -1447,6 +1473,10 @@
     }
 
     document.addEventListener('DOMContentLoaded', async function () {
+      document.getElementById('meu-status-chat').addEventListener('change', async function () {
+        const dados = new FormData(); dados.append('status', this.value);
+        await fetch('/conversas/api/status/', {method:'POST', headers:{'X-CSRFToken': getCsrfTokenChat()}, body:dados});
+      });
       document.getElementById('tab-conversas').addEventListener('click', function () {
         setAbaChat('conversas');
       });

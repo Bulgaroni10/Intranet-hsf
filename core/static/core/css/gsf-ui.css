@@ -1637,3 +1637,20 @@ TIMELINE
     grid-template-columns: 1fr;
   }
 }
+.gsf-module-main-link {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex: 1;
+  color: inherit;
+  text-decoration: none;
+}
+
+.gsf-favorite-button {
+  border: 0;
+  background: transparent;
+  color: var(--gsf-warning);
+  cursor: pointer;
+  font-size: 20px;
+  padding: 6px;
+}

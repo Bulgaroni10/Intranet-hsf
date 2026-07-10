@@ -61,16 +61,14 @@ function hideLoginError() {
 }
 
 async function doLogin() {
-  const unitInput = document.getElementById('sel-unidade');
   const userInput = document.getElementById('inp-user');
   const passwordInput = document.getElementById('inp-pw');
 
-  const unit = unitInput ? unitInput.value : '';
   const user = userInput ? userInput.value.trim().toLowerCase() : '';
   const pw = passwordInput ? passwordInput.value : '';
 
-  if (!unit || !user || !pw) {
-    showLoginError('Preencha todos os campos antes de continuar.');
+  if (!user || !pw) {
+    showLoginError('Preencha usuário e senha.');
     return;
   }
 
@@ -84,7 +82,6 @@ async function doLogin() {
         'X-CSRFToken': getCsrfToken()
       },
       body: JSON.stringify({
-        unidade: unit,
         username: user,
         password: pw
       })

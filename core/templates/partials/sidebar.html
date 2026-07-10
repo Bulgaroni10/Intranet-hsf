@@ -4,6 +4,7 @@
 {% usuario_pode_ver_inventario_ti request.user as pode_ver_inventario %}
 {% usuario_pode_acessar_solicitacoes_ti_tag request.user as pode_ver_solicitacoes_ti %}
 {% usuario_pode_acessar_administracao_tag request.user as pode_ver_admin %}
+{% pode_acessar_modulo_nome request.user "MV / Sistema Hospitalar" as pode_ver_mv %}
 
 <aside class="gsf-sidebar">
 
@@ -88,15 +89,27 @@
 
     <div class="gsf-sidebar-section">Hospital</div>
 
-    <a href="/portal/modulos/mv/" class="gsf-sidebar-link">
+    {% if pode_ver_mv %}
+    <a href="{% url 'modulo_mv' %}" class="gsf-sidebar-link">
       <span>🏥</span>
       <strong>MV</strong>
     </a>
 
-    <a href="/portal/modulos/convenios/" class="gsf-sidebar-link">
+    <a href="{% url 'mv_convenios' %}" class="gsf-sidebar-link">
       <span>🤝</span>
       <strong>Convênios</strong>
     </a>
+
+    {% if favoritos_usuario %}
+      <div class="gsf-sidebar-section">Favoritos</div>
+      {% for favorito in favoritos_usuario %}
+        <a href="{{ favorito.modulo.link }}" class="gsf-sidebar-link">
+          <span>★</span>
+          <strong>{{ favorito.modulo.nome }}</strong>
+        </a>
+      {% endfor %}
+    {% endif %}
+    {% endif %}
 
     <a href="/portal/modulos/status-sistemas/" class="gsf-sidebar-link">
       <span>📡</span>

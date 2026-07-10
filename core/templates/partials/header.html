@@ -46,10 +46,11 @@
         <div class="gsf-notification-header">
           <strong>Notificações</strong>
           <span>{{ total_notificacoes|default:0 }}</span>
+          {% if total_notificacoes %}<button type="button" data-mark-all-notifications>Marcar todas</button>{% endif %}
         </div>
 
         {% for notificacao in notificacoes %}
-          <a class="gsf-notification-item" href="{{ notificacao.link|default:'#' }}">
+          <a class="gsf-notification-item" data-notification-id="{{ notificacao.id }}" href="{{ notificacao.link|default:'#' }}">
             <span>{{ notificacao.icone }}</span>
             <div>
               <strong>{{ notificacao.titulo }}</strong>
@@ -99,3 +100,20 @@
 
   </div>
 </header>
+<script>
+  document.querySelectorAll('[data-notification-id]').forEach((item) => {
+    item.addEventListener('click', async (event) => {
+      event.preventDefault();
+      await fetch(`/api/notificacoes/${item.dataset.notificationId}/lida/`, {
+        method: 'POST', headers: {'X-CSRFToken': getCsrfToken()}
+      });
+      window.location.href = item.href;
+    });
+  });
+  document.querySelector('[data-mark-all-notifications]')?.addEventListener('click', async () => {
+    await fetch('{% url "api_marcar_todas_notificacoes_lidas" %}', {
+      method: 'POST', headers: {'X-CSRFToken': getCsrfToken()}
+    });
+    window.location.reload();
+  });
+</script>

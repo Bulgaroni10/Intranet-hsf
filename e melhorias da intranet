@@ -1,0 +1,61 @@
+warning: in the working copy of 'avisos/templates/avisos/avisos_comunicados.html', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'avisos/templates/avisos/novo_aviso_comunicado.html', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'base_conhecimento/templates/base_conhecimento/base_conhecimento.html', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'base_conhecimento/templates/base_conhecimento/formulario_categoria.html', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'base_conhecimento/templates/base_conhecimento/formulario_documento.html', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'base_conhecimento/templates/base_conhecimento/relatorio_leituras.html', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'conversas/models.py', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'conversas/templates/conversas/conversas_home.html', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'conversas/views.py', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'core/models.py', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'core/services/dashboard.py', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'core/services/notifications.py', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'core/static/core/css/gsf-ui.css', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'core/static/core/js/home.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'core/templates/core/dashboard/atalhos.html', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'core/templates/core/dashboard/modulos.html', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'core/templates/core/home.html', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'core/templates/partials/header.html', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'core/templates/partials/sidebar.html', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'core/tests.py', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'core/urls.py', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'core/view_modules/auth.py', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'core/view_modules/mv.py', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'core/views.py', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'docs/CHANGELOG.md', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'documentos/templates/documentos/documentos_protocolos.html', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'documentos/templates/documentos/novo_documento_protocolo.html', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'intranet_gsf/settings.py', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'ramais_contatos/templates/ramais_contatos/formulario_ramal_contato.html', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'ramais_contatos/templates/ramais_contatos/ramais_contatos.html', LF will be replaced by CRLF the next time Git touches it
+ avisos/templates/avisos/avisos_comunicados.html    |   3 [32m+[m[31m-[m
+ avisos/templates/avisos/novo_aviso_comunicado.html |   3 [32m+[m[31m-[m
+ .../base_conhecimento/base_conhecimento.html       |   3 [32m+[m[31m-[m
+ .../base_conhecimento/formulario_categoria.html    |   3 [32m+[m[31m-[m
+ .../base_conhecimento/formulario_documento.html    |   3 [32m+[m[31m-[m
+ .../base_conhecimento/relatorio_leituras.html      |   3 [32m+[m[31m-[m
+ conversas/models.py                                |  47 [32m++++++[m
+ conversas/templates/conversas/conversas_home.html  |  36 [32m++++[m[31m-[m
+ conversas/views.py                                 | 166 [32m+++++++++++++++++++[m[31m-[m
+ core/models.py                                     |  64 [32m+++++++[m[31m-[m
+ core/services/dashboard.py                         |  43 [32m++++[m[31m--[m
+ core/services/notifications.py                     | 167 [32m++++++[m[31m---------------[m
+ core/static/core/css/gsf-ui.css                    |  19 [32m++[m[31m-[m
+ core/static/core/js/home.js                        |   9 [32m+[m[31m-[m
+ core/templates/core/dashboard/atalhos.html         |  14 [32m+[m[31m-[m
+ core/templates/core/dashboard/modulos.html         |  13 [32m+[m[31m-[m
+ core/templates/core/home.html                      |  19 [32m+[m[31m--[m
+ core/templates/partials/header.html                |  22 [32m++[m[31m-[m
+ core/templates/partials/sidebar.html               |  19 [32m++[m[31m-[m
+ core/tests.py                                      | 100 [32m+++++++++++[m[31m-[m
+ core/urls.py                                       |  12 [32m+[m[31m-[m
+ core/view_modules/auth.py                          |  12 [32m+[m[31m-[m
+ core/view_modules/mv.py                            |  11 [32m++[m
+ core/views.py                                      |   2 [32m+[m
+ docs/CHANGELOG.md                                  |  15 [32m++[m
+ .../documentos/documentos_protocolos.html          |   3 [32m+[m[31m-[m
+ .../documentos/novo_documento_protocolo.html       |   3 [32m+[m[31m-[m
+ intranet_gsf/settings.py                           |   3 [32m+[m[31m-[m
+ .../ramais_contatos/formulario_ramal_contato.html  |   3 [32m+[m[31m-[m
+ .../templates/ramais_contatos/ramais_contatos.html |  16 [32m+[m[31m-[m
+ 30 files changed, 633 insertions(+), 203 deletions(-)

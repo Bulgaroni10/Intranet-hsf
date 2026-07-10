@@ -2,6 +2,17 @@ from .common import *
 
 
 @login_required(login_url='/')
+def redirect_convenios_legacy(request):
+    """Preserva atalhos antigos e direciona para a URL canonica do MV."""
+    nome_modulo = 'MV / Sistema Hospitalar'
+
+    if not usuario_pode_acessar_modulo(request.user, nome_modulo):
+        return render(request, 'core/sem_permissao.html', status=403)
+
+    return redirect('mv_convenios')
+
+
+@login_required(login_url='/')
 def modulo_mv(request):
     nome_modulo = 'MV / Sistema Hospitalar'
 

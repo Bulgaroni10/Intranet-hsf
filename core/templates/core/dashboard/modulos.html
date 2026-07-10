@@ -18,13 +18,20 @@
 
         <div class="gsf-module-grid">
           {% for modulo in categoria.modulos %}
-            <a href="{{ modulo.link }}" class="gsf-module-item">
+            <div class="gsf-module-item">
+              <a href="{{ modulo.link }}" class="gsf-module-main-link">
               <span class="gsf-module-icon">
                 {{ modulo.icone|default:"🧩" }}
               </span>
 
               <span>{{ modulo.nome }}</span>
-            </a>
+              </a>
+              <form method="post" action="{% url 'alternar_favorito_modulo' modulo.id %}">
+                {% csrf_token %}
+                <input type="hidden" name="next" value="{{ request.get_full_path }}">
+                <button type="submit" class="gsf-favorite-button" title="Adicionar ou remover favorito" aria-label="Alternar favorito">{% if modulo.id in favoritos_ids %}★{% else %}☆{% endif %}</button>
+              </form>
+            </div>
           {% endfor %}
         </div>
       </div>

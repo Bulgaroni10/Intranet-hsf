@@ -9,9 +9,11 @@ from solicitacoes_ti.models import SolicitacaoTI
 from status_sistemas.models import OcorrenciaSistema
 
 from core.services.events import montar_timeline_global
-from core.services.notifications import listar_notificacoes
+from core.services.favorites import listar_favoritos
+from core.services.notifications import contar_nao_lidas, listar_notificacoes
 from core.services.permissions import (
     usuario_eh_admin_ti,
+    usuario_eh_gestao,
     usuario_eh_ti,
     usuario_pode_acessar_modulo_por_nome,
     usuario_pode_acessar_solicitacoes_ti,
@@ -243,6 +245,21 @@ def atualizar_sla_solicitacoes_dashboard(solicitacoes):
             solicitacao.atualizar_sla(salvar=True)
 
 
+def filtrar_chamados_ti_dashboard(user, queryset):
+    """Aplica a mesma visibilidade à lista e a todos os contadores do dashboard."""
+    if user.is_superuser:
+        return queryset
+
+    unidade = obter_unidade_usuario(user)
+    if unidade is None:
+        return queryset.none()
+
+    if usuario_eh_ti(user) or usuario_eh_gestao(user):
+        return queryset.filter(unidade=unidade)
+
+    return queryset.filter(solicitante=user)
+
+
 def buscar_resumo_chamados_ti(user, limite=8, modulo_origem=None):
     chamados_base = SolicitacaoTI.objects.filter(
         ativo=True
@@ -253,10 +270,7 @@ def buscar_resumo_chamados_ti(user, limite=8, modulo_origem=None):
             modulo_origem=modulo_origem
         )
 
-    if not usuario_eh_admin_ti(user):
-        chamados_base = chamados_base.filter(
-            solicitante=user
-        )
+    chamados_base = filtrar_chamados_ti_dashboard(user, chamados_base)
 
     chamados_para_atualizar_sla = chamados_base.exclude(
         status__in=["resolvido", "cancelado"]
@@ -275,10 +289,7 @@ def buscar_resumo_chamados_ti(user, limite=8, modulo_origem=None):
             modulo_origem=modulo_origem
         )
 
-    if not usuario_eh_admin_ti(user):
-        chamados_base = chamados_base.filter(
-            solicitante=user
-        )
+    chamados_base = filtrar_chamados_ti_dashboard(user, chamados_base)
 
     chamados_abertos_base = chamados_base.exclude(
         status__in=["resolvido", "cancelado"]
@@ -369,6 +380,7 @@ def montar_categorias_modulos(user):
 
 def montar_contexto_portal(user):
     modulos, categorias = montar_categorias_modulos(user)
+    favoritos = listar_favoritos(user)
 
     ocorrencias_ativas = buscar_ocorrencias_ativas(user)
     avisos_dashboard = buscar_avisos_dashboard(user)
@@ -377,6 +389,10 @@ def montar_contexto_portal(user):
     ultimos_manuais = buscar_ultimos_manuais(user)
 
     pode_acessar_solicitacoes_ti = usuario_pode_acessar_solicitacoes_ti(user)
+    pode_acessar_mv = usuario_pode_acessar_modulo_por_nome(
+        user,
+        "MV / Sistema Hospitalar",
+    )
     pode_ver_painel_tecnico = usuario_eh_ti(user)
 
     resumo_chamados_ti = {
@@ -406,7 +422,7 @@ def montar_contexto_portal(user):
     if pode_ver_painel_tecnico:
         resumo_inventario_ti = buscar_resumo_inventario_ti()
 
-    notificacoes = listar_notificacoes()
+    notificacoes = listar_notificacoes(user)
 
     timeline_global = montar_timeline_global(
         computadores=resumo_inventario_ti.get("ultimos_computadores", []),
@@ -418,6 +434,8 @@ def montar_contexto_portal(user):
     return {
         "page_title": "Portal",
         "categorias": categorias,
+        "favoritos": favoritos,
+        "favoritos_ids": [favorito.modulo_id for favorito in favoritos],
         "ocorrencias_ativas": ocorrencias_ativas,
         "avisos_dashboard": avisos_dashboard,
         "documentos_dashboard": documentos_dashboard,
@@ -432,10 +450,11 @@ def montar_contexto_portal(user):
         "pode_ver_painel_tecnico": pode_ver_painel_tecnico,
         "pode_acessar_inventario_ti": pode_ver_painel_tecnico,
         "pode_acessar_solicitacoes_ti": pode_acessar_solicitacoes_ti,
+        "pode_acessar_mv": pode_acessar_mv,
         "pode_acessar_administracao": usuario_eh_admin_ti(user),
         **resumo_chamados_ti,
         **resumo_inventario_ti,
         "timeline_global": timeline_global,
         "notificacoes": notificacoes,
-        "total_notificacoes": len(notificacoes),
+        "total_notificacoes": contar_nao_lidas(user),
     }

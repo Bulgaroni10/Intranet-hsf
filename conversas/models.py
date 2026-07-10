@@ -1,6 +1,13 @@
 from django.conf import settings
 from django.db import models
 from django.utils import timezone
+from pathlib import Path
+from uuid import uuid4
+
+
+def caminho_anexo_mensagem(instance, filename):
+    extensao = Path(filename).suffix.lower()
+    return f'conversas/{timezone.now():%Y/%m}/{uuid4().hex}{extensao}'
 
 
 class ConversaChat(models.Model):
@@ -95,3 +102,43 @@ class MensagemChat(models.Model):
         ConversaChat.objects.filter(id=self.conversa_id).update(
             atualizado_em=timezone.now()
         )
+
+
+class StatusUsuarioChat(models.Model):
+    STATUS_CHOICES = [
+        ('online', 'Disponível'),
+        ('ausente', 'Ausente'),
+        ('ocupado', 'Ocupado'),
+        ('nao_perturbe', 'Não perturbe'),
+        ('offline', 'Offline'),
+    ]
+    usuario = models.OneToOneField(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name='status_chat',
+    )
+    status_disponibilidade = models.CharField(
+        max_length=20, choices=STATUS_CHOICES, default='online'
+    )
+    ultima_atividade = models.DateTimeField(default=timezone.now)
+    mensagem_status = models.CharField(max_length=160, blank=True)
+    status_expira_em = models.DateTimeField(null=True, blank=True)
+
+    def __str__(self):
+        return f'{self.usuario}: {self.status_disponibilidade}'
+
+
+class AnexoMensagem(models.Model):
+    mensagem = models.ForeignKey(
+        MensagemChat,
+        on_delete=models.CASCADE,
+        related_name='anexos',
+    )
+    arquivo = models.FileField(upload_to=caminho_anexo_mensagem)
+    nome_original = models.CharField(max_length=255)
+    tipo_mime = models.CharField(max_length=120)
+    tamanho = models.PositiveBigIntegerField()
+    criado_em = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return self.nome_original
