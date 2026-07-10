@@ -1,0 +1,63 @@
+<section class="gsf-hero">
+
+  <div class="gsf-hero-content">
+
+    {% if eyebrow %}
+      <div class="gsf-hero-eyebrow">
+        {% if icone %}
+          <span class="gsf-hero-eyebrow-icon">{{ icone }}</span>
+        {% endif %}
+
+        <span>{{ eyebrow }}</span>
+      </div>
+    {% endif %}
+
+    <div class="gsf-hero-title-row">
+
+      {% if icone and not eyebrow %}
+        <div class="gsf-hero-main-icon">
+          {{ icone }}
+        </div>
+      {% endif %}
+
+      <div>
+        <h1 class="gsf-hero-title">
+          {{ titulo }}
+        </h1>
+
+        {% if subtitulo %}
+          <p class="gsf-hero-subtitle">
+            {{ subtitulo }}
+          </p>
+        {% endif %}
+      </div>
+
+    </div>
+
+  </div>
+
+  {% if acao_texto or acao_secundaria_texto %}
+    <div class="gsf-hero-actions">
+
+      {% if acao_secundaria_texto and acao_secundaria_url %}
+        <a
+          href="{{ acao_secundaria_url }}"
+          class="gsf-btn gsf-btn-secondary"
+        >
+          {{ acao_secundaria_texto }}
+        </a>
+      {% endif %}
+
+      {% if acao_texto and acao_url %}
+        <a
+          href="{{ acao_url }}"
+          class="gsf-btn {{ acao_classe }}"
+        >
+          {{ acao_texto }}
+        </a>
+      {% endif %}
+
+    </div>
+  {% endif %}
+
+</section>

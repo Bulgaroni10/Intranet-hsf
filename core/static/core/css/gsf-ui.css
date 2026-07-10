@@ -1001,3 +1001,192 @@ TIMELINE
     display: none;
   }
 }
+
+/* =========================================================
+   GSF UI — HERO
+========================================================= */
+
+.gsf-hero {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  min-height: 154px;
+  margin-bottom: 24px;
+  padding: 28px 30px;
+  overflow: hidden;
+  border: 1px solid var(--gsf-border);
+  border-radius: 22px;
+  background:
+    radial-gradient(
+      circle at top right,
+      rgba(20, 184, 166, 0.16),
+      transparent 38%
+    ),
+    linear-gradient(
+      135deg,
+      rgba(255, 255, 255, 0.98),
+      rgba(248, 250, 252, 0.96)
+    );
+  box-shadow: var(--gsf-shadow);
+}
+
+.gsf-hero::after {
+  content: "";
+  position: absolute;
+  top: -70px;
+  right: -70px;
+  width: 190px;
+  height: 190px;
+  border-radius: 50%;
+  border: 30px solid rgba(15, 118, 110, 0.06);
+  pointer-events: none;
+}
+
+.gsf-hero-content {
+  position: relative;
+  z-index: 1;
+  min-width: 0;
+}
+
+.gsf-hero-eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  margin-bottom: 10px;
+  color: #0f766e;
+  font-size: 11px;
+  font-weight: 900;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+}
+
+.gsf-hero-eyebrow-icon {
+  font-size: 15px;
+}
+
+.gsf-hero-title-row {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.gsf-hero-main-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 54px;
+  width: 54px;
+  height: 54px;
+  border-radius: 17px;
+  background: linear-gradient(135deg, #0f766e, #14b8a6);
+  color: #ffffff;
+  font-size: 25px;
+  box-shadow: 0 12px 26px rgba(15, 118, 110, 0.22);
+}
+
+.gsf-hero-title {
+  margin: 0;
+  color: var(--gsf-text);
+  font-size: clamp(25px, 3vw, 34px);
+  font-weight: 900;
+  line-height: 1.15;
+  letter-spacing: -0.035em;
+}
+
+.gsf-hero-subtitle {
+  max-width: 760px;
+  margin: 9px 0 0;
+  color: var(--gsf-muted);
+  font-size: 14px;
+  line-height: 1.65;
+}
+
+.gsf-hero-actions {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.gsf-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 42px;
+  padding: 0 17px;
+  border: 1px solid transparent;
+  border-radius: 12px;
+  font-size: 13px;
+  font-weight: 800;
+  line-height: 1;
+  text-decoration: none;
+  cursor: pointer;
+  transition:
+    transform 0.18s ease,
+    box-shadow 0.18s ease,
+    background 0.18s ease,
+    border-color 0.18s ease;
+}
+
+.gsf-btn:hover {
+  transform: translateY(-1px);
+}
+
+.gsf-btn-primary {
+  border-color: #0f766e;
+  background: linear-gradient(135deg, #0f766e, #14b8a6);
+  color: #ffffff;
+  box-shadow: 0 10px 22px rgba(15, 118, 110, 0.20);
+}
+
+.gsf-btn-primary:hover {
+  color: #ffffff;
+  box-shadow: 0 14px 28px rgba(15, 118, 110, 0.27);
+}
+
+.gsf-btn-secondary {
+  border-color: var(--gsf-border);
+  background: var(--gsf-card);
+  color: var(--gsf-text);
+}
+
+.gsf-btn-secondary:hover {
+  border-color: #14b8a6;
+  color: #0f766e;
+  box-shadow: 0 8px 18px rgba(15, 23, 42, 0.08);
+}
+
+@media (max-width: 820px) {
+  .gsf-hero {
+    align-items: flex-start;
+    flex-direction: column;
+    min-height: auto;
+    padding: 23px;
+  }
+
+  .gsf-hero-actions {
+    width: 100%;
+    justify-content: flex-start;
+  }
+}
+
+@media (max-width: 520px) {
+  .gsf-hero {
+    padding: 20px;
+    border-radius: 18px;
+  }
+
+  .gsf-hero-actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .gsf-btn {
+    width: 100%;
+  }
+}

@@ -1,11 +1,12 @@
 {% extends "base/base.html" %}
+{% load gsf_tags %}
 
 {% block title %}Dashboard | GSF Hub{% endblock %}
 
 {% block content %}
 <div class="page">
 
-  {% include "components/page_header.html" with eyebrow="Centro operacional" icon="🏥" title="GSF Hub" subtitle="Painel corporativo da intranet hospitalar." %}
+  {% gsf_hero titulo="GSF Hub" subtitulo="Acompanhe informações, solicitações e operações da plataforma em uma única visão." eyebrow="Centro operacional" icone="🏥" %}
 
   <div class="summary-grid">
     {% if pode_ver_painel_tecnico %}
@@ -25,7 +26,6 @@
   </div>
 
   <div class="hero-box">
-
     <div class="hero-main">
       <div class="eyebrow">
         {% if pode_ver_painel_tecnico %}
@@ -35,36 +35,63 @@
         {% endif %}
       </div>
 
-      <h1>Bom trabalho, {{ request.user.get_full_name|default:request.user.username }}.</h1>
+      <h1>
+        Bom trabalho,
+        {{ request.user.get_full_name|default:request.user.username }}.
+      </h1>
 
       {% if pode_ver_painel_tecnico %}
         <p>
-          Acompanhe computadores, solicitações, status dos sistemas e eventos operacionais da TI em uma única visão.
+          Acompanhe computadores, solicitações, status dos sistemas e eventos
+          operacionais da TI em uma única visão.
         </p>
       {% else %}
         <p>
-          Acesse avisos, documentos, ramais, links úteis, solicitações e informações importantes da sua unidade.
+          Acesse avisos, documentos, ramais, links úteis, solicitações e
+          informações importantes da sua unidade.
         </p>
       {% endif %}
 
       <div class="top-actions">
         {% if pode_acessar_inventario_ti %}
-          <a href="/portal/modulos/inventario-ti/" class="btn-success">Ver Inventário TI</a>
+          <a href="/portal/modulos/inventario-ti/" class="btn-success">
+            Ver Inventário TI
+          </a>
         {% endif %}
 
-        <a href="/portal/modulos/solicitacoes/" class="btn-link">Solicitações Internas</a>
-        <a href="/portal/modulos/status-sistemas/" class="btn-link">Status dos Sistemas</a>
+        <a href="/portal/modulos/solicitacoes/" class="btn-link">
+          Solicitações Internas
+        </a>
+
+        <a href="/portal/modulos/status-sistemas/" class="btn-link">
+          Status dos Sistemas
+        </a>
       </div>
     </div>
 
     <div class="hero-side">
       <h2>Resumo rápido</h2>
-      <p><strong>Módulos ativos:</strong> {{ total_modulos }}</p>
-      <p><strong>Ocorrências ativas:</strong> {{ total_ocorrencias }}</p>
-      <p><strong>Avisos no dashboard:</strong> {{ total_avisos }}</p>
-      <p><strong>Documentos em alerta:</strong> {{ total_documentos_alerta }}</p>
-    </div>
 
+      <p>
+        <strong>Módulos ativos:</strong>
+        {{ total_modulos }}
+      </p>
+
+      <p>
+        <strong>Ocorrências ativas:</strong>
+        {{ total_ocorrencias }}
+      </p>
+
+      <p>
+        <strong>Avisos no dashboard:</strong>
+        {{ total_avisos }}
+      </p>
+
+      <p>
+        <strong>Documentos em alerta:</strong>
+        {{ total_documentos_alerta }}
+      </p>
+    </div>
   </div>
 
   {% if pode_acessar_inventario_ti %}
@@ -72,10 +99,15 @@
       <div class="gsf-table-header">
         <div>
           <h2>Últimos computadores recebidos</h2>
-          <p>Máquinas que enviaram heartbeat recentemente para o GSF Hub.</p>
+
+          <p>
+            Máquinas que enviaram heartbeat recentemente para o GSF Hub.
+          </p>
         </div>
 
-        <a href="/portal/modulos/inventario-ti/" class="btn-link">Abrir inventário</a>
+        <a href="/portal/modulos/inventario-ti/" class="btn-link">
+          Abrir inventário
+        </a>
       </div>
 
       <div class="gsf-table-wrap">
@@ -97,12 +129,20 @@
               <tr>
                 <td>
                   {% if pc.online %}
-                    <span class="gsf-badge gsf-badge-success">ONLINE</span>
+                    <span class="gsf-badge gsf-badge-success">
+                      ONLINE
+                    </span>
                   {% else %}
-                    <span class="gsf-badge gsf-badge-danger">OFFLINE</span>
+                    <span class="gsf-badge gsf-badge-danger">
+                      OFFLINE
+                    </span>
                   {% endif %}
                 </td>
-                <td><strong>{{ pc.hostname }}</strong></td>
+
+                <td>
+                  <strong>{{ pc.hostname }}</strong>
+                </td>
+
                 <td>{{ pc.usuario }}</td>
                 <td>{{ pc.ip_local|default:"-" }}</td>
                 <td>{{ pc.ram }}</td>
@@ -111,7 +151,9 @@
               </tr>
             {% empty %}
               <tr>
-                <td colspan="7">Nenhum computador enviou heartbeat ainda.</td>
+                <td colspan="7">
+                  Nenhum computador enviou heartbeat ainda.
+                </td>
               </tr>
             {% endfor %}
           </tbody>
@@ -123,15 +165,21 @@
   {% endif %}
 
   <div class="hero-box">
-
     {% if pode_acessar_solicitacoes_ti %}
       <div class="detail-card">
         <h2>Solicitações TI recentes</h2>
 
         {% for chamado in ultimos_chamados_ti %}
           <div class="notification-card">
-            <strong>#{{ chamado.id }} — {{ chamado.titulo }}</strong>
-            <p>{{ chamado.get_status_display }} • {{ chamado.criado_em|date:"d/m/Y H:i" }}</p>
+            <strong>
+              #{{ chamado.id }} — {{ chamado.titulo }}
+            </strong>
+
+            <p>
+              {{ chamado.get_status_display }}
+              •
+              {{ chamado.criado_em|date:"d/m/Y H:i" }}
+            </p>
           </div>
         {% empty %}
           <p>Nenhuma solicitação de TI recente.</p>
@@ -145,31 +193,41 @@
       {% for aviso in avisos_dashboard %}
         <div class="notification-card">
           <strong>{{ aviso.titulo }}</strong>
-          <p>{{ aviso.publicado_em|date:"d/m/Y H:i" }}</p>
+
+          <p>
+            {{ aviso.publicado_em|date:"d/m/Y H:i" }}
+          </p>
         </div>
       {% empty %}
         <p>Nenhum aviso ativo no dashboard.</p>
       {% endfor %}
     </div>
-
   </div>
 
-  <div class="detail-card">
-      {% if pode_ver_painel_tecnico %}
+  {% if pode_ver_painel_tecnico %}
     <div class="detail-card">
       <h2>Timeline operacional</h2>
 
       {% for evento in timeline_global %}
         <div class="notification-card">
-          <strong>{{ evento.icone }} {{ evento.titulo }}</strong>
-          <p>{{ evento.origem }} • {{ evento.data|date:"d/m/Y H:i" }}</p>
+          <strong>
+            {{ evento.icone }} {{ evento.titulo }}
+          </strong>
+
+          <p>
+            {{ evento.origem }}
+            •
+            {{ evento.data|date:"d/m/Y H:i" }}
+          </p>
 
           {% if evento.descricao %}
             <p>{{ evento.descricao }}</p>
           {% endif %}
 
           {% if evento.link %}
-            <a href="{{ evento.link }}" class="btn-link">Abrir</a>
+            <a href="{{ evento.link }}" class="btn-link">
+              Abrir
+            </a>
           {% endif %}
         </div>
       {% empty %}
@@ -179,6 +237,8 @@
 
     <br>
   {% endif %}
+
+  <div class="detail-card">
     <h2>Módulos disponíveis</h2>
 
     {% for categoria in categorias %}
