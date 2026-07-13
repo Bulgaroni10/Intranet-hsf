@@ -279,3 +279,6 @@ class PainelNOCTests(TestCase):
         self.assertEqual(resposta.status_code, 200)
         self.assertContains(resposta, 'PC-A')
         self.assertNotContains(resposta, 'PC-B')
+        self.assertContains(resposta, 'class="noc-header"')
+        self.assertNotContains(resposta, 'class="gsf-sidebar"')
+        self.assertNotContains(resposta, 'core/js/home.js')

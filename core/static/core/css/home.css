@@ -1,7 +1,8 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
 /* Todas as telas legadas carregam home.css; o tema deve chegar nelas também. */
-@import url('theme.css');
+@import url('gsf-ui.css');
 @import url('gsf-layout.css');
+@import url('theme.css');
 
 * {
   box-sizing: border-box;
