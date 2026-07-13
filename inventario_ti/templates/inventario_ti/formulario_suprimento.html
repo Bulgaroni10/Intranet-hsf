@@ -3,6 +3,5 @@
 <div class="form-card"><form method="post">{% csrf_token %}<div class="form-grid">
 <div class="form-group"><label>Suprimento</label><input name="nome" required placeholder="Ex.: Toner TN-3472"></div>
 <div class="form-group"><label>Categoria</label><select name="categoria">{% for valor, rotulo in categorias %}<option value="{{ valor }}">{{ rotulo }}</option>{% endfor %}</select></div>
-<div class="form-group"><label>Fabricante</label><input name="fabricante" placeholder="Ex.: Brother"></div><div class="form-group"><label>Modelo</label><input name="modelo_compativel" placeholder="Ex.: TN-3472 ou MFC-L6902DW"></div>
 <div class="form-group"><label>Quantidade</label><input type="number" min="1" name="quantidade" value="1" required></div>
 </div><button class="btn-submit" type="submit">Cadastrar</button></form></div></div>{% endblock %}

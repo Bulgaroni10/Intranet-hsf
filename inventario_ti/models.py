@@ -252,7 +252,7 @@ class SuprimentoTI(models.Model):
     ]
 
     unidade = models.ForeignKey(Unidade, on_delete=models.PROTECT, related_name="suprimentos_ti")
-    setor = models.ForeignKey(Setor, on_delete=models.PROTECT, related_name="suprimentos_ti")
+    setor = models.ForeignKey(Setor, on_delete=models.PROTECT, related_name="suprimentos_ti", null=True, blank=True)
     codigo = models.CharField(max_length=80)
     nome = models.CharField(max_length=180)
     categoria = models.CharField(max_length=30, choices=CATEGORIA_CHOICES, default="outro")
@@ -267,7 +267,7 @@ class SuprimentoTI(models.Model):
     class Meta:
         ordering = ["nome"]
         constraints = [
-            models.UniqueConstraint(fields=["unidade", "setor", "codigo"], name="uniq_suprimento_unidade_setor_codigo"),
+            models.UniqueConstraint(fields=["unidade", "codigo"], name="uniq_suprimento_unidade_codigo"),
         ]
 
     def __str__(self):
@@ -275,7 +275,7 @@ class SuprimentoTI(models.Model):
 
     @property
     def estoque_baixo(self):
-        return self.quantidade <= self.estoque_minimo
+        return self.quantidade <= 5
 
 
 class MovimentacaoSuprimentoTI(models.Model):

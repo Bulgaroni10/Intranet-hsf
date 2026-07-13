@@ -1,6 +1,6 @@
 from django.utils import timezone
 
-from inventario_ti.models import ComputadorInventario, ErroAgenteInventario, ImpressoraMonitorada, MonitoramentoActiveDirectory, MonitoramentoServidor, MonitoramentoRede
+from inventario_ti.models import ComputadorInventario, ErroAgenteInventario, ImpressoraMonitorada, MonitoramentoActiveDirectory, MonitoramentoServidor, MonitoramentoRede, SuprimentoTI
 from status_sistemas.models import OcorrenciaSistema, SistemaMonitorado
 
 
@@ -12,11 +12,13 @@ def montar_contexto_noc(user):
     active_directory = MonitoramentoActiveDirectory.objects.order_by('controlador').first()
     servidores = MonitoramentoServidor.objects.order_by('hostname')
     rede = MonitoramentoRede.objects.first()
+    suprimentos_baixos = SuprimentoTI.objects.filter(ativo=True, quantidade__lte=5).select_related('unidade')
     if not user.is_superuser:
         computadores = computadores.filter(unidade=user.unidade)
         erros = erros.filter(unidade=user.unidade)
         ocorrencias = ocorrencias.filter(unidade=user.unidade) | ocorrencias.filter(unidade__isnull=True)
         impressoras = impressoras.filter(unidade=user.unidade)
+        suprimentos_baixos = suprimentos_baixos.filter(unidade=user.unidade)
 
     computadores = list(computadores)
     online = [item for item in computadores if item.online]
@@ -43,4 +45,6 @@ def montar_contexto_noc(user):
         'active_directory': active_directory,
         'servidores': servidores,
         'rede': rede,
+        'suprimentos_baixos': suprimentos_baixos.order_by('quantidade', 'nome'),
+        'total_suprimentos_baixos': suprimentos_baixos.count(),
     }

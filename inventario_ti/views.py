@@ -32,6 +32,7 @@ from .services import (
     reconciliar_patrimonios_por_serial,
     vincular_patrimonio_por_serial,
 )
+from .services_suprimentos import LIMITE_ALERTA_SUPRIMENTO, sincronizar_alerta_suprimento
 
 VERSAO_AGENT_ATUAL = "2.1.0"
 
@@ -1089,31 +1090,23 @@ def maquinas(request):
 @login_required
 def suprimentos(request):
     unidade_id = getattr(request.user, "unidade_id", None)
-    setor_id = getattr(request.user, "setor_id", None)
     if not unidade_id:
         return render(request, "core/sem_permissao.html", status=403)
 
     itens = SuprimentoTI.objects.select_related("unidade", "setor").filter(unidade_id=unidade_id, ativo=True)
-    if not usuario_eh_ti(request.user):
-        if not setor_id:
-            return render(request, "core/sem_permissao.html", status=403)
-        itens = itens.filter(setor_id=setor_id)
 
     busca = request.GET.get("busca", "").strip()
     categoria = request.GET.get("categoria", "").strip()
-    setor_filtro = request.GET.get("setor", "").strip()
     if busca:
-        itens = itens.filter(Q(codigo__icontains=busca) | Q(nome__icontains=busca) | Q(modelo_compativel__icontains=busca))
+        itens = itens.filter(Q(codigo__icontains=busca) | Q(nome__icontains=busca))
     if categoria:
         itens = itens.filter(categoria=categoria)
-    if setor_filtro and usuario_eh_ti(request.user):
-        itens = itens.filter(setor_id=setor_filtro)
 
     lista = list(itens)
     totais = {
         "itens": len(lista),
         "unidades_estoque": sum(item.quantidade for item in lista),
-        "estoque_baixo": sum(1 for item in lista if item.estoque_baixo),
+        "estoque_baixo": sum(1 for item in lista if item.quantidade <= LIMITE_ALERTA_SUPRIMENTO),
         "zerados": sum(1 for item in lista if item.quantidade == 0),
     }
     return render(request, "inventario_ti/suprimentos.html", {
@@ -1121,25 +1114,20 @@ def suprimentos(request):
         "totais": totais,
         "busca": busca,
         "categoria": categoria,
-        "setor_filtro": setor_filtro,
         "categorias": SuprimentoTI.CATEGORIA_CHOICES,
-        "setores": Setor.objects.filter(ativo=True).order_by("nome"),
-        "pode_gerenciar_todos": usuario_eh_ti(request.user),
+        "limite_alerta": LIMITE_ALERTA_SUPRIMENTO,
     })
 
 
 @login_required
 def novo_suprimento(request):
     unidade = getattr(request.user, "unidade", None)
-    setor_usuario = getattr(request.user, "setor", None)
-    if not unidade or not setor_usuario:
+    if not unidade:
         return render(request, "core/sem_permissao.html", status=403)
 
     if request.method == "POST":
         nome = request.POST.get("nome", "").strip()
         categoria = request.POST.get("categoria", "outro").strip()
-        fabricante = request.POST.get("fabricante", "").strip()
-        modelo_compativel = request.POST.get("modelo_compativel", "").strip()
         erros = []
         if not nome:
             erros.append("Informe o suprimento.")
@@ -1156,7 +1144,6 @@ def novo_suprimento(request):
             with transaction.atomic():
                 existente = SuprimentoTI.objects.select_for_update().filter(
                     unidade=unidade,
-                    setor=setor_usuario,
                     nome__iexact=nome,
                     categoria=categoria,
                     ativo=True,
@@ -1165,23 +1152,16 @@ def novo_suprimento(request):
                     foi_somado = True
                     saldo_anterior = existente.quantidade
                     existente.quantidade += quantidade
-                    if fabricante and not existente.fabricante:
-                        existente.fabricante = fabricante
-                    if modelo_compativel and not existente.modelo_compativel:
-                        existente.modelo_compativel = modelo_compativel
-                    existente.save(update_fields=["quantidade", "fabricante", "modelo_compativel", "atualizado_em"])
+                    existente.save(update_fields=["quantidade", "atualizado_em"])
                     item = existente
                 else:
                     foi_somado = False
                     saldo_anterior = 0
                     item = SuprimentoTI.objects.create(
                         unidade=unidade,
-                        setor=setor_usuario,
                         codigo=f"SUP-{uuid.uuid4().hex[:10].upper()}",
                         nome=nome,
                         categoria=categoria,
-                        fabricante=fabricante,
-                        modelo_compativel=modelo_compativel,
                         quantidade=quantidade,
                         estoque_minimo=1,
                     )
@@ -1190,6 +1170,7 @@ def novo_suprimento(request):
                     saldo_anterior=saldo_anterior, saldo_atual=item.quantidade, usuario=request.user,
                     observacao="Entrada registrada pelo cadastro de suprimento.",
                 )
+                sincronizar_alerta_suprimento(item)
             if foi_somado:
                 messages.success(request, f"Quantidade adicionada ao item existente. Novo saldo: {item.quantidade}.")
             else:
@@ -1204,9 +1185,7 @@ def novo_suprimento(request):
 
 
 def _suprimento_permitido(user, item):
-    if item.unidade_id != getattr(user, "unidade_id", None):
-        return False
-    return usuario_eh_ti(user) or item.setor_id == getattr(user, "setor_id", None)
+    return item.unidade_id == getattr(user, "unidade_id", None)
 
 
 @login_required
@@ -1255,6 +1234,7 @@ def movimentar_suprimento(request, suprimento_id):
                         observacao=request.POST.get("observacao", "").strip(),
                         usuario=request.user,
                     )
+                    sincronizar_alerta_suprimento(bloqueado)
             if not erros:
                 messages.success(request, "Movimentação registrada e saldo atualizado.")
                 return redirect("inventario_ti_suprimento_detalhe", suprimento_id=item.id)
@@ -1317,6 +1297,7 @@ def estornar_movimentacao_suprimento(request, suprimento_id, movimentacao_id):
             movimento.estornada_por = request.user
             movimento.motivo_estorno = motivo
             movimento.save(update_fields=["estornada_em", "estornada_por", "motivo_estorno"])
+            sincronizar_alerta_suprimento(bloqueado)
             messages.success(request, f"Movimentação estornada. Saldo restaurado para {bloqueado.quantidade}.")
 
     return redirect("inventario_ti_suprimento_detalhe", suprimento_id=item.id)

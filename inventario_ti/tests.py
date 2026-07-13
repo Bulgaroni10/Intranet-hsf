@@ -661,7 +661,7 @@ class SuprimentosTITests(TestCase):
             username="setor.a", password="teste", unidade=self.unidade, setor=self.setor_a,
         )
 
-    def test_usuario_comum_enxerga_somente_suprimentos_do_setor(self):
+    def test_usuario_enxerga_estoque_compartilhado_da_unidade(self):
         SuprimentoTI.objects.create(unidade=self.unidade, setor=self.setor_a, codigo="SUP-A", nome="Material A")
         SuprimentoTI.objects.create(unidade=self.unidade, setor=self.setor_b, codigo="SUP-B", nome="Material B")
         self.client.force_login(self.usuario)
@@ -669,7 +669,7 @@ class SuprimentosTITests(TestCase):
         resposta = self.client.get(reverse("inventario_ti_suprimentos"))
 
         self.assertContains(resposta, "SUP-A")
-        self.assertNotContains(resposta, "SUP-B")
+        self.assertContains(resposta, "SUP-B")
 
     def test_novo_cadastro_soma_quantidade_quando_nome_e_categoria_sao_iguais(self):
         existente = SuprimentoTI.objects.create(
@@ -678,7 +678,7 @@ class SuprimentosTITests(TestCase):
         )
         request = self.factory.post(
             "/portal/modulos/inventario-ti/suprimentos/novo/",
-            {"nome": "toner tn-3472", "categoria": "toner", "fabricante": "Brother", "quantidade": "5"},
+            {"nome": "toner tn-3472", "categoria": "toner", "quantidade": "5"},
         )
         request.user = self.usuario
         request.session = {}
@@ -689,7 +689,6 @@ class SuprimentosTITests(TestCase):
 
         self.assertEqual(resposta.status_code, 302)
         self.assertEqual(existente.quantidade, 15)
-        self.assertEqual(existente.fabricante, "Brother")
         self.assertEqual(SuprimentoTI.objects.count(), 1)
         movimento = existente.movimentacoes.get()
         self.assertEqual(movimento.saldo_anterior, 10)
@@ -785,3 +784,27 @@ class SuprimentosTITests(TestCase):
         self.assertEqual(movimento.estornada_por, self.usuario)
         self.assertEqual(movimento.motivo_estorno, "Saída lançada por engano.")
         self.assertTrue(MovimentacaoSuprimentoTI.objects.filter(id=movimento.id).exists())
+
+    def test_saida_que_chega_em_cinco_notifica_ti_da_unidade(self):
+        grupo_ti = Group.objects.create(name="TI")
+        tecnico = get_user_model().objects.create_user(
+            username="tecnico.estoque", unidade=self.unidade, setor=self.setor_a,
+        )
+        tecnico.groups.add(grupo_ti)
+        item = SuprimentoTI.objects.create(
+            unidade=self.unidade, codigo="ALERTA-5", nome="Toner Alerta",
+            categoria="toner", quantidade=6,
+        )
+        request = self.factory.post(
+            f"/portal/modulos/inventario-ti/suprimentos/{item.id}/movimentar/",
+            {"tipo": "saida", "quantidade": "1", "setor_destino": str(self.setor_b.id)},
+        )
+        request.user = self.usuario
+        request.session = {}
+        request._messages = FallbackStorage(request)
+
+        movimentar_suprimento(request, item.id)
+
+        notificacao = tecnico.notificacoes.get(origem="suprimento_estoque_baixo", objeto_id=str(item.id))
+        self.assertFalse(notificacao.lida)
+        self.assertIn("Restam 5", notificacao.descricao)

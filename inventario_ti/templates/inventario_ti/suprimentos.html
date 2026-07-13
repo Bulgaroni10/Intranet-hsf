@@ -1,7 +1,7 @@
 {% extends "base/base.html" %}
 {% block title %}Suprimentos{% endblock %}
 {% block content %}<div class="page">
-  {% include "components/page_header.html" with eyebrow="Estoque" icon="📦" title="Suprimentos" subtitle="Controle de materiais por unidade e setor." action_url_name="inventario_ti_suprimento_novo" action_text="Novo suprimento" %}
+  {% include "components/page_header.html" with eyebrow="Estoque" icon="📦" title="Suprimentos" subtitle="Controle compartilhado de materiais da unidade." action_url_name="inventario_ti_suprimento_novo" action_text="Novo suprimento" %}
   <div class="summary-grid">
     {% include "components/kpi_card.html" with icon="📋" title="Itens" value=totais.itens %}
     {% include "components/kpi_card.html" with icon="📦" title="Unidades em estoque" value=totais.unidades_estoque %}
@@ -9,13 +9,12 @@
     {% include "components/kpi_card.html" with icon="⛔" title="Zerados" value=totais.zerados color="danger" %}
   </div>
   <div class="form-card"><form method="get" class="form-grid">
-    <div class="form-group"><label>Pesquisar</label><input name="busca" value="{{ busca }}" placeholder="Código, nome ou modelo compatível"></div>
+    <div class="form-group"><label>Pesquisar</label><input name="busca" value="{{ busca }}" placeholder="Código ou nome do suprimento"></div>
     <div class="form-group"><label>Categoria</label><select name="categoria"><option value="">Todas</option>{% for valor, rotulo in categorias %}<option value="{{ valor }}" {% if categoria == valor %}selected{% endif %}>{{ rotulo }}</option>{% endfor %}</select></div>
-    {% if pode_gerenciar_todos %}<div class="form-group"><label>Setor</label><select name="setor"><option value="">Todos</option>{% for setor in setores %}<option value="{{ setor.id }}" {% if setor_filtro == setor.id|stringformat:"s" %}selected{% endif %}>{{ setor.nome }}</option>{% endfor %}</select></div>{% endif %}
     <div class="form-group"><label>&nbsp;</label><button class="btn-submit">Filtrar</button></div>
   </form></div><br>
   <div class="gsf-table-card"><div class="gsf-table-wrap"><table class="gsf-table">
-    <thead><tr><th>Código</th><th>Suprimento</th><th>Categoria</th><th>Setor</th><th>Compatibilidade</th><th>Saldo</th><th>Mínimo</th><th>Situação</th><th>Ações</th></tr></thead>
-    <tbody>{% for item in suprimentos %}<tr><td><strong>{{ item.codigo }}</strong></td><td>{{ item.nome }}</td><td>{{ item.get_categoria_display }}</td><td>{{ item.setor }}</td><td>{{ item.modelo_compativel|default:"-" }}</td><td><strong>{{ item.quantidade }}</strong></td><td>{{ item.estoque_minimo }}</td><td>{% if item.estoque_baixo %}<span class="gsf-badge gsf-badge-danger">Estoque baixo</span>{% else %}<span class="gsf-badge gsf-badge-success">Normal</span>{% endif %}</td><td><a class="btn-link" href="{% url 'inventario_ti_suprimento_detalhe' item.id %}">Histórico</a> <a class="btn-success" href="{% url 'inventario_ti_suprimento_movimentar' item.id %}">Movimentar</a></td></tr>{% empty %}<tr><td colspan="9">Nenhum suprimento cadastrado para este setor.</td></tr>{% endfor %}</tbody>
+    <thead><tr><th>Código</th><th>Suprimento</th><th>Categoria</th><th>Saldo</th><th>Alerta</th><th>Situação</th><th>Ações</th></tr></thead>
+    <tbody>{% for item in suprimentos %}<tr><td><strong>{{ item.codigo }}</strong></td><td>{{ item.nome }}</td><td>{{ item.get_categoria_display }}</td><td><strong>{{ item.quantidade }}</strong></td><td>5 unidades</td><td>{% if item.estoque_baixo %}<span class="gsf-badge gsf-badge-danger">Estoque baixo</span>{% else %}<span class="gsf-badge gsf-badge-success">Normal</span>{% endif %}</td><td><a class="btn-link" href="{% url 'inventario_ti_suprimento_detalhe' item.id %}">Histórico</a> <a class="btn-success" href="{% url 'inventario_ti_suprimento_movimentar' item.id %}">Movimentar</a></td></tr>{% empty %}<tr><td colspan="7">Nenhum suprimento cadastrado nesta unidade.</td></tr>{% endfor %}</tbody>
   </table></div></div>
 </div>{% endblock %}

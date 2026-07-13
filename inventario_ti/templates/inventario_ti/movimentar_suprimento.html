@@ -1,6 +1,6 @@
 {% extends "base/base.html" %}{% block title %}Movimentar {{ item.nome }}{% endblock %}{% block content %}<div class="page">
 {% include "components/page_header.html" with eyebrow="Suprimentos" icon="🔄" title="Movimentar estoque" subtitle="Registre entrada, saída ou ajuste com rastreabilidade." secondary_url_name="inventario_ti_suprimentos" secondary_text="Voltar" %}
-<div class="detail-card"><h2>{{ item.codigo }} · {{ item.nome }}</h2><p>Saldo disponível: <strong>{{ item.quantidade }}</strong> · Estoque mínimo: {{ item.estoque_minimo }}</p></div>
+<div class="detail-card"><h2>{{ item.codigo }} · {{ item.nome }}</h2><p>Saldo disponível: <strong>{{ item.quantidade }}</strong> · Alerta automático em 5 unidades</p></div>
 <div class="form-card"><form method="post">{% csrf_token %}<div class="form-grid">
 <div class="form-group"><label>Movimentação</label><select name="tipo">{% for valor, rotulo in tipos %}<option value="{{ valor }}">{{ rotulo }}</option>{% endfor %}</select></div>
 <div class="form-group"><label>Quantidade</label><input type="number" min="1" name="quantidade" required><small>Em ajuste, informe o novo saldo total.</small></div>
