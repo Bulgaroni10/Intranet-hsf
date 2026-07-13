@@ -25,9 +25,9 @@ Padrão-alvo: tema escuro corporativo, sidebar/topbar únicas, cards `gsf-*`, fo
 - [x] Ramais e contatos — tema escuro e exportação CSV com filtros.
 - [x] Solicitações TI.
 - [x] Inventário TI — visão geral, patrimônio, máquinas e suprimentos.
-- [ ] Estoque Setorial.
-- [ ] NOC.
-- [ ] Status de sistemas.
+- [x] Estoque Setorial.
+- [x] NOC.
+- [x] Status de sistemas.
 - [ ] Links úteis e manuais.
 - [ ] MV, convênios e importações.
 - [ ] Código TUSS.

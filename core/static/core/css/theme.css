@@ -751,6 +751,32 @@ body.gsf-legacy-with-sidebar.gsf-sidebar-collapsed .chat-page {
   overflow-wrap: anywhere;
 }
 
+/* Status dos sistemas */
+.systems-grid {
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)) !important;
+}
+
+.incident-grid {
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)) !important;
+}
+
+.system-card,
+.incident-card,
+.system-title,
+.incident-title,
+.system-description,
+.detail {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.system-actions,
+.actions-row,
+.form-actions {
+  align-items: center;
+  flex-wrap: wrap;
+}
+
 .btn-submit,
 .btn-success,
 .btn-link,
@@ -865,5 +891,11 @@ body.gsf-legacy-with-sidebar.gsf-sidebar-collapsed .chat-page {
   .doc-badges,
   .doc-actions {
     justify-content: flex-start;
+  }
+
+  .system-top,
+  .incident-top {
+    align-items: flex-start !important;
+    flex-direction: column;
   }
 }
