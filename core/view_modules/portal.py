@@ -15,5 +15,5 @@ def portal(request):
 
 @login_required(login_url="/")
 def sidebar_global(request):
-    """Entrega a mesma sidebar do portal às telas legadas autenticadas."""
-    return render(request, "partials/sidebar.html")
+    """Entrega sidebar e topbar do portal às telas legadas autenticadas."""
+    return render(request, "partials/legacy_chrome.html")

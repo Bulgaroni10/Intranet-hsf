@@ -44,14 +44,37 @@ async function ensureGlobalSidebar() {
 
     if (!response.ok || response.redirected) return;
 
-    const sidebarHtml = await response.text();
-    if (!sidebarHtml.includes('gsf-sidebar')) return;
+    const chromeHtml = await response.text();
+    if (!chromeHtml.includes('gsf-sidebar') || !chromeHtml.includes('gsf-topbar')) return;
 
-    document.body.insertAdjacentHTML('afterbegin', sidebarHtml);
+    const fragment = document.createRange().createContextualFragment(chromeHtml);
+    document.body.prepend(fragment);
     document.body.classList.add('gsf-legacy-with-sidebar');
+    initializeLegacyTopbar();
   } catch (error) {
     console.error('Erro ao carregar a sidebar global:', error);
   }
+}
+
+function initializeLegacyTopbar() {
+  document.querySelectorAll('[data-notification-id]').forEach(item => {
+    item.addEventListener('click', async event => {
+      event.preventDefault();
+      await fetch(`/api/notificacoes/${item.dataset.notificationId}/lida/`, {
+        method: 'POST',
+        headers: { 'X-CSRFToken': getCsrfToken() }
+      });
+      window.location.href = item.href;
+    });
+  });
+
+  document.querySelector('[data-mark-all-notifications]')?.addEventListener('click', async () => {
+    await fetch('/api/notificacoes/marcar-todas-lidas/', {
+      method: 'POST',
+      headers: { 'X-CSRFToken': getCsrfToken() }
+    });
+    window.location.reload();
+  });
 }
 
 function updateLoginLogo() {

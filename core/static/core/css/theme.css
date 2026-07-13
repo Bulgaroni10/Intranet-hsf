@@ -92,6 +92,24 @@ body.gsf-legacy-with-sidebar > .gsf-sidebar {
   height: 100vh;
 }
 
+body.gsf-legacy-with-sidebar > .gsf-topbar {
+  position: sticky;
+  top: 0;
+  z-index: 900;
+}
+
+body.gsf-legacy-with-sidebar #portal-screen > header {
+  display: none !important;
+}
+
+body.gsf-legacy-with-sidebar.gsf-sidebar-collapsed {
+  padding-left: 84px !important;
+}
+
+body.gsf-legacy-with-sidebar.gsf-sidebar-collapsed > .gsf-sidebar {
+  width: 84px;
+}
+
 a {
   color: inherit;
 }
@@ -613,6 +631,10 @@ table:not(.noc-grid table) tbody tr:hover {
 
 @media (max-width: 980px) {
   body.gsf-legacy-with-sidebar {
+    padding-left: 0 !important;
+  }
+
+  body.gsf-legacy-with-sidebar.gsf-sidebar-collapsed {
     padding-left: 0 !important;
   }
 

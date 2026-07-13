@@ -11,6 +11,7 @@ Padrão-alvo: tema escuro corporativo, sidebar/topbar únicas, cards `gsf-*`, fo
 - [x] Remover fundos brancos dos cards de indicadores compartilhados.
 - [x] Fazer o tema global chegar às telas legadas que carregam apenas `home.css`.
 - [x] Cobrir cards, listas, modais, formulários e áreas administrativas antigas.
+- [x] Aplicar sidebar e topbar únicas a todas as telas autenticadas legadas.
 - [ ] Revisar visualmente desktop e resolução 1366×768 no servidor.
 - [ ] Revisar responsividade em telas menores.
 

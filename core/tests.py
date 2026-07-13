@@ -182,6 +182,7 @@ class LoginUnidadeEFavoritosTests(TestCase):
         resposta = self.client.get(url)
         self.assertEqual(resposta.status_code, 200)
         self.assertContains(resposta, 'class="gsf-sidebar"')
+        self.assertContains(resposta, 'class="gsf-topbar"')
         self.assertContains(resposta, 'Dashboard')
 
 
