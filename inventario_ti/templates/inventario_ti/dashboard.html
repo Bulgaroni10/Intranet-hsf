@@ -52,6 +52,16 @@
       </div>
 
       <div class="form-group">
+        <label>Unidade</label>
+        <select name="unidade">
+          <option value="">Todas permitidas</option>
+          {% for unidade in unidades %}
+            <option value="{{ unidade.id }}" {% if filtros.unidade == unidade.id|stringformat:"s" %}selected{% endif %}>{{ unidade.sigla }} - {{ unidade.nome }}</option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div class="form-group">
         <label>Fabricante</label>
         <select name="fabricante">
           <option value="">Todos</option>
@@ -93,6 +103,7 @@
       <a href="{% url 'inventario_ti_patrimonios' %}" class="btn-link">Patrimônio TI</a>
       <a href="{% url 'inventario_ti_erros_agentes' %}" class="btn-link">Erros dos agentes</a>
       <span class="btn-muted">{{ total_filtrado }} computador(es) encontrado(s)</span>
+      <span class="btn-muted">Atualizado {{ agora|date:"H:i:s" }} - atualiza em 60s</span>
     </div>
   </div>
 
@@ -113,6 +124,7 @@
             <tr>
               <th>Status</th>
               <th>Hostname</th>
+              <th>Unidade</th>
               <th>Usuário</th>
               <th>IP Local</th>
               <th>Patrimônio</th>
@@ -136,9 +148,10 @@
                   {% endif %}
                 </td>
                 <td><strong>{{ pc.hostname }}</strong></td>
+                <td>{{ pc.unidade.sigla|default:"-" }}</td>
                 <td>{{ pc.usuario }}</td>
                 <td>{{ pc.ip_local|default:"-" }}</td>
-                <td>{{ pc.patrimonio }}</td>
+                <td>{% if pc.patrimonio_vinculado %}<a href="{% url 'inventario_ti_patrimonio_detalhe' pc.patrimonio_vinculado.id %}">{{ pc.patrimonio_vinculado.codigo }}</a>{% else %}{{ pc.patrimonio|default:"Sem vínculo" }}{% endif %}</td>
                 <td>{{ pc.sistema }}</td>
                 <td>{{ pc.fabricante }} {{ pc.modelo }}</td>
                 <td>
@@ -180,4 +193,9 @@
   {% endif %}
 
 </div>
+<script>
+  window.setTimeout(function () {
+    if (!document.hidden && !document.querySelector('input:focus, select:focus')) window.location.reload();
+  }, 60000);
+</script>
 {% endblock %}

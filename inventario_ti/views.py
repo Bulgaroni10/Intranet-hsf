@@ -202,12 +202,13 @@ def obter_filtros_inventario(request):
         "saude": request.GET.get("saude", "").strip(),
         "fabricante": request.GET.get("fabricante", "").strip(),
         "sistema": request.GET.get("sistema", "").strip(),
+        "unidade": request.GET.get("unidade", "").strip(),
         "ordenacao": request.GET.get("ordenacao", "hostname").strip() or "hostname",
     }
 
 
 def filtrar_computadores_inventario(filtros, user=None):
-    computadores = ComputadorInventario.objects.all()
+    computadores = ComputadorInventario.objects.select_related("unidade", "patrimonio_vinculado")
 
     if user:
         computadores = aplicar_escopo_unidade(computadores, user)
@@ -228,6 +229,9 @@ def filtrar_computadores_inventario(filtros, user=None):
 
     if filtros["sistema"]:
         computadores = computadores.filter(sistema=filtros["sistema"])
+
+    if filtros["unidade"]:
+        computadores = computadores.filter(unidade_id=filtros["unidade"])
 
     lista_base = list(computadores)
     lista = aplicar_filtros_memoria(
@@ -635,6 +639,11 @@ def dashboard(request):
         flat=True
     ).distinct()
 
+    if request.user.is_superuser:
+        unidades = Unidade.objects.filter(ativo=True).order_by("nome")
+    else:
+        unidades = Unidade.objects.filter(id=getattr(request.user, "unidade_id", None), ativo=True)
+
     lista_base, lista = filtrar_computadores_inventario(filtros, request.user)
     totais = montar_resumo_inventario(lista_base)
 
@@ -652,8 +661,10 @@ def dashboard(request):
         "query_string": query_string,
         "fabricantes": fabricantes,
         "sistemas": sistemas,
+        "unidades": unidades,
         "totais": totais,
         "total_filtrado": len(lista),
+        "agora": timezone.localtime(),
     })
 
 

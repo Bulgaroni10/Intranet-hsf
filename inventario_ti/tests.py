@@ -6,6 +6,7 @@ from django.contrib.auth.models import Group
 from django.contrib.messages.storage.fallback import FallbackStorage
 from django.test import RequestFactory, TestCase
 from django.urls import reverse
+from django.utils import timezone
 
 from usuarios.models import Unidade
 
@@ -14,6 +15,7 @@ from .services_ad import monitorar_active_directory
 from .services_impressoras import atualizar_impressora
 from .views import (
     agent_error,
+    dashboard,
     erros_agentes,
     exportar_erros_agentes_csv,
     exportar_inventario_csv,
@@ -21,6 +23,32 @@ from .views import (
     novo_patrimonio,
     patrimonios,
 )
+
+
+class ParqueComputadoresTests(TestCase):
+    def setUp(self):
+        self.factory = RequestFactory()
+        self.unidade = Unidade.objects.create(nome="Hospital Parque", sigla="HP")
+        self.outra = Unidade.objects.create(nome="Outra Unidade", sigla="OU2")
+        grupo = Group.objects.create(name="TI")
+        self.usuario = get_user_model().objects.create_user("parque.ti", unidade=self.unidade)
+        self.usuario.groups.add(grupo)
+
+    def test_dashboard_exibe_usuario_ip_status_e_apenas_unidade_permitida(self):
+        ComputadorInventario.objects.create(
+            hostname="PC-PARQUE", usuario="maria.silva", ip_local="192.0.2.20", unidade=self.unidade,
+            ultimo_contato=timezone.now(),
+        )
+        ComputadorInventario.objects.create(hostname="PC-OUTRA", unidade=self.outra)
+        request = self.factory.get("/portal/modulos/inventario-ti/")
+        request.user = self.usuario
+        resposta = dashboard(request)
+        conteudo = resposta.content.decode()
+        self.assertContains(resposta, "PC-PARQUE")
+        self.assertIn("maria.silva", conteudo)
+        self.assertIn("192.0.2.20", conteudo)
+        self.assertIn("ONLINE", conteudo)
+        self.assertNotIn("PC-OUTRA", conteudo)
 
 
 class _RespostaImpressoraFake:
