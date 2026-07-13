@@ -33,6 +33,16 @@
       <strong>Dashboard</strong>
     </a>
 
+    {% if favoritos_usuario %}
+      <div class="gsf-sidebar-section">Favoritos</div>
+      {% for favorito in favoritos_usuario %}
+        <a href="{{ favorito.modulo.link }}" class="gsf-sidebar-link">
+          <span>★</span>
+          <strong>{{ favorito.modulo.nome }}</strong>
+        </a>
+      {% endfor %}
+    {% endif %}
+
     <div class="gsf-sidebar-section">Operação</div>
 
     {% if pode_ver_solicitacoes_ti %}
@@ -107,16 +117,6 @@
       <span>🤝</span>
       <strong>Convênios</strong>
     </a>
-
-    {% if favoritos_usuario %}
-      <div class="gsf-sidebar-section">Favoritos</div>
-      {% for favorito in favoritos_usuario %}
-        <a href="{{ favorito.modulo.link }}" class="gsf-sidebar-link">
-          <span>★</span>
-          <strong>{{ favorito.modulo.nome }}</strong>
-        </a>
-      {% endfor %}
-    {% endif %}
 
     {% if pode_ver_tuss %}
       <a href="{% url 'catalogo_tuss' %}" class="gsf-sidebar-link"><span>🔎</span><strong>Código TUSS</strong></a>

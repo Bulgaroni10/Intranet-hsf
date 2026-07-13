@@ -31,6 +31,7 @@ from .services import (
     registrar_retorno_online,
     reconciliar_patrimonios_por_serial,
     vincular_patrimonio_por_serial,
+    vincular_patrimonio_por_hostname,
 )
 from .services_suprimentos import LIMITE_ALERTA_SUPRIMENTO, sincronizar_alerta_suprimento
 
@@ -722,6 +723,8 @@ def heartbeat(request):
             eventos_registrados += 1
 
     patrimonio_vinculado = vincular_patrimonio_por_serial(computador)
+    if not patrimonio_vinculado:
+        patrimonio_vinculado = vincular_patrimonio_por_hostname(computador)
     if patrimonio_vinculado and not computador_anterior:
         eventos_registrados += 1
 

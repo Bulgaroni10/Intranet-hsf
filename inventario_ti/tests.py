@@ -312,6 +312,26 @@ class HeartbeatHistoricoTests(TestCase):
         computador = ComputadorInventario.objects.get(hostname="PC-TESTE")
         self.assertFalse(PatrimonioTI.objects.filter(computador=computador).exists())
 
+    def test_heartbeat_cria_patrimonio_a_partir_de_hostname_p000(self):
+        payload = {**self.payload, "hostname": "P000476", "serial": "-"}
+
+        resposta = self.postar_heartbeat(payload)
+
+        computador = ComputadorInventario.objects.get(hostname="P000476")
+        patrimonio = PatrimonioTI.objects.get(codigo="P000476")
+        self.assertEqual(resposta.status_code, 200)
+        self.assertEqual(computador.patrimonio, "P000476")
+        self.assertEqual(patrimonio.computador, computador)
+        self.assertEqual(patrimonio.unidade, self.unidade)
+
+    def test_heartbeat_normaliza_espaco_no_hostname_patrimonial(self):
+        payload = {**self.payload, "hostname": "p 000477", "serial": "-"}
+
+        self.postar_heartbeat(payload)
+
+        computador = ComputadorInventario.objects.get(hostname="P 000477")
+        self.assertTrue(PatrimonioTI.objects.filter(codigo="P000477", computador=computador).exists())
+
 
 class AgentErrorTests(TestCase):
     def setUp(self):

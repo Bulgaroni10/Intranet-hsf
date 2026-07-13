@@ -1,5 +1,6 @@
 from django.db import transaction
 from django.utils import timezone
+import re
 
 from .models import (
     ComputadorInventario,
@@ -37,6 +38,62 @@ def normalizar_valor(valor):
 
 
 SERIAIS_INVALIDOS = {"", "-", "NONE", "NULL", "UNKNOWN", "TO BE FILLED BY O.E.M."}
+
+
+def codigo_patrimonio_hostname(hostname):
+    codigo = re.sub(r"\s+", "", normalizar_valor(hostname)).upper()
+    return codigo if re.fullmatch(r"P0{2,}\d+", codigo) else ""
+
+
+def vincular_patrimonio_por_hostname(computador):
+    """Usa hostnames patrimoniais P000... quando o agente ainda não possui vínculo."""
+    codigo = codigo_patrimonio_hostname(computador.hostname)
+    if not codigo or not computador.unidade_id or PatrimonioTI.objects.filter(computador=computador).exists():
+        return None
+
+    with transaction.atomic():
+        patrimonio = PatrimonioTI.objects.select_for_update().filter(codigo__iexact=codigo).first()
+        if patrimonio and patrimonio.unidade_id != computador.unidade_id:
+            return None
+        if patrimonio and patrimonio.computador_id not in (None, computador.id):
+            return None
+
+        criado = patrimonio is None
+        if criado:
+            patrimonio = PatrimonioTI.objects.create(
+                codigo=codigo,
+                tipo="computador",
+                status="em_uso",
+                computador=computador,
+                unidade=computador.unidade,
+                fabricante="" if computador.fabricante == "-" else computador.fabricante,
+                modelo="" if computador.modelo == "-" else computador.modelo,
+                serial="" if computador.serial == "-" else computador.serial,
+                observacao="Cadastro criado automaticamente pelo agente a partir do hostname patrimonial.",
+            )
+        else:
+            patrimonio.computador = computador
+            patrimonio.save(update_fields=["computador", "atualizado_em"])
+
+        ComputadorInventario.objects.filter(pk=computador.pk).update(patrimonio=codigo)
+        computador.patrimonio = codigo
+        MovimentacaoPatrimonioTI.objects.create(
+            patrimonio=patrimonio,
+            tipo="cadastro" if criado else "ajuste",
+            unidade_destino=computador.unidade,
+            observacao=f"Vínculo automático ao computador {computador.hostname} pelo hostname patrimonial.",
+        )
+        registrar_evento(
+            computador=computador,
+            tipo="alteracao",
+            titulo="Patrimônio identificado pelo hostname",
+            descricao=f"Ativo {codigo} vinculado automaticamente pelo agente.",
+            campo="patrimonio",
+            valor_anterior="-",
+            valor_novo=codigo,
+            dados={"patrimonio_id": patrimonio.id, "criterio": "hostname"},
+        )
+        return patrimonio
 
 
 def vincular_patrimonio_por_serial(computador):
