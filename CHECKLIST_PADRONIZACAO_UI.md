@@ -20,8 +20,8 @@ Padrão-alvo: tema escuro corporativo, sidebar/topbar únicas, cards `gsf-*`, fo
 - [x] Dashboard / Portal — estrutura nova já utiliza componentes GSF.
 - [x] Avisos e comunicados.
 - [x] Base de conhecimento.
-- [ ] Conversas.
-- [ ] Documentos e protocolos.
+- [x] Conversas.
+- [x] Documentos e protocolos.
 - [x] Ramais e contatos — tema escuro e exportação CSV com filtros.
 - [ ] Solicitações TI.
 - [ ] Inventário TI — visão geral, patrimônio, máquinas e suprimentos.

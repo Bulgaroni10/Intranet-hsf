@@ -102,6 +102,10 @@ body.gsf-legacy-with-sidebar #portal-screen > header {
   display: none !important;
 }
 
+body.gsf-legacy-with-sidebar > header:not(.gsf-topbar) {
+  display: none !important;
+}
+
 body.gsf-legacy-with-sidebar.gsf-sidebar-collapsed {
   padding-left: 84px !important;
 }
@@ -643,6 +647,44 @@ table:not(.noc-grid table) tbody tr:hover {
   cursor: pointer;
 }
 
+/* Conversas: ocupa o espaço útil entre a topbar e o fim da janela. */
+body.gsf-legacy-with-sidebar .chat-page {
+  width: min(100%, 1320px);
+  max-width: calc(100vw - 308px);
+}
+
+body.gsf-legacy-with-sidebar.gsf-sidebar-collapsed .chat-page {
+  max-width: calc(100vw - 112px);
+}
+
+.chat-sidebar,
+.chat-main,
+.chat-list,
+.chat-messages {
+  min-width: 0;
+  min-height: 0;
+}
+
+.chat-compose textarea {
+  width: auto !important;
+}
+
+/* Documentos e protocolos */
+.docs-grid,
+.doc-summary-grid {
+  min-width: 0;
+}
+
+.doc-top {
+  align-items: flex-start;
+}
+
+.doc-card,
+.doc-description,
+.doc-meta {
+  overflow-wrap: anywhere;
+}
+
 .btn-submit,
 .btn-success,
 .btn-link,
@@ -700,5 +742,36 @@ table:not(.noc-grid table) tbody tr:hover {
 
   body.gsf-legacy-with-sidebar > .gsf-sidebar {
     display: none;
+  }
+
+  body.gsf-legacy-with-sidebar .chat-page,
+  body.gsf-legacy-with-sidebar.gsf-sidebar-collapsed .chat-page {
+    width: calc(100% - 28px);
+    max-width: none;
+  }
+}
+
+@media (max-width: 640px) {
+  .chat-compose {
+    align-items: stretch !important;
+    flex-direction: column;
+  }
+
+  .chat-compose textarea,
+  .chat-send-btn {
+    width: 100% !important;
+  }
+
+  .message-bubble {
+    max-width: 90% !important;
+  }
+
+  .doc-summary-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  .doc-badges,
+  .doc-actions {
+    justify-content: flex-start;
   }
 }
