@@ -1,6 +1,6 @@
 from django.utils import timezone
 
-from inventario_ti.models import ComputadorInventario, ErroAgenteInventario, ImpressoraMonitorada
+from inventario_ti.models import ComputadorInventario, ErroAgenteInventario, ImpressoraMonitorada, MonitoramentoActiveDirectory
 from status_sistemas.models import OcorrenciaSistema, SistemaMonitorado
 
 
@@ -9,6 +9,7 @@ def montar_contexto_noc(user):
     erros = ErroAgenteInventario.objects.select_related('unidade').order_by('-criado_em')
     ocorrencias = OcorrenciaSistema.objects.filter(ativo=True).select_related('sistema', 'unidade')
     impressoras = ImpressoraMonitorada.objects.filter(ativo=True).select_related('unidade')
+    active_directory = MonitoramentoActiveDirectory.objects.order_by('controlador').first()
     if not user.is_superuser:
         computadores = computadores.filter(unidade=user.unidade)
         erros = erros.filter(unidade=user.unidade)
@@ -37,4 +38,5 @@ def montar_contexto_noc(user):
         'total_impressoras': len(impressoras),
         'impressoras_online': sum(1 for item in impressoras if item.online),
         'alertas_impressoras': sum(1 for item in impressoras if item.possui_alerta),
+        'active_directory': active_directory,
     }

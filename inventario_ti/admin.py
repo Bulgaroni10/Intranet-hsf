@@ -7,6 +7,7 @@ from .models import (
     MovimentacaoPatrimonioTI,
     PatrimonioTI,
     ImpressoraMonitorada,
+    MonitoramentoActiveDirectory,
 )
 
 
@@ -202,3 +203,9 @@ class ImpressoraMonitoradaAdmin(admin.ModelAdmin):
     search_fields = ["local", "ip", "modelo_informado", "modelo_detectado"]
     list_filter = ["unidade", "online", "ativo"]
     readonly_fields = ["modelo_detectado", "online", "status_dispositivo", "toner_percentual", "cilindro_percentual", "ultimo_erro", "ultima_consulta", "criado_em", "atualizado_em"]
+
+
+@admin.register(MonitoramentoActiveDirectory)
+class MonitoramentoActiveDirectoryAdmin(admin.ModelAdmin):
+    list_display = ["controlador", "ip", "online", "ldap_ok", "kerberos_ok", "dns_ok", "smb_ok", "latencia_ms", "ultima_consulta"]
+    readonly_fields = ["ip", "online", "ldap_ok", "kerberos_ok", "dns_ok", "smb_ok", "latencia_ms", "detalhe", "ultima_consulta", "atualizado_em"]

@@ -8,7 +8,8 @@ from django.test import RequestFactory, TestCase
 
 from usuarios.models import Unidade
 
-from .models import ComputadorInventario, ErroAgenteInventario, ImpressoraMonitorada, MovimentacaoPatrimonioTI, PatrimonioTI
+from .models import ComputadorInventario, ErroAgenteInventario, ImpressoraMonitorada, MonitoramentoActiveDirectory, MovimentacaoPatrimonioTI, PatrimonioTI
+from .services_ad import monitorar_active_directory
 from .services_impressoras import atualizar_impressora
 from .views import (
     agent_error,
@@ -79,6 +80,30 @@ class MonitoramentoImpressoraTests(TestCase):
         self.impressora.refresh_from_db()
         self.assertFalse(self.impressora.online)
         self.assertIn("não pertence", self.impressora.status_dispositivo)
+
+
+class MonitoramentoActiveDirectoryTests(TestCase):
+    def setUp(self):
+        grupo = Group.objects.create(name="TI")
+        self.usuario = get_user_model().objects.create_user("analista.ti")
+        self.usuario.groups.add(grupo)
+
+    @patch("inventario_ti.services_ad.socket.gethostbyname", return_value="192.0.2.30")
+    @patch("inventario_ti.services_ad._porta_aberta", return_value=4)
+    def test_servicos_disponiveis_nao_geram_alerta(self, _porta, _dns):
+        item = monitorar_active_directory("dc.example.test")
+        self.assertTrue(item.online)
+        self.assertTrue(item.ldap_ok)
+        self.assertEqual(item.latencia_ms, 4)
+        self.assertFalse(self.usuario.notificacoes.filter(origem="active_directory", lida=False).exists())
+
+    @patch("inventario_ti.services_ad.socket.gethostbyname", return_value="192.0.2.30")
+    @patch("inventario_ti.services_ad._porta_aberta", side_effect=OSError("indisponível"))
+    def test_falha_dos_servicos_gera_alerta_para_ti(self, _porta, _dns):
+        item = monitorar_active_directory("dc.example.test")
+        self.assertFalse(item.online)
+        self.assertTrue(item.possui_alerta)
+        self.assertTrue(self.usuario.notificacoes.filter(origem="active_directory", lida=False).exists())
 
 
 class HeartbeatHistoricoTests(TestCase):

@@ -276,3 +276,29 @@ class ImpressoraMonitorada(models.Model):
         toner_baixo = self.toner_percentual is not None and self.toner_percentual <= 20
         cilindro_baixo = self.cilindro_percentual is not None and self.cilindro_percentual <= 20
         return not self.online or toner_baixo or cilindro_baixo or any(termo in texto for termo in termos)
+
+
+class MonitoramentoActiveDirectory(models.Model):
+    controlador = models.CharField(max_length=255, unique=True)
+    ip = models.GenericIPAddressField(null=True, blank=True)
+    online = models.BooleanField(default=False)
+    ldap_ok = models.BooleanField(default=False)
+    kerberos_ok = models.BooleanField(default=False)
+    dns_ok = models.BooleanField(default=False)
+    smb_ok = models.BooleanField(default=False)
+    latencia_ms = models.PositiveIntegerField(null=True, blank=True)
+    detalhe = models.TextField(blank=True, default="")
+    ultima_consulta = models.DateTimeField(null=True, blank=True)
+    atualizado_em = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = "Monitoramento do Active Directory"
+        verbose_name_plural = "Monitoramentos do Active Directory"
+        ordering = ["controlador"]
+
+    def __str__(self):
+        return self.controlador
+
+    @property
+    def possui_alerta(self):
+        return not all((self.online, self.ldap_ok, self.kerberos_ok, self.dns_ok, self.smb_ok))

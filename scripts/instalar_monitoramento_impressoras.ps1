@@ -24,7 +24,7 @@ if ($IntervaloMinutos -lt 1) {
 
 $acao = New-ScheduledTaskAction `
     -Execute $Python `
-    -Argument 'manage.py monitorar_impressoras' `
+    -Argument 'manage.py monitorar_noc' `
     -WorkingDirectory $Projeto
 
 $gatilho = New-ScheduledTaskTrigger `
@@ -47,7 +47,7 @@ Register-ScheduledTask `
     -Force | Out-Null
 
 Write-Host 'Executando a primeira coleta...' -ForegroundColor Cyan
-& $Python $managePy monitorar_impressoras
+& $Python $managePy monitorar_noc
 if ($LASTEXITCODE -ne 0) {
     throw "A coleta inicial terminou com código $LASTEXITCODE."
 }
