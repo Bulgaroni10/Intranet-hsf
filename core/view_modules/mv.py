@@ -1,4 +1,5 @@
 from .common import *
+from convenios.mv_oracle import IntegracaoMVErro, sincronizar_unidade
 
 
 @login_required(login_url='/')
@@ -149,7 +150,8 @@ def mv_convenios(request):
         proibicoes = proibicoes.filter(ativo=True)
 
     busca = request.GET.get('busca', '').strip()
-    unidade_id = request.GET.get('unidade', '').strip()
+    unidade_ativa = getattr(request.user, 'unidade', None)
+    unidade_id = str(unidade_ativa.id) if unidade_ativa else ''
     convenio_id = request.GET.get('convenio', '').strip()
     plano_id = request.GET.get('plano', '').strip()
     tipo_atendimento = request.GET.get('tipo_atendimento', '').strip()
@@ -228,8 +230,8 @@ def mv_convenios(request):
         'regras': regras,
         'proibicoes': proibicoes,
         'unidades': Unidade.objects.filter(ativo=True).order_by('nome'),
-        'convenios': Convenio.objects.filter(ativo=True).order_by('nome'),
-        'planos': PlanoConvenio.objects.filter(ativo=True).select_related('convenio').order_by('convenio__nome', 'nome'),
+        'convenios': Convenio.objects.filter(ativo=True, unidades=unidade_ativa).distinct().order_by('nome') if unidade_ativa else Convenio.objects.none(),
+        'planos': PlanoConvenio.objects.filter(ativo=True, convenio__unidades=unidade_ativa).distinct().select_related('convenio').order_by('convenio__nome', 'nome') if unidade_ativa else PlanoConvenio.objects.none(),
         'especialidades': Especialidade.objects.filter(ativo=True).order_by('nome'),
         'todos_convenios': Convenio.objects.all().order_by('nome'),
         'todos_planos': PlanoConvenio.objects.select_related('convenio').all().order_by('convenio__nome', 'nome'),
@@ -245,6 +247,7 @@ def mv_convenios(request):
         'status': status,
         'procedimento': procedimento,
         'pode_gerenciar_mv': pode_gerenciar_mv,
+        'unidade_ativa': unidade_ativa,
         'chamados_mv': chamados_mv,
         'total_chamados_mv_abertos': total_chamados_mv_abertos,
         'total_chamados_mv_atendimento': total_chamados_mv_atendimento,
@@ -255,6 +258,41 @@ def mv_convenios(request):
         'total_regras': RegraAtendimentoConvenio.objects.count(),
         'total_procedimentos': ProcedimentoProibidoPlano.objects.count(),
     })
+
+
+@login_required(login_url='/')
+@require_POST
+def sincronizar_convenios_mv(request):
+    if not usuario_eh_admin_ti(request.user):
+        return render(request, 'core/sem_permissao.html', status=403)
+
+    unidade = getattr(request.user, 'unidade', None)
+    if unidade is None:
+        messages.error(request, 'Selecione uma empresa antes de sincronizar.')
+        return redirect('mv_convenios')
+
+    try:
+        resultado = sincronizar_unidade(unidade)
+    except IntegracaoMVErro as exc:
+        messages.error(request, str(exc))
+    else:
+        messages.success(
+            request,
+            f'MV sincronizado para {unidade.sigla}: '
+            f'{resultado["convenios"]} convênios, {resultado["planos"]} planos e '
+            f'{resultado["regras"]} regras.',
+        )
+        RegistroAuditoria.objects.create(
+            modulo='convenios',
+            acao='atualizado',
+            titulo=f'Convênios sincronizados com MV - {unidade.sigla}',
+            descricao=str(resultado),
+            modelo='Convenio',
+            usuario=request.user,
+            unidade=unidade,
+            ip_origem=obter_ip_cliente(request),
+        )
+    return redirect('mv_convenios')
 
 @login_required(login_url='/')
 def novo_convenio_mv(request):

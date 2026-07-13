@@ -333,6 +333,19 @@
               >
               <span class="hint">Use siglas curtas, como HSFOS, HSFVF, HSFMA.</span>
             </div>
+
+            <div class="field">
+              <label for="codigo_mv">Código da empresa no MV</label>
+              <input
+                type="number"
+                min="1"
+                id="codigo_mv"
+                name="codigo_mv"
+                value="{{ form_data.codigo_mv|default:'' }}"
+                placeholder="Ex: 1"
+              >
+              <span class="hint">Usado para trazer convênios e planos diretamente do Oracle do MV.</span>
+            </div>
           </div>
 
           <label class="check-card">

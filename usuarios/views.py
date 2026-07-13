@@ -542,6 +542,7 @@ def nova_unidade(request):
     form_data = {
         'nome': '',
         'sigla': '',
+        'codigo_mv': '',
         'ativo': True,
     }
 
@@ -549,6 +550,7 @@ def nova_unidade(request):
         form_data = {
             'nome': request.POST.get('nome', '').strip(),
             'sigla': request.POST.get('sigla', '').strip().upper(),
+            'codigo_mv': request.POST.get('codigo_mv', '').strip(),
             'ativo': request.POST.get('ativo') == 'on',
         }
 
@@ -576,6 +578,7 @@ def nova_unidade(request):
             unidade = Unidade(
                 nome=form_data['nome'],
                 sigla=form_data['sigla'],
+                codigo_mv=form_data['codigo_mv'] or None,
                 ativo=form_data['ativo'],
             )
 
@@ -611,6 +614,7 @@ def editar_unidade(request, unidade_id):
     form_data = {
         'nome': unidade.nome,
         'sigla': unidade.sigla,
+        'codigo_mv': unidade.codigo_mv or '',
         'ativo': unidade.ativo,
     }
 
@@ -618,6 +622,7 @@ def editar_unidade(request, unidade_id):
         form_data = {
             'nome': request.POST.get('nome', '').strip(),
             'sigla': request.POST.get('sigla', '').strip().upper(),
+            'codigo_mv': request.POST.get('codigo_mv', '').strip(),
             'ativo': request.POST.get('ativo') == 'on',
         }
 
@@ -645,6 +650,7 @@ def editar_unidade(request, unidade_id):
         try:
             unidade.nome = form_data['nome']
             unidade.sigla = form_data['sigla']
+            unidade.codigo_mv = form_data['codigo_mv'] or None
             unidade.ativo = form_data['ativo']
 
             unidade.full_clean()

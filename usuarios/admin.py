@@ -6,8 +6,8 @@ from .models import Usuario, Unidade, Setor
 
 @admin.register(Unidade)
 class UnidadeAdmin(admin.ModelAdmin):
-    list_display = ('nome', 'sigla', 'ativo')
-    search_fields = ('nome', 'sigla')
+    list_display = ('nome', 'sigla', 'codigo_mv', 'ativo')
+    search_fields = ('nome', 'sigla', 'codigo_mv')
     list_filter = ('ativo',)
 
 

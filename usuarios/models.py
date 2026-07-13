@@ -8,6 +8,12 @@ from django.db import models
 class Unidade(models.Model):
     nome = models.CharField(max_length=150)
     sigla = models.CharField(max_length=20, unique=True)
+    codigo_mv = models.PositiveIntegerField(
+        null=True,
+        blank=True,
+        unique=True,
+        verbose_name='Código da empresa no MV',
+    )
     ativo = models.BooleanField(default=True)
 
     class Meta:

@@ -5,6 +5,11 @@ from usuarios.models import Unidade
 
 
 class Convenio(models.Model):
+    unidades = models.ManyToManyField(
+        Unidade,
+        blank=True,
+        related_name='convenios_mv',
+    )
     codigo_mv = models.CharField(
         max_length=30,
         blank=True,
