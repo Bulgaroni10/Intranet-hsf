@@ -45,3 +45,4 @@
 - Sistemas exibem ocorrências ativas e distinguem “sem incidente registrado” de monitoramento confirmado.
 - Reservados painéis de impressoras, AD e capacidade sem inventar telemetria inexistente.
 - Adicionados testes de acesso, unidade e indicadores online.
+- Deploy ajustado para reconstruir o manifesto estático e evitar erro 500 após novos assets.
