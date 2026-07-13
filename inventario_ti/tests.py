@@ -56,12 +56,29 @@ class MonitoramentoImpressoraTests(TestCase):
         self.assertTrue(self.impressora.possui_alerta)
         self.assertTrue(self.usuario.notificacoes.filter(origem="impressora_monitorada", lida=False).exists())
 
+    @patch("inventario_ti.services_impressoras.consultar_snmp", return_value="")
     @patch("inventario_ti.services_impressoras.urlopen", side_effect=TimeoutError("timeout"))
-    def test_falha_de_coleta_marca_impressora_offline(self, _urlopen):
+    def test_falha_de_coleta_marca_impressora_offline(self, _urlopen, _snmp):
         atualizar_impressora(self.impressora)
         self.impressora.refresh_from_db()
         self.assertFalse(self.impressora.online)
         self.assertEqual(self.impressora.status_dispositivo, "Sem comunicação")
+
+    @patch("inventario_ti.services_impressoras.consultar_snmp", return_value="Brother NC-8900h")
+    @patch("inventario_ti.services_impressoras.urlopen", side_effect=TimeoutError("timeout"))
+    def test_snmp_e_usado_quando_painel_web_nao_responde(self, _urlopen, _snmp):
+        atualizar_impressora(self.impressora)
+        self.impressora.refresh_from_db()
+        self.assertTrue(self.impressora.online)
+        self.assertEqual(self.impressora.status_dispositivo, "Online via SNMP")
+
+    @patch("inventario_ti.services_impressoras.consultar_snmp", return_value="HPE OfficeConnect Switch")
+    @patch("inventario_ti.services_impressoras.urlopen", side_effect=TimeoutError("timeout"))
+    def test_dispositivo_nao_brother_gera_alerta_de_cadastro(self, _urlopen, _snmp):
+        atualizar_impressora(self.impressora)
+        self.impressora.refresh_from_db()
+        self.assertFalse(self.impressora.online)
+        self.assertIn("não pertence", self.impressora.status_dispositivo)
 
 
 class HeartbeatHistoricoTests(TestCase):

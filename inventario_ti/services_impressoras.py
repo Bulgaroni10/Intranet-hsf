@@ -1,3 +1,4 @@
+import asyncio
 import html
 import re
 from urllib.request import Request, urlopen
@@ -35,6 +36,32 @@ def consultar_impressora(impressora, timeout=4):
         "status_dispositivo": _texto_html(status.group(1)) if status else "Pronta",
         "toner_percentual": toner_percentual,
     }
+
+
+async def _consultar_snmp_async(ip, timeout=2):
+    from pysnmp.hlapi.v3arch.asyncio import (
+        CommunityData, ContextData, ObjectIdentity, ObjectType,
+        SnmpEngine, UdpTransportTarget, get_cmd,
+    )
+    engine = SnmpEngine()
+    try:
+        target = await UdpTransportTarget.create((str(ip), 161), timeout=timeout, retries=0)
+        erro, status, _, valores = await get_cmd(
+            engine, CommunityData("public", mpModel=1), target, ContextData(),
+            ObjectType(ObjectIdentity("1.3.6.1.2.1.1.1.0")),
+        )
+        if erro or status or not valores:
+            return ""
+        return valores[0][1].prettyPrint().strip()
+    finally:
+        engine.close_dispatcher()
+
+
+def consultar_snmp(ip, timeout=2):
+    try:
+        return asyncio.run(_consultar_snmp_async(ip, timeout))
+    except Exception:
+        return ""
 
 
 def _usuarios_ti(impressora):
@@ -79,9 +106,19 @@ def atualizar_impressora(impressora):
         impressora.toner_percentual = dados["toner_percentual"]
         impressora.ultimo_erro = ""
     except Exception as exc:
-        impressora.online = False
-        impressora.status_dispositivo = "Sem comunicação"
-        impressora.ultimo_erro = str(exc)[:1000]
+        descricao_snmp = consultar_snmp(impressora.ip)
+        if descricao_snmp.lower().startswith("brother"):
+            impressora.online = True
+            impressora.status_dispositivo = "Online via SNMP"
+            impressora.ultimo_erro = f"Painel web indisponível: {exc}"[:1000]
+        elif descricao_snmp:
+            impressora.online = False
+            impressora.status_dispositivo = "IP não pertence a uma impressora Brother"
+            impressora.ultimo_erro = descricao_snmp[:1000]
+        else:
+            impressora.online = False
+            impressora.status_dispositivo = "Sem comunicação"
+            impressora.ultimo_erro = str(exc)[:1000]
     impressora.ultima_consulta = timezone.now()
     impressora.save(update_fields=["online", "modelo_detectado", "status_dispositivo", "toner_percentual", "ultimo_erro", "ultima_consulta", "atualizado_em"])
     _sincronizar_alerta(impressora)
