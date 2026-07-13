@@ -25,6 +25,7 @@ from .views import (
     movimentar_patrimonio,
     movimentar_suprimento,
     novo_patrimonio,
+    novo_suprimento,
     patrimonios,
     suprimentos,
 )
@@ -668,6 +669,47 @@ class SuprimentosTITests(TestCase):
 
         self.assertContains(resposta, "SUP-A")
         self.assertNotContains(resposta, "SUP-B")
+
+    def test_novo_cadastro_soma_quantidade_quando_nome_e_categoria_sao_iguais(self):
+        existente = SuprimentoTI.objects.create(
+            unidade=self.unidade, setor=self.setor_a, codigo="SUP-ANTIGO",
+            nome="Toner TN-3472", categoria="toner", quantidade=10,
+        )
+        request = self.factory.post(
+            "/portal/modulos/inventario-ti/suprimentos/novo/",
+            {"nome": "toner tn-3472", "categoria": "toner", "fabricante": "Brother", "quantidade": "5"},
+        )
+        request.user = self.usuario
+        request.session = {}
+        request._messages = FallbackStorage(request)
+
+        resposta = novo_suprimento(request)
+        existente.refresh_from_db()
+
+        self.assertEqual(resposta.status_code, 302)
+        self.assertEqual(existente.quantidade, 15)
+        self.assertEqual(existente.fabricante, "Brother")
+        self.assertEqual(SuprimentoTI.objects.count(), 1)
+        movimento = existente.movimentacoes.get()
+        self.assertEqual(movimento.saldo_anterior, 10)
+        self.assertEqual(movimento.saldo_atual, 15)
+
+    def test_toners_com_nomes_diferentes_permanecem_separados(self):
+        SuprimentoTI.objects.create(
+            unidade=self.unidade, setor=self.setor_a, codigo="SUP-3472",
+            nome="Toner TN-3472", categoria="toner", quantidade=10,
+        )
+        request = self.factory.post(
+            "/portal/modulos/inventario-ti/suprimentos/novo/",
+            {"nome": "Toner TN-3442", "categoria": "toner", "quantidade": "3"},
+        )
+        request.user = self.usuario
+        request.session = {}
+        request._messages = FallbackStorage(request)
+
+        novo_suprimento(request)
+
+        self.assertEqual(SuprimentoTI.objects.count(), 2)
 
     def test_saida_registra_destino_e_atualiza_saldo(self):
         item = SuprimentoTI.objects.create(

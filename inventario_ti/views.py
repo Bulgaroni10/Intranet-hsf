@@ -11,6 +11,7 @@ import csv
 from io import BytesIO
 import json
 import re
+import uuid
 from urllib.parse import urlencode
 from django.urls import reverse
 
@@ -1131,51 +1132,73 @@ def suprimentos(request):
 def novo_suprimento(request):
     unidade = getattr(request.user, "unidade", None)
     setor_usuario = getattr(request.user, "setor", None)
-    if not unidade or (not usuario_eh_ti(request.user) and not setor_usuario):
+    if not unidade or not setor_usuario:
         return render(request, "core/sem_permissao.html", status=403)
 
-    setores = Setor.objects.filter(ativo=True).order_by("nome") if usuario_eh_ti(request.user) else Setor.objects.filter(id=setor_usuario.id)
     if request.method == "POST":
-        codigo = request.POST.get("codigo", "").strip().upper()
         nome = request.POST.get("nome", "").strip()
         categoria = request.POST.get("categoria", "outro").strip()
-        setor = setores.filter(id=request.POST.get("setor", "")).first()
+        fabricante = request.POST.get("fabricante", "").strip()
+        modelo_compativel = request.POST.get("modelo_compativel", "").strip()
         erros = []
-        if not codigo or not nome:
-            erros.append("Informe o código e o nome do suprimento.")
-        if not setor:
-            erros.append("Selecione um setor permitido.")
+        if not nome:
+            erros.append("Informe o suprimento.")
         if categoria not in {valor for valor, _rotulo in SuprimentoTI.CATEGORIA_CHOICES}:
-            erros.append("Categoria inválida.")
-        if setor and SuprimentoTI.objects.filter(unidade=unidade, setor=setor, codigo__iexact=codigo).exists():
-            erros.append("Já existe um suprimento com este código no setor.")
+            erros.append("Informe uma categoria válida.")
         try:
-            quantidade = max(0, int(request.POST.get("quantidade", "0")))
-            estoque_minimo = max(0, int(request.POST.get("estoque_minimo", "0")))
+            quantidade = int(request.POST.get("quantidade", "0"))
         except ValueError:
-            quantidade = estoque_minimo = 0
-            erros.append("Quantidade e estoque mínimo devem ser números inteiros.")
+            quantidade = 0
+        if quantidade <= 0:
+            erros.append("Informe uma quantidade maior que zero.")
 
         if not erros:
-            item = SuprimentoTI.objects.create(
-                unidade=unidade, setor=setor, codigo=codigo, nome=nome, categoria=categoria,
-                fabricante=request.POST.get("fabricante", "").strip(),
-                modelo_compativel=request.POST.get("modelo_compativel", "").strip(),
-                quantidade=quantidade, estoque_minimo=estoque_minimo,
-            )
-            if quantidade:
+            with transaction.atomic():
+                existente = SuprimentoTI.objects.select_for_update().filter(
+                    unidade=unidade,
+                    setor=setor_usuario,
+                    nome__iexact=nome,
+                    categoria=categoria,
+                    ativo=True,
+                ).first()
+                if existente:
+                    foi_somado = True
+                    saldo_anterior = existente.quantidade
+                    existente.quantidade += quantidade
+                    if fabricante and not existente.fabricante:
+                        existente.fabricante = fabricante
+                    if modelo_compativel and not existente.modelo_compativel:
+                        existente.modelo_compativel = modelo_compativel
+                    existente.save(update_fields=["quantidade", "fabricante", "modelo_compativel", "atualizado_em"])
+                    item = existente
+                else:
+                    foi_somado = False
+                    saldo_anterior = 0
+                    item = SuprimentoTI.objects.create(
+                        unidade=unidade,
+                        setor=setor_usuario,
+                        codigo=f"SUP-{uuid.uuid4().hex[:10].upper()}",
+                        nome=nome,
+                        categoria=categoria,
+                        fabricante=fabricante,
+                        modelo_compativel=modelo_compativel,
+                        quantidade=quantidade,
+                        estoque_minimo=1,
+                    )
                 MovimentacaoSuprimentoTI.objects.create(
                     suprimento=item, tipo="entrada", quantidade=quantidade,
-                    saldo_anterior=0, saldo_atual=quantidade, usuario=request.user,
-                    observacao="Saldo inicial do cadastro.",
+                    saldo_anterior=saldo_anterior, saldo_atual=item.quantidade, usuario=request.user,
+                    observacao="Entrada registrada pelo cadastro de suprimento.",
                 )
-            messages.success(request, "Suprimento cadastrado com sucesso.")
+            if foi_somado:
+                messages.success(request, f"Quantidade adicionada ao item existente. Novo saldo: {item.quantidade}.")
+            else:
+                messages.success(request, "Suprimento cadastrado com sucesso.")
             return redirect("inventario_ti_suprimentos")
         for erro in erros:
             messages.error(request, erro)
 
     return render(request, "inventario_ti/formulario_suprimento.html", {
-        "setores": setores,
         "categorias": SuprimentoTI.CATEGORIA_CHOICES,
     })
 
