@@ -78,6 +78,20 @@ body {
   color: var(--gsf-text);
 }
 
+/* Sidebar única inserida nas páginas autenticadas do layout antigo. */
+body.gsf-legacy-with-sidebar {
+  padding-left: 280px !important;
+}
+
+body.gsf-legacy-with-sidebar > .gsf-sidebar {
+  display: flex;
+  position: fixed;
+  inset: 0 auto 0 0;
+  z-index: 1000;
+  width: 280px;
+  height: 100vh;
+}
+
 a {
   color: inherit;
 }
@@ -594,5 +608,15 @@ table:not(.noc-grid table) tbody tr:hover {
 
   .top-actions > * {
     flex: 1 1 auto;
+  }
+}
+
+@media (max-width: 980px) {
+  body.gsf-legacy-with-sidebar {
+    padding-left: 0 !important;
+  }
+
+  body.gsf-legacy-with-sidebar > .gsf-sidebar {
+    display: none;
   }
 }
