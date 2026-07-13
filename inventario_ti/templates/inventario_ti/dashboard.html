@@ -14,6 +14,7 @@
     {% include "components/kpi_card.html" with icon="🏷️" title="Sem patrimônio" value=totais.sem_patrimonio color="warning" %}
     {% include "components/kpi_card.html" with icon="💾" title="Disco crítico" value=totais.disco_critico color="danger" %}
     {% include "components/kpi_card.html" with icon="📡" title="Sem heartbeat 24h" value=totais.sem_heartbeat color="warning" %}
+    {% include "components/kpi_card.html" with icon="⚙️" title="Agente desatualizado" value=totais.agentes_desatualizados color="warning" %}
   </div>
 
   <div class="form-card">
@@ -48,6 +49,7 @@
           <option value="disco_critico" {% if filtros.saude == "disco_critico" %}selected{% endif %}>Disco crítico</option>
           <option value="dados_incompletos" {% if filtros.saude == "dados_incompletos" %}selected{% endif %}>Dados incompletos</option>
           <option value="sem_heartbeat" {% if filtros.saude == "sem_heartbeat" %}selected{% endif %}>Sem heartbeat 24h</option>
+          <option value="agente_desatualizado" {% if filtros.saude == "agente_desatualizado" %}selected{% endif %}>Agente diferente da versão {{ versao_agent_atual }}</option>
         </select>
       </div>
 
@@ -159,7 +161,7 @@
                   <br>
                   <small>{{ pc.disco_livre }} livre</small>
                 </td>
-                <td>{{ pc.agent_version }}</td>
+                <td>{% if pc.agent_version == versao_agent_atual %}<span class="gsf-badge gsf-badge-success">{{ pc.agent_version }}</span>{% else %}<span class="gsf-badge gsf-badge-warning">{{ pc.agent_version|default:"Não informado" }}</span>{% endif %}</td>
                 <td>{{ pc.ultimo_contato|date:"d/m/Y H:i:s" }}</td>
                 <td>
                   <a href="{% url 'inventario_ti_detalhe' pc.id %}" class="btn-link">Detalhes</a>

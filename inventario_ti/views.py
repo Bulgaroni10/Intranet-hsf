@@ -29,6 +29,8 @@ from .services import (
     registrar_retorno_online,
 )
 
+VERSAO_AGENT_ATUAL = "2.1.0"
+
 
 def usuario_pode_acessar_inventario_ti(user):
     return usuario_eh_ti(user)
@@ -113,6 +115,10 @@ def computador_sem_heartbeat_recente(computador):
     return computador.ultimo_contato < timezone.now() - timezone.timedelta(hours=24)
 
 
+def computador_com_agente_desatualizado(computador):
+    return (computador.agent_version or "-").strip() != VERSAO_AGENT_ATUAL
+
+
 def aplicar_filtros_memoria(computadores, status, patrimonio, saude):
     filtrados = []
 
@@ -136,6 +142,9 @@ def aplicar_filtros_memoria(computadores, status, patrimonio, saude):
             continue
 
         if saude == "sem_heartbeat" and not computador_sem_heartbeat_recente(computador):
+            continue
+
+        if saude == "agente_desatualizado" and not computador_com_agente_desatualizado(computador):
             continue
 
         filtrados.append(computador)
@@ -165,6 +174,7 @@ def montar_resumo_inventario(computadores):
     disco_critico = len([pc for pc in computadores if computador_tem_disco_critico(pc)])
     dados_incompletos = len([pc for pc in computadores if computador_tem_dados_incompletos(pc)])
     sem_heartbeat = len([pc for pc in computadores if computador_sem_heartbeat_recente(pc)])
+    agentes_desatualizados = len([pc for pc in computadores if computador_com_agente_desatualizado(pc)])
 
     return {
         "total": total,
@@ -174,6 +184,7 @@ def montar_resumo_inventario(computadores):
         "disco_critico": disco_critico,
         "dados_incompletos": dados_incompletos,
         "sem_heartbeat": sem_heartbeat,
+        "agentes_desatualizados": agentes_desatualizados,
     }
 
 
@@ -665,6 +676,7 @@ def dashboard(request):
         "totais": totais,
         "total_filtrado": len(lista),
         "agora": timezone.localtime(),
+        "versao_agent_atual": VERSAO_AGENT_ATUAL,
     })
 
 

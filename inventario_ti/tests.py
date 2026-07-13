@@ -50,6 +50,16 @@ class ParqueComputadoresTests(TestCase):
         self.assertIn("ONLINE", conteudo)
         self.assertNotIn("PC-OUTRA", conteudo)
 
+    def test_filtro_destaca_agente_desatualizado(self):
+        ComputadorInventario.objects.create(hostname="PC-ATUAL", unidade=self.unidade, agent_version="2.1.0")
+        ComputadorInventario.objects.create(hostname="PC-ANTIGO", unidade=self.unidade, agent_version="2.0.0")
+        request = self.factory.get("/portal/modulos/inventario-ti/", {"saude": "agente_desatualizado"})
+        request.user = self.usuario
+        resposta = dashboard(request)
+        conteudo = resposta.content.decode()
+        self.assertIn("PC-ANTIGO", conteudo)
+        self.assertNotIn("PC-ATUAL", conteudo)
+
 
 class _RespostaImpressoraFake:
     def __enter__(self):
