@@ -13,6 +13,7 @@ from .models import ImpressoraMonitorada
 
 STATUS_RE = re.compile(r'<div id="moni_data">.*?<span[^>]*>(.*?)</span>', re.I | re.S)
 TITLE_RE = re.compile(r"<title[^>]*>(.*?)</title>", re.I | re.S)
+TONER_HEIGHT_RE = re.compile(r'class="tonerremain"[^>]*height="(\d+)"', re.I)
 
 
 def _texto_html(valor):
@@ -25,9 +26,14 @@ def consultar_impressora(impressora, timeout=4):
         conteudo = resposta.read(256_000).decode("latin-1", errors="replace")
     titulo = TITLE_RE.search(conteudo)
     status = STATUS_RE.search(conteudo)
+    toner_height = TONER_HEIGHT_RE.search(conteudo)
+    toner_percentual = None
+    if toner_height:
+        toner_percentual = min(100, round(int(toner_height.group(1)) / 60 * 100))
     return {
         "modelo_detectado": _texto_html(titulo.group(1)).removeprefix("Brother ") if titulo else "",
         "status_dispositivo": _texto_html(status.group(1)) if status else "Pronta",
+        "toner_percentual": toner_percentual,
     }
 
 
@@ -49,6 +55,8 @@ def _sincronizar_alerta(impressora):
         )
         return
     estado = impressora.status_dispositivo or "Sem comunicação"
+    if impressora.toner_percentual is not None and impressora.toner_percentual <= 20:
+        estado = f"{estado} · Toner em {impressora.toner_percentual}%"
     for usuario in _usuarios_ti(impressora):
         notificacao, _ = NotificacaoUsuario.objects.get_or_create(
             usuario=usuario, origem=origem, objeto_id=objeto_id,
@@ -68,13 +76,14 @@ def atualizar_impressora(impressora):
         impressora.online = True
         impressora.modelo_detectado = dados["modelo_detectado"] or impressora.modelo_detectado
         impressora.status_dispositivo = dados["status_dispositivo"]
+        impressora.toner_percentual = dados["toner_percentual"]
         impressora.ultimo_erro = ""
     except Exception as exc:
         impressora.online = False
         impressora.status_dispositivo = "Sem comunicação"
         impressora.ultimo_erro = str(exc)[:1000]
     impressora.ultima_consulta = timezone.now()
-    impressora.save(update_fields=["online", "modelo_detectado", "status_dispositivo", "ultimo_erro", "ultima_consulta", "atualizado_em"])
+    impressora.save(update_fields=["online", "modelo_detectado", "status_dispositivo", "toner_percentual", "ultimo_erro", "ultima_consulta", "atualizado_em"])
     _sincronizar_alerta(impressora)
     return impressora
 

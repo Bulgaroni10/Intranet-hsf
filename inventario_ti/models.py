@@ -273,4 +273,6 @@ class ImpressoraMonitorada(models.Model):
     def possui_alerta(self):
         texto = self.status_dispositivo.lower()
         termos = ("replace", "substit", "low", "baixo", "error", "erro", "jam", "atol")
-        return not self.online or any(termo in texto for termo in termos)
+        toner_baixo = self.toner_percentual is not None and self.toner_percentual <= 20
+        cilindro_baixo = self.cilindro_percentual is not None and self.cilindro_percentual <= 20
+        return not self.online or toner_baixo or cilindro_baixo or any(termo in texto for termo in termos)

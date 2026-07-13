@@ -31,7 +31,8 @@ class _RespostaImpressoraFake:
     def read(self, limite):
         return (
             b'<html><head><title>Brother MFC-L6902DW</title></head>'
-            b'<div id="moni_data"><span class="moniWarning">Substituir Cilindro</span></div></html>'
+            b'<div id="moni_data"><span class="moniWarning">Substituir Cilindro</span></div>'
+            b'<img class="tonerremain" height="30" /></html>'
         )
 
 
@@ -51,6 +52,7 @@ class MonitoramentoImpressoraTests(TestCase):
         self.impressora.refresh_from_db()
         self.assertTrue(self.impressora.online)
         self.assertEqual(self.impressora.modelo_detectado, "MFC-L6902DW")
+        self.assertEqual(self.impressora.toner_percentual, 50)
         self.assertTrue(self.impressora.possui_alerta)
         self.assertTrue(self.usuario.notificacoes.filter(origem="impressora_monitorada", lida=False).exists())
 
