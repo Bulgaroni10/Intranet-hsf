@@ -335,3 +335,30 @@ class MonitoramentoServidor(models.Model):
                 (self.disco_percentual, 85),
             )
         )
+
+
+class MonitoramentoRede(models.Model):
+    nome = models.CharField(max_length=120, unique=True, default="Rede HSFOS")
+    gateway_ip = models.GenericIPAddressField(default="192.168.0.1")
+    gateway_ok = models.BooleanField(default=False)
+    dns_ip = models.GenericIPAddressField(default="192.168.0.30")
+    dns_ok = models.BooleanField(default=False)
+    switch_ip = models.GenericIPAddressField(default="192.168.0.53")
+    switch_ok = models.BooleanField(default=False)
+    switch_modelo = models.CharField(max_length=255, blank=True, default="")
+    switch_uptime_segundos = models.PositiveBigIntegerField(default=0)
+    switch_interfaces = models.PositiveIntegerField(default=0)
+    detalhe = models.TextField(blank=True, default="")
+    ultima_consulta = models.DateTimeField(null=True, blank=True)
+    atualizado_em = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = "Monitoramento de rede"
+        verbose_name_plural = "Monitoramentos de rede"
+
+    def __str__(self):
+        return self.nome
+
+    @property
+    def possui_alerta(self):
+        return not all((self.gateway_ok, self.dns_ok, self.switch_ok))

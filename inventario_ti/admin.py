@@ -9,6 +9,7 @@ from .models import (
     ImpressoraMonitorada,
     MonitoramentoActiveDirectory,
     MonitoramentoServidor,
+    MonitoramentoRede,
 )
 
 
@@ -216,3 +217,9 @@ class MonitoramentoActiveDirectoryAdmin(admin.ModelAdmin):
 class MonitoramentoServidorAdmin(admin.ModelAdmin):
     list_display = ["hostname", "ip", "cpu_percentual", "memoria_percentual", "disco_percentual", "disco_livre_gb", "ultima_consulta"]
     readonly_fields = ["hostname", "ip", "cpu_percentual", "memoria_percentual", "memoria_total_gb", "disco_percentual", "disco_livre_gb", "uptime_segundos", "detalhe", "ultima_consulta", "atualizado_em"]
+
+
+@admin.register(MonitoramentoRede)
+class MonitoramentoRedeAdmin(admin.ModelAdmin):
+    list_display = ["nome", "gateway_ok", "dns_ok", "switch_ok", "switch_modelo", "switch_interfaces", "ultima_consulta"]
+    readonly_fields = ["gateway_ok", "dns_ok", "switch_ok", "switch_modelo", "switch_uptime_segundos", "switch_interfaces", "detalhe", "ultima_consulta", "atualizado_em"]

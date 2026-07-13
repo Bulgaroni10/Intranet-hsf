@@ -8,7 +8,7 @@ from django.test import RequestFactory, TestCase
 
 from usuarios.models import Unidade
 
-from .models import ComputadorInventario, ErroAgenteInventario, ImpressoraMonitorada, MonitoramentoActiveDirectory, MonitoramentoServidor, MovimentacaoPatrimonioTI, PatrimonioTI
+from .models import ComputadorInventario, ErroAgenteInventario, ImpressoraMonitorada, MonitoramentoActiveDirectory, MonitoramentoRede, MonitoramentoServidor, MovimentacaoPatrimonioTI, PatrimonioTI
 from .services_ad import monitorar_active_directory
 from .services_impressoras import atualizar_impressora
 from .views import (
@@ -113,6 +113,16 @@ class MonitoramentoServidorTests(TestCase):
 
     def test_disco_acima_de_85_porcento_gera_alerta(self):
         item = MonitoramentoServidor(cpu_percentual=20, memoria_percentual=30, disco_percentual=85)
+        self.assertTrue(item.possui_alerta)
+
+
+class MonitoramentoRedeTests(TestCase):
+    def test_todos_componentes_online_nao_geram_alerta(self):
+        item = MonitoramentoRede(gateway_ok=True, dns_ok=True, switch_ok=True)
+        self.assertFalse(item.possui_alerta)
+
+    def test_queda_do_gateway_gera_alerta(self):
+        item = MonitoramentoRede(gateway_ok=False, dns_ok=True, switch_ok=True)
         self.assertTrue(item.possui_alerta)
 
 
