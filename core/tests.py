@@ -173,6 +173,17 @@ class LoginUnidadeEFavoritosTests(TestCase):
         self.assertFalse(resposta.json()['favorito'])
         self.assertFalse(FavoritoModulo.objects.filter(usuario=self.user, modulo=self.modulo).exists())
 
+    def test_sidebar_global_exige_login_e_renderiza_menu_unico(self):
+        url = reverse('sidebar_global')
+        resposta_anonima = self.client.get(url)
+        self.assertEqual(resposta_anonima.status_code, 302)
+
+        self.client.force_login(self.user)
+        resposta = self.client.get(url)
+        self.assertEqual(resposta.status_code, 200)
+        self.assertContains(resposta, 'class="gsf-sidebar"')
+        self.assertContains(resposta, 'Dashboard')
+
 
 class BuscaGlobalPermissoesTests(TestCase):
     def setUp(self):

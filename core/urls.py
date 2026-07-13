@@ -17,6 +17,7 @@ from base_conhecimento import views as base_conhecimento_views
 urlpatterns = [
     path('', views.home, name='home'),
     path('portal/', views.portal, name='portal'),
+    path('portal/sidebar/', views.sidebar_global, name='sidebar_global'),
     path('portal/busca/', views.busca_global, name='busca_global'),
     path('portal/noc/', views.painel_noc, name='painel_noc'),
 

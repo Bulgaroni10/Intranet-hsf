@@ -28,6 +28,32 @@ function getCsrfToken() {
   return '';
 }
 
+async function ensureGlobalSidebar() {
+  if (
+    document.querySelector('.gsf-sidebar') ||
+    document.getElementById('login-screen') ||
+    window.location.pathname === '/'
+  ) {
+    return;
+  }
+
+  try {
+    const response = await fetch('/portal/sidebar/', {
+      headers: { 'X-Requested-With': 'XMLHttpRequest' }
+    });
+
+    if (!response.ok || response.redirected) return;
+
+    const sidebarHtml = await response.text();
+    if (!sidebarHtml.includes('gsf-sidebar')) return;
+
+    document.body.insertAdjacentHTML('afterbegin', sidebarHtml);
+    document.body.classList.add('gsf-legacy-with-sidebar');
+  } catch (error) {
+    console.error('Erro ao carregar a sidebar global:', error);
+  }
+}
+
 function updateLoginLogo() {
   const unitSelect = document.getElementById('sel-unidade');
   const loginLogo = document.getElementById('login-unit-logo');
@@ -286,6 +312,7 @@ document.addEventListener('DOMContentLoaded', function () {
     updateLoginLogo();
   }
 
+  ensureGlobalSidebar().then(carregarContadorConversasNaoLidas);
   injectChatBadgeStyle();
   carregarContadorConversasNaoLidas();
 
