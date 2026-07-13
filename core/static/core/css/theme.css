@@ -777,6 +777,69 @@ body.gsf-legacy-with-sidebar.gsf-sidebar-collapsed .chat-page {
   flex-wrap: wrap;
 }
 
+/* Links úteis, manuais e ecossistema MV */
+.links-summary-grid,
+.manual-summary-grid {
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)) !important;
+}
+
+.links-grid,
+.manual-grid,
+.modelos-grid,
+.module-grid,
+.content-grid {
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)) !important;
+}
+
+.link-card,
+.manual-card,
+.content-card,
+.modelo-card,
+.module-card,
+.portal-module-card {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.links-filter-actions,
+.manual-filter-actions,
+.content-actions,
+.card-actions,
+.row-actions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.table-wrap {
+  max-width: 100%;
+  overflow-x: auto !important;
+  scrollbar-gutter: stable;
+}
+
+.table-wrap > table {
+  min-width: 760px;
+}
+
+.table-wrap td,
+.table-wrap th {
+  overflow-wrap: anywhere;
+  vertical-align: middle;
+}
+
+.table-wrap td:last-child,
+.table-wrap th:last-child {
+  white-space: nowrap;
+}
+
+.mv-layout,
+.content-layout,
+.layout,
+.dashboard-grid {
+  min-width: 0;
+}
+
 .btn-submit,
 .btn-success,
 .btn-link,
@@ -897,5 +960,25 @@ body.gsf-legacy-with-sidebar.gsf-sidebar-collapsed .chat-page {
   .incident-top {
     align-items: flex-start !important;
     flex-direction: column;
+  }
+
+  .links-summary-grid,
+  .manual-summary-grid,
+  .links-grid,
+  .manual-grid,
+  .modelos-grid,
+  .module-grid,
+  .content-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  .links-filter-actions > *,
+  .manual-filter-actions > *,
+  .content-actions > *,
+  .card-actions > *,
+  .form-actions > * {
+    flex: 1 1 auto;
+    justify-content: center;
+    text-align: center;
   }
 }

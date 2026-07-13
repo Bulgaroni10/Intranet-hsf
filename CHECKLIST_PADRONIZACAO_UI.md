@@ -28,8 +28,8 @@ Padrão-alvo: tema escuro corporativo, sidebar/topbar únicas, cards `gsf-*`, fo
 - [x] Estoque Setorial.
 - [x] NOC.
 - [x] Status de sistemas.
-- [ ] Links úteis e manuais.
-- [ ] MV, convênios e importações.
+- [x] Links úteis e manuais.
+- [x] MV, convênios e importações.
 - [ ] Código TUSS.
 - [ ] Administração de usuários, grupos, unidades, setores e permissões.
 - [ ] Auditoria.
