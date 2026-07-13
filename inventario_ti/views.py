@@ -27,6 +27,7 @@ from .services import (
     registrar_cadastro_computador,
     registrar_erro_agente,
     registrar_retorno_online,
+    vincular_patrimonio_por_serial,
 )
 
 VERSAO_AGENT_ATUAL = "2.1.0"
@@ -574,6 +575,10 @@ def heartbeat(request):
             registrar_retorno_online(computador, ultimo_contato_anterior)
             eventos_registrados += 1
 
+    patrimonio_vinculado = vincular_patrimonio_por_serial(computador)
+    if patrimonio_vinculado and not computador_anterior:
+        eventos_registrados += 1
+
     return JsonResponse({
         "ok": True,
         "criado": criado,
@@ -581,6 +586,7 @@ def heartbeat(request):
         "status": computador.status_texto,
         "unidade": computador.unidade.sigla if computador.unidade else "",
         "eventos_registrados": eventos_registrados,
+        "patrimonio": patrimonio_vinculado.codigo if patrimonio_vinculado else computador.patrimonio,
     })
 
 

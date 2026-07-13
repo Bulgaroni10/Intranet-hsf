@@ -1,6 +1,13 @@
+from django.db import transaction
 from django.utils import timezone
 
-from .models import ComputadorInventario, ErroAgenteInventario, HistoricoComputadorInventario
+from .models import (
+    ComputadorInventario,
+    ErroAgenteInventario,
+    HistoricoComputadorInventario,
+    MovimentacaoPatrimonioTI,
+    PatrimonioTI,
+)
 
 
 CAMPOS_MONITORADOS = {
@@ -27,6 +34,67 @@ def normalizar_valor(valor):
         return ""
 
     return str(valor).strip()
+
+
+SERIAIS_INVALIDOS = {"", "-", "NONE", "NULL", "UNKNOWN", "TO BE FILLED BY O.E.M."}
+
+
+def vincular_patrimonio_por_serial(computador):
+    """Vincula somente quando o serial identifica um unico ativo livre na unidade."""
+    serial = normalizar_valor(computador.serial)
+    if serial.upper() in SERIAIS_INVALIDOS or not computador.unidade_id:
+        return None
+
+    with transaction.atomic():
+        candidatos = list(
+            PatrimonioTI.objects.select_for_update()
+            .filter(
+                serial__iexact=serial,
+                unidade_id=computador.unidade_id,
+                tipo__in=("computador", "notebook"),
+                ativo=True,
+            )[:2]
+        )
+        if len(candidatos) != 1:
+            return None
+
+        patrimonio = candidatos[0]
+        if patrimonio.computador_id == computador.id:
+            if computador.patrimonio != patrimonio.codigo:
+                ComputadorInventario.objects.filter(pk=computador.pk).update(patrimonio=patrimonio.codigo)
+                computador.patrimonio = patrimonio.codigo
+            return patrimonio
+
+        if patrimonio.computador_id is not None:
+            return None
+
+        patrimonio.computador = computador
+        patrimonio.save(update_fields=["computador", "atualizado_em"])
+        ComputadorInventario.objects.filter(pk=computador.pk).update(patrimonio=patrimonio.codigo)
+        computador.patrimonio = patrimonio.codigo
+
+        MovimentacaoPatrimonioTI.objects.create(
+            patrimonio=patrimonio,
+            tipo="ajuste",
+            unidade_destino=patrimonio.unidade,
+            setor_destino=patrimonio.setor,
+            responsavel_destino=patrimonio.responsavel,
+            observacao=(
+                f"Vinculo automatico ao computador {computador.hostname} "
+                f"pelo numero de serie {serial}."
+            ),
+        )
+        registrar_evento(
+            computador=computador,
+            tipo="alteracao",
+            titulo="Patrimonio vinculado automaticamente",
+            descricao=f"Ativo {patrimonio.codigo} identificado pelo numero de serie.",
+            campo="patrimonio",
+            valor_anterior="-",
+            valor_novo=patrimonio.codigo,
+            dados={"patrimonio_id": patrimonio.id, "criterio": "serial"},
+        )
+        return patrimonio
 
 
 def computador_estava_offline(computador):

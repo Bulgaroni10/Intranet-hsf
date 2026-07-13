@@ -245,6 +245,44 @@ class HeartbeatHistoricoTests(TestCase):
         self.assertIn("usuario", campos_alterados)
         self.assertIn("disco_percentual", campos_alterados)
 
+    def test_heartbeat_vincula_patrimonio_unico_pelo_serial(self):
+        patrimonio = PatrimonioTI.objects.create(
+            codigo="PAT-001",
+            tipo="computador",
+            unidade=self.unidade,
+            serial="SERIAL1",
+        )
+
+        response = self.postar_heartbeat(self.payload)
+        computador = ComputadorInventario.objects.get(hostname="PC-TESTE")
+        patrimonio.refresh_from_db()
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(patrimonio.computador, computador)
+        self.assertEqual(computador.patrimonio, "PAT-001")
+        self.assertTrue(
+            patrimonio.movimentacoes.filter(tipo="ajuste", observacao__icontains="automatico").exists()
+        )
+
+    def test_heartbeat_nao_vincula_quando_serial_e_duplicado(self):
+        PatrimonioTI.objects.create(codigo="PAT-001", unidade=self.unidade, serial="SERIAL1")
+        PatrimonioTI.objects.create(codigo="PAT-002", unidade=self.unidade, serial="serial1")
+
+        self.postar_heartbeat(self.payload)
+
+        computador = ComputadorInventario.objects.get(hostname="PC-TESTE")
+        self.assertFalse(PatrimonioTI.objects.filter(computador=computador).exists())
+        self.assertEqual(computador.patrimonio, "-")
+
+    def test_heartbeat_nao_vincula_serial_de_outra_unidade(self):
+        outra = Unidade.objects.create(nome="Outra Unidade", sigla="OU")
+        PatrimonioTI.objects.create(codigo="PAT-OUTRA", unidade=outra, serial="SERIAL1")
+
+        self.postar_heartbeat(self.payload)
+
+        computador = ComputadorInventario.objects.get(hostname="PC-TESTE")
+        self.assertFalse(PatrimonioTI.objects.filter(computador=computador).exists())
+
 
 class AgentErrorTests(TestCase):
     def setUp(self):
