@@ -124,12 +124,28 @@ def aplicar_convenios_planos(unidade, dados):
     planos_por_convenio = {}
     planos_processados = 0
     regras_processadas = 0
+    regras_novas = []
 
     for item in dados:
         codigo_convenio = item['codigo_convenio']
-        convenio = Convenio.objects.filter(codigo_mv=codigo_convenio).first()
-        if convenio is None:
-            convenio = Convenio.objects.filter(nome__iexact=item['nome_convenio']).first()
+        convenio_por_codigo = Convenio.objects.filter(codigo_mv=codigo_convenio).first()
+        convenio_por_nome = Convenio.objects.filter(nome__iexact=item['nome_convenio']).first()
+
+        # Cadastros manuais antigos podem ter o código em um registro e o nome
+        # correto em outro. O nome é único no modelo, portanto consolidamos no
+        # registro identificado pelo nome e retiramos a unidade do registro obsoleto.
+        if (
+            convenio_por_codigo
+            and convenio_por_nome
+            and convenio_por_codigo.pk != convenio_por_nome.pk
+        ):
+            convenio_por_codigo.unidades.remove(unidade)
+            if not convenio_por_codigo.unidades.exists():
+                convenio_por_codigo.delete()
+            convenio = convenio_por_nome
+        else:
+            convenio = convenio_por_nome or convenio_por_codigo
+
         if convenio is None:
             convenio = Convenio(codigo_mv=codigo_convenio, nome=item['nome_convenio'])
         convenio.codigo_mv = codigo_convenio
@@ -158,14 +174,14 @@ def aplicar_convenios_planos(unidade, dados):
                 for tipo in MAPA_ATENDIMENTOS[campo]:
                     permissao_por_tipo[tipo] = True
         for tipo, permitido in permissao_por_tipo.items():
-            RegraAtendimentoConvenio.objects.create(
+            regras_novas.append(RegraAtendimentoConvenio(
                 unidade=unidade,
                 convenio=convenio,
                 plano=plano,
                 tipo_atendimento=tipo,
                 status='aceito' if permitido else 'nao_aceito',
                 observacao='Sincronizado automaticamente com o MV.',
-            )
+            ))
             regras_processadas += 1
 
     for convenio_id, planos_atuais in planos_por_convenio.items():
@@ -173,6 +189,8 @@ def aplicar_convenios_planos(unidade, dados):
         if convenio.unidades.exclude(pk=unidade.pk).exists():
             continue
         PlanoConvenio.objects.filter(convenio=convenio).exclude(pk__in=planos_atuais).delete()
+
+    RegraAtendimentoConvenio.objects.bulk_create(regras_novas, batch_size=500)
 
     # Remove somente cadastros antigos que não pertencem mais a unidade alguma.
     Convenio.objects.filter(unidades__isnull=True).delete()
@@ -185,4 +203,9 @@ def aplicar_convenios_planos(unidade, dados):
 
 def sincronizar_unidade(unidade, connection_factory=conectar_oracle):
     dados = consultar_convenios_planos(unidade.codigo_mv, connection_factory)
-    return aplicar_convenios_planos(unidade, dados)
+    try:
+        return aplicar_convenios_planos(unidade, dados)
+    except IntegracaoMVErro:
+        raise
+    except Exception as exc:
+        raise IntegracaoMVErro(f'Falha ao gravar os dados do MV: {exc}') from exc

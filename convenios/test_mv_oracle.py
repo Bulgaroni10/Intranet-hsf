@@ -52,3 +52,17 @@ class SincronizacaoMVTests(TestCase):
         compartilhado.unidades.add(self.outra)
         aplicar_convenios_planos(self.unidade, self.dados())
         self.assertTrue(Convenio.objects.filter(pk=compartilhado.pk).exists())
+
+    def test_consolida_conflito_entre_codigo_e_nome_antigos(self):
+        pelo_codigo = Convenio.objects.create(codigo_mv='10', nome='Nome antigo')
+        pelo_codigo.unidades.add(self.unidade, self.outra)
+        pelo_nome = Convenio.objects.create(codigo_mv='999', nome='Convênio MV')
+        pelo_nome.unidades.add(self.unidade, self.outra)
+
+        aplicar_convenios_planos(self.unidade, self.dados())
+
+        atualizado = Convenio.objects.get(nome='Convênio MV')
+        self.assertEqual(atualizado.codigo_mv, '10')
+        self.assertTrue(atualizado.unidades.filter(pk=self.unidade.pk).exists())
+        self.assertFalse(pelo_codigo.unidades.filter(pk=self.unidade.pk).exists())
+        self.assertTrue(pelo_codigo.unidades.filter(pk=self.outra.pk).exists())
