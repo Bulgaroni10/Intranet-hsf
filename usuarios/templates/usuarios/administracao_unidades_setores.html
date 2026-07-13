@@ -214,7 +214,7 @@
 
     .content-grid {
       display: grid;
-      grid-template-columns: 1fr 1fr;
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
       gap: 18px;
     }
 
@@ -255,7 +255,7 @@
     .admin-table {
       width: 100%;
       border-collapse: collapse;
-      min-width: 560px;
+      table-layout: fixed;
     }
 
     .admin-table th,
@@ -284,7 +284,7 @@
       display: flex;
       align-items: center;
       gap: 10px;
-      min-width: 220px;
+      min-width: 0;
     }
 
     .item-icon {
@@ -306,6 +306,7 @@
       color: #ffffff;
       font-weight: 900;
       margin-bottom: 3px;
+      overflow-wrap: anywhere;
     }
 
     .item-subtitle {
@@ -344,6 +345,17 @@
       display: flex;
       gap: 7px;
       flex-wrap: wrap;
+    }
+
+    .admin-table th:nth-child(2),
+    .admin-table td:nth-child(2) {
+      width: 78px;
+    }
+
+    .admin-table th:nth-child(3),
+    .admin-table td:nth-child(3) {
+      width: 76px;
+      text-align: right;
     }
 
     .row-action {
