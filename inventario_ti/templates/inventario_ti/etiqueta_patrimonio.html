@@ -1,0 +1,7 @@
+<!doctype html>
+<html lang="pt-BR"><head><meta charset="utf-8"><title>Etiqueta {{ patrimonio.codigo }}</title>
+<style>body{margin:0;font-family:Arial,sans-serif}.label{width:70mm;min-height:40mm;border:1px dashed #777;padding:4mm;display:grid;grid-template-columns:30mm 1fr;align-items:center;gap:3mm}.label img{width:28mm;height:28mm}.label h1{font-size:16pt;margin:0 0 2mm}.label p{font-size:9pt;margin:1mm 0}.actions{margin:10px}@media print{.actions{display:none}.label{border:0}}</style></head>
+<body><div class="actions"><button type="button" onclick="window.print()">Imprimir</button></div><main class="label">
+<img src="{% url 'inventario_ti_patrimonio_qr' patrimonio.id %}" alt="QR Code">
+<div><h1>GSF · {{ patrimonio.codigo }}</h1><p><strong>{{ patrimonio.get_tipo_display }}</strong></p><p>{{ patrimonio.fabricante|default:"" }} {{ patrimonio.modelo|default:"" }}</p><p>{{ patrimonio.unidade|default:"-" }} · {{ patrimonio.setor|default:"-" }}</p><p>Escaneie para consultar o histórico.</p></div>
+</main></body></html>

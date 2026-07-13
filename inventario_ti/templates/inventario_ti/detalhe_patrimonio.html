@@ -40,6 +40,13 @@
   </div>
 
   <div class="detail-card">
+    <h2>Etiqueta patrimonial</h2>
+    <p>O QR Code abre este patrimônio na intranet e mantém a validação de acesso.</p>
+    <img src="{% url 'inventario_ti_patrimonio_qr' patrimonio.id %}" alt="QR Code do patrimônio {{ patrimonio.codigo }}" width="180" height="180">
+    <p><a class="gsf-btn gsf-btn-secondary" href="{% url 'inventario_ti_patrimonio_etiqueta' patrimonio.id %}" target="_blank" rel="noopener">Imprimir etiqueta</a></p>
+  </div>
+
+  <div class="detail-card">
     <h2>Movimentações</h2>
 
     {% for mov in movimentacoes %}

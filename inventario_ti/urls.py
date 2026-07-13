@@ -12,6 +12,8 @@ urlpatterns = [
     path("portal/modulos/inventario-ti/patrimonios/novo/", views.novo_patrimonio, name="inventario_ti_patrimonio_novo"),
     path("portal/modulos/inventario-ti/patrimonios/<int:patrimonio_id>/", views.detalhe_patrimonio, name="inventario_ti_patrimonio_detalhe"),
     path("portal/modulos/inventario-ti/patrimonios/<int:patrimonio_id>/editar/", views.editar_patrimonio, name="inventario_ti_patrimonio_editar"),
+    path("portal/modulos/inventario-ti/patrimonios/<int:patrimonio_id>/qr.svg", views.qr_patrimonio, name="inventario_ti_patrimonio_qr"),
+    path("portal/modulos/inventario-ti/patrimonios/<int:patrimonio_id>/etiqueta/", views.etiqueta_patrimonio, name="inventario_ti_patrimonio_etiqueta"),
     path("portal/modulos/inventario-ti/<int:computador_id>/", views.detalhe, name="inventario_ti_detalhe"),
 
     path("api/heartbeat/", views.heartbeat, name="inventario_ti_heartbeat_compat"),

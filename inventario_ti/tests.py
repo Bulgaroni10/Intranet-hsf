@@ -5,6 +5,7 @@ from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Group
 from django.contrib.messages.storage.fallback import FallbackStorage
 from django.test import RequestFactory, TestCase
+from django.urls import reverse
 
 from usuarios.models import Unidade
 
@@ -124,6 +125,26 @@ class MonitoramentoRedeTests(TestCase):
     def test_queda_do_gateway_gera_alerta(self):
         item = MonitoramentoRede(gateway_ok=False, dns_ok=True, switch_ok=True)
         self.assertTrue(item.possui_alerta)
+
+
+class QrCodePatrimonioTests(TestCase):
+    def setUp(self):
+        self.unidade = Unidade.objects.create(nome="Hospital QR", sigla="QR")
+        grupo = Group.objects.create(name="TI")
+        self.usuario = get_user_model().objects.create_user("qr.ti", password="teste", unidade=self.unidade)
+        self.usuario.groups.add(grupo)
+        self.patrimonio = PatrimonioTI.objects.create(codigo="PAT-QR-001", unidade=self.unidade)
+        self.client.force_login(self.usuario)
+
+    def test_qr_code_svg_aponta_para_detalhe_protegido(self):
+        resposta = self.client.get(reverse("inventario_ti_patrimonio_qr", args=[self.patrimonio.id]))
+        self.assertEqual(resposta.status_code, 200)
+        self.assertEqual(resposta["Content-Type"], "image/svg+xml")
+        self.assertIn(b"<svg", resposta.content)
+
+    def test_etiqueta_renderiza_codigo_do_patrimonio(self):
+        resposta = self.client.get(reverse("inventario_ti_patrimonio_etiqueta", args=[self.patrimonio.id]))
+        self.assertContains(resposta, "PAT-QR-001")
 
 
 class HeartbeatHistoricoTests(TestCase):

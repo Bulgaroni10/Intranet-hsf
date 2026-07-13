@@ -7,9 +7,14 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
 from django.views.decorators.csrf import csrf_exempt
 import csv
+from io import BytesIO
 import json
 import re
 from urllib.parse import urlencode
+from django.urls import reverse
+
+import qrcode
+from qrcode.image.svg import SvgPathImage
 
 from core.services.permissions import usuario_eh_ti
 from usuarios.models import Setor, Unidade
@@ -1006,6 +1011,38 @@ def detalhe_patrimonio(request, patrimonio_id):
         "patrimonio": patrimonio,
         "movimentacoes": movimentacoes,
     })
+
+
+def _obter_patrimonio_autorizado(request, patrimonio_id):
+    return get_object_or_404(
+        aplicar_escopo_unidade(PatrimonioTI.objects.select_related("unidade", "setor"), request.user),
+        id=patrimonio_id,
+    )
+
+
+@login_required
+def qr_patrimonio(request, patrimonio_id):
+    if not usuario_pode_acessar_inventario_ti(request.user):
+        return HttpResponse(status=403)
+    patrimonio = _obter_patrimonio_autorizado(request, patrimonio_id)
+    detalhe_url = request.build_absolute_uri(
+        reverse("inventario_ti_patrimonio_detalhe", args=[patrimonio.id])
+    )
+    imagem = qrcode.make(detalhe_url, image_factory=SvgPathImage, box_size=8, border=2)
+    arquivo = BytesIO()
+    imagem.save(arquivo)
+    resposta = HttpResponse(arquivo.getvalue(), content_type="image/svg+xml")
+    resposta["Cache-Control"] = "private, max-age=300"
+    resposta["X-Content-Type-Options"] = "nosniff"
+    return resposta
+
+
+@login_required
+def etiqueta_patrimonio(request, patrimonio_id):
+    if not usuario_pode_acessar_inventario_ti(request.user):
+        return render(request, "core/sem_permissao.html", status=403)
+    patrimonio = _obter_patrimonio_autorizado(request, patrimonio_id)
+    return render(request, "inventario_ti/etiqueta_patrimonio.html", {"patrimonio": patrimonio})
 
 
 @login_required
