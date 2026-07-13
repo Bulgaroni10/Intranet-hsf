@@ -11,13 +11,13 @@ C:\Projetos\venv_intranet\Scripts\python.exe manage.py cadastrar_impressoras_hsf
 C:\Projetos\venv_intranet\Scripts\python.exe manage.py monitorar_impressoras
 ```
 
-Crie, como administrador, a coleta automática a cada cinco minutos:
+Crie, como administrador, a coleta automática a cada cinco minutos usando o instalador versionado:
 
 ```powershell
-$acao = New-ScheduledTaskAction -Execute 'C:\Projetos\venv_intranet\Scripts\python.exe' -Argument 'manage.py monitorar_impressoras' -WorkingDirectory 'C:\Projetos\intranet_gsf'
-$gatilho = New-ScheduledTaskTrigger -Once -At (Get-Date).AddMinutes(1) -RepetitionInterval (New-TimeSpan -Minutes 5)
-Register-ScheduledTask -TaskName 'GSF-Monitorar-Impressoras' -Action $acao -Trigger $gatilho -User 'SYSTEM' -RunLevel Highest
+powershell.exe -ExecutionPolicy Bypass -File C:\Projetos\intranet_gsf\scripts\instalar_monitoramento_impressoras.ps1
 ```
+
+O instalador pode ser executado novamente: ele atualiza a tarefa existente sem duplicá-la, realiza uma coleta imediata e mostra o próximo horário agendado.
 
 ## Migration
 
