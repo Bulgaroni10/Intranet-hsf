@@ -1,6 +1,7 @@
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.core.paginator import Paginator
+from django.db import transaction
 from django.db.models import Count, Q
 from django.http import HttpResponse, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
@@ -253,6 +254,98 @@ def montar_response_csv(nome_arquivo):
     response["Content-Disposition"] = f'attachment; filename="{nome_arquivo}"'
     response.write("\ufeff")
     return response
+
+
+COLUNAS_IMPORTACAO_PATRIMONIO = [
+    "codigo", "tipo", "status", "unidade", "setor", "responsavel",
+    "fabricante", "modelo", "serial", "observacao",
+]
+
+
+def ler_csv_patrimonios(arquivo):
+    conteudo = arquivo.read()
+    try:
+        texto = conteudo.decode("utf-8-sig")
+    except UnicodeDecodeError:
+        texto = conteudo.decode("cp1252")
+
+    linhas = texto.splitlines()
+    if not linhas:
+        raise ValueError("O arquivo CSV está vazio.")
+
+    try:
+        delimitador = csv.Sniffer().sniff(texto[:4096], delimiters=";,\t").delimiter
+    except csv.Error:
+        delimitador = ";"
+
+    leitor = csv.DictReader(linhas, delimiter=delimitador)
+    cabecalhos = {(item or "").strip().lower() for item in (leitor.fieldnames or [])}
+    if "codigo" not in cabecalhos:
+        raise ValueError("A coluna obrigatória 'codigo' não foi encontrada.")
+
+    return [
+        {(chave or "").strip().lower(): (valor or "").strip() for chave, valor in linha.items()}
+        for linha in leitor
+        if any((valor or "").strip() for valor in linha.values())
+    ]
+
+
+def validar_linhas_importacao_patrimonio(linhas, user):
+    erros = []
+    preparados = []
+    codigos_arquivo = set()
+    tipos_validos = {valor for valor, _rotulo in PatrimonioTI.TIPO_CHOICES}
+    status_validos = {valor for valor, _rotulo in PatrimonioTI.STATUS_CHOICES}
+    unidade_usuario = obter_unidade_usuario(user)
+
+    for numero, linha in enumerate(linhas, start=2):
+        codigo = linha.get("codigo", "").strip()
+        tipo = linha.get("tipo", "computador").strip().lower() or "computador"
+        status = linha.get("status", "em_uso").strip().lower() or "em_uso"
+        sigla = linha.get("unidade", "").strip()
+        nome_setor = linha.get("setor", "").strip()
+
+        if not codigo:
+            erros.append(f"Linha {numero}: código obrigatório.")
+            continue
+        chave_codigo = codigo.casefold()
+        if chave_codigo in codigos_arquivo:
+            erros.append(f"Linha {numero}: código {codigo} duplicado no arquivo.")
+            continue
+        codigos_arquivo.add(chave_codigo)
+
+        if PatrimonioTI.objects.filter(codigo__iexact=codigo).exists():
+            erros.append(f"Linha {numero}: o patrimônio {codigo} já está cadastrado.")
+        if tipo not in tipos_validos:
+            erros.append(f"Linha {numero}: tipo '{tipo}' inválido.")
+        if status not in status_validos:
+            erros.append(f"Linha {numero}: status '{status}' inválido.")
+
+        unidade = unidade_usuario
+        if user.is_superuser:
+            unidade = Unidade.objects.filter(sigla__iexact=sigla, ativo=True).first()
+        elif sigla and unidade_usuario and sigla.casefold() != unidade_usuario.sigla.casefold():
+            unidade = None
+        if not unidade:
+            erros.append(f"Linha {numero}: unidade '{sigla}' inválida ou não permitida.")
+
+        setor = None
+        if nome_setor:
+            setor = Setor.objects.filter(nome__iexact=nome_setor, ativo=True).first()
+            if not setor:
+                erros.append(f"Linha {numero}: setor '{nome_setor}' não cadastrado.")
+
+        preparados.append({
+            "codigo": codigo, "tipo": tipo, "status": status,
+            "unidade": unidade, "setor": setor,
+            "responsavel": linha.get("responsavel", ""),
+            "fabricante": linha.get("fabricante", ""),
+            "modelo": linha.get("modelo", ""),
+            "serial": linha.get("serial", ""),
+            "observacao": linha.get("observacao", ""),
+        })
+
+    return preparados, erros
 
 
 def obter_filtros_inventario(request):
@@ -941,6 +1034,55 @@ def patrimonios(request):
         "unidades": Unidade.objects.filter(id=obter_unidade_usuario(request.user).id).order_by("nome") if obter_unidade_usuario(request.user) else Unidade.objects.filter(ativo=True).order_by("nome"),
         "setores": Setor.objects.filter(ativo=True).order_by("nome"),
     })
+
+
+@login_required
+def modelo_importacao_patrimonios(request):
+    if not usuario_pode_gerenciar_patrimonio_ti(request.user):
+        return render(request, "core/sem_permissao.html", status=403)
+
+    response = montar_response_csv("modelo_importacao_patrimonios.csv")
+    writer = csv.writer(response, delimiter=";")
+    writer.writerow(COLUNAS_IMPORTACAO_PATRIMONIO)
+    writer.writerow(["PAT-0001", "computador", "em_uso", "HSFOS", "TI", "", "Dell", "OptiPlex", "SERIAL-EXEMPLO", ""])
+    return response
+
+
+@login_required
+def importar_patrimonios(request):
+    if not usuario_pode_gerenciar_patrimonio_ti(request.user):
+        return render(request, "core/sem_permissao.html", status=403)
+
+    if request.method == "POST":
+        arquivo = request.FILES.get("arquivo")
+        if not arquivo:
+            messages.error(request, "Selecione um arquivo CSV.")
+        else:
+            try:
+                linhas = ler_csv_patrimonios(arquivo)
+                preparados, erros = validar_linhas_importacao_patrimonio(linhas, request.user)
+                if not preparados and not erros:
+                    erros.append("O arquivo não possui registros para importar.")
+
+                if erros:
+                    for erro in erros[:20]:
+                        messages.error(request, erro)
+                    if len(erros) > 20:
+                        messages.error(request, f"Existem mais {len(erros) - 20} erro(s) no arquivo.")
+                else:
+                    with transaction.atomic():
+                        for dados in preparados:
+                            patrimonio = PatrimonioTI.objects.create(**dados)
+                            registrar_movimentacao_patrimonio(
+                                patrimonio=patrimonio, tipo="cadastro", usuario=request.user,
+                                observacao="Patrimônio importado por CSV.",
+                            )
+                    messages.success(request, f"{len(preparados)} patrimônio(s) importado(s) com sucesso.")
+                    return redirect("inventario_ti_patrimonios")
+            except (UnicodeError, csv.Error, ValueError) as erro:
+                messages.error(request, str(erro))
+
+    return render(request, "inventario_ti/importar_patrimonios.html")
 
 
 @login_required

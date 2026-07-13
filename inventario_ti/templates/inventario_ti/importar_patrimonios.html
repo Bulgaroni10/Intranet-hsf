@@ -1,0 +1,27 @@
+{% extends "base/base.html" %}
+
+{% block title %}Importar patrimônios | Inventário TI{% endblock %}
+
+{% block content %}
+<div class="page">
+  {% include "components/page_header.html" with eyebrow="Inventário TI" icon="📥" title="Importar patrimônios" subtitle="Cadastre ativos em lote usando um arquivo CSV validado antes da gravação." secondary_url_name="inventario_ti_patrimonios" secondary_text="Voltar" %}
+
+  <div class="form-card">
+    <p>Baixe o modelo, preencha uma linha por ativo e mantenha os nomes das colunas.</p>
+    <p><a class="btn-link" href="{% url 'inventario_ti_patrimonios_modelo_importacao' %}">Baixar modelo CSV</a></p>
+    <p><small>Tipos: computador, notebook, monitor, impressora, nobreak, rede, periferico e outro. Status: em_uso, estoque, manutencao, baixado ou extraviado.</small></p>
+
+    <form method="post" enctype="multipart/form-data">
+      {% csrf_token %}
+      <div class="form-group">
+        <label for="arquivo">Arquivo CSV</label>
+        <input id="arquivo" type="file" name="arquivo" accept=".csv,text/csv" required>
+      </div>
+      <div class="top-actions" style="margin-top: 14px;">
+        <button type="submit" class="btn-submit">Validar e importar</button>
+        <a class="btn-link" href="{% url 'inventario_ti_patrimonios' %}">Cancelar</a>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

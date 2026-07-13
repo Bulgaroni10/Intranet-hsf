@@ -5,10 +5,11 @@ from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Group
 from django.contrib.messages.storage.fallback import FallbackStorage
 from django.test import RequestFactory, TestCase
+from django.core.files.uploadedfile import SimpleUploadedFile
 from django.urls import reverse
 from django.utils import timezone
 
-from usuarios.models import Unidade
+from usuarios.models import Setor, Unidade
 
 from .models import ComputadorInventario, ErroAgenteInventario, ImpressoraMonitorada, MonitoramentoActiveDirectory, MonitoramentoRede, MonitoramentoServidor, MovimentacaoPatrimonioTI, PatrimonioTI
 from .services_ad import monitorar_active_directory
@@ -495,6 +496,7 @@ class PatrimonioTITests(TestCase):
             unidade=self.unidade,
         )
         self.user.groups.add(grupo)
+        self.client.force_login(self.user)
 
     def test_lista_patrimonios_renderiza_para_ti(self):
         PatrimonioTI.objects.create(codigo="PAT-001", tipo="computador", unidade=self.unidade)
@@ -532,3 +534,38 @@ class PatrimonioTITests(TestCase):
         self.assertEqual(computador.patrimonio, "PAT-002")
         self.assertTrue(PatrimonioTI.objects.filter(codigo="PAT-002", computador=computador).exists())
         self.assertEqual(MovimentacaoPatrimonioTI.objects.filter(patrimonio__codigo="PAT-002").count(), 1)
+
+    def test_importacao_csv_cadastra_patrimonio_e_movimentacao(self):
+        Setor.objects.create(nome="TI")
+        conteudo = (
+            "codigo;tipo;status;unidade;setor;responsavel;fabricante;modelo;serial;observacao\n"
+            "PAT-CSV-1;computador;em_uso;HT;TI;Suporte;Dell;OptiPlex;SERIAL-CSV-1;Importado\n"
+        ).encode("utf-8")
+        arquivo = SimpleUploadedFile("patrimonios.csv", conteudo, content_type="text/csv")
+
+        resposta = self.client.post(
+            reverse("inventario_ti_patrimonios_importar"),
+            {"arquivo": arquivo},
+        )
+
+        patrimonio = PatrimonioTI.objects.get(codigo="PAT-CSV-1")
+        self.assertRedirects(resposta, reverse("inventario_ti_patrimonios"))
+        self.assertEqual(patrimonio.serial, "SERIAL-CSV-1")
+        self.assertEqual(patrimonio.setor.nome, "TI")
+        self.assertTrue(patrimonio.movimentacoes.filter(tipo="cadastro").exists())
+
+    def test_importacao_csv_com_erro_nao_grava_parcialmente(self):
+        conteudo = (
+            "codigo;tipo;status;unidade;setor;serial\n"
+            "PAT-VALIDO;computador;em_uso;HT;;SERIAL-1\n"
+            "PAT-INVALIDO;tipo-inexistente;em_uso;HT;;SERIAL-2\n"
+        ).encode("utf-8")
+        arquivo = SimpleUploadedFile("patrimonios.csv", conteudo, content_type="text/csv")
+
+        resposta = self.client.post(
+            reverse("inventario_ti_patrimonios_importar"),
+            {"arquivo": arquivo},
+        )
+
+        self.assertEqual(resposta.status_code, 200)
+        self.assertFalse(PatrimonioTI.objects.filter(codigo__in=["PAT-VALIDO", "PAT-INVALIDO"]).exists())
