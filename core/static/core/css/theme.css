@@ -398,6 +398,21 @@ textarea:focus {
   box-shadow: 0 0 0 3px var(--gsf-primary-soft) !important;
 }
 
+input[type="checkbox"],
+input[type="radio"] {
+  width: 18px !important;
+  min-width: 18px;
+  height: 18px;
+  min-height: 18px;
+  padding: 0;
+  accent-color: var(--gsf-primary);
+  box-shadow: none !important;
+}
+
+input[type="file"] {
+  padding: 8px 10px;
+}
+
 label,
 .form-group label {
   color: var(--gsf-muted) !important;
@@ -602,6 +617,32 @@ table:not(.noc-grid table) tbody tr:hover {
   align-items: center;
 }
 
+.category-section,
+.document-list,
+.avisos-grid {
+  min-width: 0;
+}
+
+.category-header,
+.section-header,
+.aviso-top,
+.document-title-line {
+  align-items: center;
+}
+
+.aviso-card,
+.document-card,
+.pending-card,
+.check-card {
+  overflow-wrap: anywhere;
+}
+
+.check-card,
+.checkbox-line,
+.checkbox-row {
+  cursor: pointer;
+}
+
 .btn-submit,
 .btn-success,
 .btn-link,
@@ -626,6 +667,25 @@ table:not(.noc-grid table) tbody tr:hover {
 
   .top-actions > * {
     flex: 1 1 auto;
+  }
+
+  .hero,
+  .hero-box,
+  .summary-grid,
+  .meta-grid,
+  .document-card,
+  .checks-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  .aviso-title-line {
+    align-items: flex-start;
+  }
+
+  .aviso-badges,
+  .aviso-actions,
+  .item-actions {
+    justify-content: flex-start;
   }
 }
 
