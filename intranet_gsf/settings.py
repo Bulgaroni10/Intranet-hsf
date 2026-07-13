@@ -156,10 +156,6 @@ STORAGES = {
     },
 }
 
-STATICFILES_DIRS = [
-    BASE_DIR / "core" / "static",
-]
-
 AUTH_USER_MODEL = 'usuarios.Usuario'
 
 LANGUAGE_CODE = 'pt-br'
