@@ -226,6 +226,25 @@ def mv_convenios(request):
     )
     total_chamados_mv_atendimento = resumo_chamados_mv['total_chamados_ti_atendimento']
     total_chamados_mv_resolvidos = resumo_chamados_mv['total_chamados_ti_resolvidos']
+    if unidade_ativa:
+        total_convenios_unidade = Convenio.objects.filter(
+            unidades=unidade_ativa,
+        ).distinct().count()
+        total_planos_unidade = PlanoConvenio.objects.filter(
+            convenio__unidades=unidade_ativa,
+        ).distinct().count()
+        total_regras_unidade = RegraAtendimentoConvenio.objects.filter(
+            unidade=unidade_ativa,
+        ).count()
+        total_procedimentos_unidade = ProcedimentoProibidoPlano.objects.filter(
+            convenio__unidades=unidade_ativa,
+        ).distinct().count()
+    else:
+        total_convenios_unidade = 0
+        total_planos_unidade = 0
+        total_regras_unidade = 0
+        total_procedimentos_unidade = 0
+
     return render(request, 'core/mv_convenios.html', {
         'regras': regras,
         'proibicoes': proibicoes,
@@ -252,11 +271,11 @@ def mv_convenios(request):
         'total_chamados_mv_abertos': total_chamados_mv_abertos,
         'total_chamados_mv_atendimento': total_chamados_mv_atendimento,
         'total_chamados_mv_resolvidos': total_chamados_mv_resolvidos,
-        'total_convenios': Convenio.objects.count(),
-        'total_planos': PlanoConvenio.objects.count(),
+        'total_convenios': total_convenios_unidade,
+        'total_planos': total_planos_unidade,
         'total_especialidades': Especialidade.objects.count(),
-        'total_regras': RegraAtendimentoConvenio.objects.count(),
-        'total_procedimentos': ProcedimentoProibidoPlano.objects.count(),
+        'total_regras': total_regras_unidade,
+        'total_procedimentos': total_procedimentos_unidade,
     })
 
 
