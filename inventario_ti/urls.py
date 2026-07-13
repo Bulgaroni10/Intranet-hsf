@@ -17,6 +17,7 @@ urlpatterns = [
     path("portal/modulos/inventario-ti/suprimentos/novo/", views.novo_suprimento, name="inventario_ti_suprimento_novo"),
     path("portal/modulos/inventario-ti/suprimentos/<int:suprimento_id>/", views.detalhe_suprimento, name="inventario_ti_suprimento_detalhe"),
     path("portal/modulos/inventario-ti/suprimentos/<int:suprimento_id>/movimentar/", views.movimentar_suprimento, name="inventario_ti_suprimento_movimentar"),
+    path("portal/modulos/inventario-ti/suprimentos/<int:suprimento_id>/movimentacoes/<int:movimentacao_id>/estornar/", views.estornar_movimentacao_suprimento, name="inventario_ti_suprimento_estornar"),
     path("portal/modulos/inventario-ti/patrimonios/<int:patrimonio_id>/movimentar/", views.movimentar_patrimonio, name="inventario_ti_patrimonio_movimentar"),
     path("portal/modulos/inventario-ti/patrimonios/<int:patrimonio_id>/", views.detalhe_patrimonio, name="inventario_ti_patrimonio_detalhe"),
     path("portal/modulos/inventario-ti/patrimonios/<int:patrimonio_id>/editar/", views.editar_patrimonio, name="inventario_ti_patrimonio_editar"),

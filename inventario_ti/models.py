@@ -295,6 +295,15 @@ class MovimentacaoSuprimentoTI(models.Model):
     responsavel = models.CharField(max_length=180, blank=True, default="")
     observacao = models.TextField(blank=True, default="")
     usuario = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True)
+    estornada_em = models.DateTimeField(null=True, blank=True)
+    estornada_por = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="movimentacoes_suprimento_estornadas",
+    )
+    motivo_estorno = models.TextField(blank=True, default="")
     criado_em = models.DateTimeField(auto_now_add=True)
 
     class Meta:

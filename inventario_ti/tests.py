@@ -20,6 +20,7 @@ from .views import (
     erros_agentes,
     exportar_erros_agentes_csv,
     exportar_inventario_csv,
+    estornar_movimentacao_suprimento,
     heartbeat,
     maquinas,
     movimentar_patrimonio,
@@ -756,3 +757,31 @@ class SuprimentosTITests(TestCase):
         self.assertEqual(resposta.status_code, 200)
         self.assertEqual(item.quantidade, 1)
         self.assertFalse(item.movimentacoes.exists())
+
+    def test_estorno_da_ultima_movimentacao_restaura_saldo_e_preserva_historico(self):
+        item = SuprimentoTI.objects.create(
+            unidade=self.unidade, setor=self.setor_a, codigo="TONER-EST",
+            nome="Toner Estorno", quantidade=3,
+        )
+        movimento = MovimentacaoSuprimentoTI.objects.create(
+            suprimento=item, tipo="saida", quantidade=2,
+            saldo_anterior=5, saldo_atual=3, usuario=self.usuario,
+        )
+        request = self.factory.post(
+            f"/portal/modulos/inventario-ti/suprimentos/{item.id}/movimentacoes/{movimento.id}/estornar/",
+            {"motivo": "Saída lançada por engano."},
+        )
+        request.user = self.usuario
+        request.session = {}
+        request._messages = FallbackStorage(request)
+
+        resposta = estornar_movimentacao_suprimento(request, item.id, movimento.id)
+        item.refresh_from_db()
+        movimento.refresh_from_db()
+
+        self.assertEqual(resposta.status_code, 302)
+        self.assertEqual(item.quantidade, 5)
+        self.assertIsNotNone(movimento.estornada_em)
+        self.assertEqual(movimento.estornada_por, self.usuario)
+        self.assertEqual(movimento.motivo_estorno, "Saída lançada por engano.")
+        self.assertTrue(MovimentacaoSuprimentoTI.objects.filter(id=movimento.id).exists())

@@ -1273,10 +1273,53 @@ def detalhe_suprimento(request, suprimento_id):
     item = get_object_or_404(SuprimentoTI.objects.select_related("unidade", "setor"), id=suprimento_id, ativo=True)
     if not _suprimento_permitido(request.user, item):
         return render(request, "core/sem_permissao.html", status=403)
+    movimentacoes = item.movimentacoes.select_related("setor_destino", "usuario", "estornada_por")[:100]
+    ultima_ativa = item.movimentacoes.filter(estornada_em__isnull=True).order_by("-criado_em").first()
     return render(request, "inventario_ti/detalhe_suprimento.html", {
         "item": item,
-        "movimentacoes": item.movimentacoes.select_related("setor_destino", "usuario")[:100],
+        "movimentacoes": movimentacoes,
+        "movimentacao_estornavel_id": ultima_ativa.id if ultima_ativa else None,
     })
+
+
+@login_required
+def estornar_movimentacao_suprimento(request, suprimento_id, movimentacao_id):
+    if request.method != "POST":
+        return JsonResponse({"ok": False, "erro": "Método não permitido"}, status=405)
+
+    item = get_object_or_404(SuprimentoTI, id=suprimento_id, ativo=True)
+    if not _suprimento_permitido(request.user, item):
+        return render(request, "core/sem_permissao.html", status=403)
+
+    motivo = request.POST.get("motivo", "").strip()
+    if not motivo:
+        messages.error(request, "Informe o motivo do estorno.")
+        return redirect("inventario_ti_suprimento_detalhe", suprimento_id=item.id)
+
+    with transaction.atomic():
+        bloqueado = SuprimentoTI.objects.select_for_update().get(id=item.id)
+        movimento = get_object_or_404(
+            MovimentacaoSuprimentoTI.objects.select_for_update(),
+            id=movimentacao_id,
+            suprimento=bloqueado,
+        )
+        ultima_ativa = bloqueado.movimentacoes.filter(estornada_em__isnull=True).order_by("-criado_em").first()
+        if movimento.estornada_em:
+            messages.error(request, "Esta movimentação já foi estornada.")
+        elif not ultima_ativa or ultima_ativa.id != movimento.id:
+            messages.error(request, "Somente a movimentação ativa mais recente pode ser estornada.")
+        elif bloqueado.quantidade != movimento.saldo_atual:
+            messages.error(request, "O saldo atual não corresponde a esta movimentação; revise o histórico.")
+        else:
+            bloqueado.quantidade = movimento.saldo_anterior
+            bloqueado.save(update_fields=["quantidade", "atualizado_em"])
+            movimento.estornada_em = timezone.now()
+            movimento.estornada_por = request.user
+            movimento.motivo_estorno = motivo
+            movimento.save(update_fields=["estornada_em", "estornada_por", "motivo_estorno"])
+            messages.success(request, f"Movimentação estornada. Saldo restaurado para {bloqueado.quantidade}.")
+
+    return redirect("inventario_ti_suprimento_detalhe", suprimento_id=item.id)
 
 
 @login_required
