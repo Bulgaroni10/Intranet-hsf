@@ -55,6 +55,10 @@
           <a href="{% url 'inventario_ti_suprimentos' %}" class="gsf-sidebar-sublink"><span>📦</span><strong>Suprimentos</strong></a>
         </div>
       </details>
+    {% else %}
+      <a href="{% url 'inventario_ti_suprimentos' %}" class="gsf-sidebar-link">
+        <span>📦</span><strong>Suprimentos</strong>
+      </a>
     {% endif %}
 
     <div class="gsf-sidebar-section">Comunicação</div>

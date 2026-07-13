@@ -11,7 +11,7 @@ from django.utils import timezone
 
 from usuarios.models import Setor, Unidade
 
-from .models import ComputadorInventario, ErroAgenteInventario, ImpressoraMonitorada, MonitoramentoActiveDirectory, MonitoramentoRede, MonitoramentoServidor, MovimentacaoPatrimonioTI, PatrimonioTI
+from .models import ComputadorInventario, ErroAgenteInventario, ImpressoraMonitorada, MonitoramentoActiveDirectory, MonitoramentoRede, MonitoramentoServidor, MovimentacaoPatrimonioTI, MovimentacaoSuprimentoTI, PatrimonioTI, SuprimentoTI
 from .services_ad import monitorar_active_directory
 from .services_impressoras import atualizar_impressora
 from .views import (
@@ -23,6 +23,7 @@ from .views import (
     heartbeat,
     maquinas,
     movimentar_patrimonio,
+    movimentar_suprimento,
     novo_patrimonio,
     patrimonios,
     suprimentos,
@@ -646,3 +647,70 @@ class PatrimonioTITests(TestCase):
         self.assertEqual(patrimonio.setor, destino)
         self.assertEqual(movimento.setor_origem, origem)
         self.assertEqual(movimento.setor_destino, destino)
+
+
+class SuprimentosTITests(TestCase):
+    def setUp(self):
+        self.factory = RequestFactory()
+        self.unidade = Unidade.objects.create(nome="Hospital Estoque", sigla="HE")
+        self.setor_a = Setor.objects.create(nome="Setor A")
+        self.setor_b = Setor.objects.create(nome="Setor B")
+        self.usuario = get_user_model().objects.create_user(
+            username="setor.a", password="teste", unidade=self.unidade, setor=self.setor_a,
+        )
+
+    def test_usuario_comum_enxerga_somente_suprimentos_do_setor(self):
+        SuprimentoTI.objects.create(unidade=self.unidade, setor=self.setor_a, codigo="SUP-A", nome="Material A")
+        SuprimentoTI.objects.create(unidade=self.unidade, setor=self.setor_b, codigo="SUP-B", nome="Material B")
+        self.client.force_login(self.usuario)
+
+        resposta = self.client.get(reverse("inventario_ti_suprimentos"))
+
+        self.assertContains(resposta, "SUP-A")
+        self.assertNotContains(resposta, "SUP-B")
+
+    def test_saida_registra_destino_e_atualiza_saldo(self):
+        item = SuprimentoTI.objects.create(
+            unidade=self.unidade, setor=self.setor_a, codigo="TONER-1",
+            nome="Toner Brother", categoria="toner", quantidade=5, estoque_minimo=2,
+        )
+        request = self.factory.post(
+            f"/portal/modulos/inventario-ti/suprimentos/{item.id}/movimentar/",
+            {
+                "tipo": "saida", "quantidade": "2", "setor_destino": str(self.setor_b.id),
+                "impressora_destino": "192.168.0.223 - Faturamento", "responsavel": "Maria",
+            },
+        )
+        request.user = self.usuario
+        request.session = {}
+        request._messages = FallbackStorage(request)
+
+        resposta = movimentar_suprimento(request, item.id)
+        item.refresh_from_db()
+        movimento = MovimentacaoSuprimentoTI.objects.get(suprimento=item)
+
+        self.assertEqual(resposta.status_code, 302)
+        self.assertEqual(item.quantidade, 3)
+        self.assertEqual(movimento.saldo_anterior, 5)
+        self.assertEqual(movimento.saldo_atual, 3)
+        self.assertEqual(movimento.setor_destino, self.setor_b)
+        self.assertIn("192.168.0.223", movimento.impressora_destino)
+
+    def test_saida_acima_do_saldo_e_bloqueada(self):
+        item = SuprimentoTI.objects.create(
+            unidade=self.unidade, setor=self.setor_a, codigo="CABO-1", nome="Cabo", quantidade=1,
+        )
+        request = self.factory.post(
+            f"/portal/modulos/inventario-ti/suprimentos/{item.id}/movimentar/",
+            {"tipo": "saida", "quantidade": "2", "setor_destino": str(self.setor_b.id)},
+        )
+        request.user = self.usuario
+        request.session = {}
+        request._messages = FallbackStorage(request)
+
+        resposta = movimentar_suprimento(request, item.id)
+        item.refresh_from_db()
+
+        self.assertEqual(resposta.status_code, 200)
+        self.assertEqual(item.quantidade, 1)
+        self.assertFalse(item.movimentacoes.exists())

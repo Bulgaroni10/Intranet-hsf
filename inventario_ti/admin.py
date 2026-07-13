@@ -6,11 +6,16 @@ from .models import (
     HistoricoComputadorInventario,
     MovimentacaoPatrimonioTI,
     PatrimonioTI,
+    SuprimentoTI,
+    MovimentacaoSuprimentoTI,
     ImpressoraMonitorada,
     MonitoramentoActiveDirectory,
     MonitoramentoServidor,
     MonitoramentoRede,
 )
+
+admin.site.register(SuprimentoTI)
+admin.site.register(MovimentacaoSuprimentoTI)
 
 
 @admin.register(ComputadorInventario)

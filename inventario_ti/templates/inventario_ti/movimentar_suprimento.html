@@ -1,0 +1,10 @@
+{% extends "base/base.html" %}{% block title %}Movimentar {{ item.nome }}{% endblock %}{% block content %}<div class="page">
+{% include "components/page_header.html" with eyebrow="Suprimentos" icon="🔄" title="Movimentar estoque" subtitle="Registre entrada, saída ou ajuste com rastreabilidade." secondary_url_name="inventario_ti_suprimentos" secondary_text="Voltar" %}
+<div class="detail-card"><h2>{{ item.codigo }} · {{ item.nome }}</h2><p>Saldo disponível: <strong>{{ item.quantidade }}</strong> · Estoque mínimo: {{ item.estoque_minimo }}</p></div>
+<div class="form-card"><form method="post">{% csrf_token %}<div class="form-grid">
+<div class="form-group"><label>Movimentação</label><select name="tipo">{% for valor, rotulo in tipos %}<option value="{{ valor }}">{{ rotulo }}</option>{% endfor %}</select></div>
+<div class="form-group"><label>Quantidade</label><input type="number" min="1" name="quantidade" required><small>Em ajuste, informe o novo saldo total.</small></div>
+<div class="form-group"><label>Setor de destino (saída)</label><select name="setor_destino"><option value="">Selecione</option>{% for setor in setores %}<option value="{{ setor.id }}">{{ setor.nome }}</option>{% endfor %}</select></div>
+<div class="form-group"><label>Impressora/local de destino</label><input name="impressora_destino" placeholder="Ex.: 192.168.0.223 - Faturamento"></div>
+<div class="form-group"><label>Responsável</label><input name="responsavel"></div><div class="form-group"><label>Observação</label><textarea name="observacao"></textarea></div>
+</div><button class="btn-submit">Registrar movimentação</button></form></div></div>{% endblock %}

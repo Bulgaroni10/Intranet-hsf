@@ -20,7 +20,7 @@ from qrcode.image.svg import SvgPathImage
 from core.services.permissions import usuario_eh_ti
 from usuarios.models import Setor, Unidade
 
-from .models import ComputadorInventario, ErroAgenteInventario, MovimentacaoPatrimonioTI, PatrimonioTI
+from .models import ComputadorInventario, ErroAgenteInventario, MovimentacaoPatrimonioTI, MovimentacaoSuprimentoTI, PatrimonioTI, SuprimentoTI
 from .services import (
     CAMPOS_MONITORADOS,
     computador_estava_offline,
@@ -1087,9 +1087,173 @@ def maquinas(request):
 
 @login_required
 def suprimentos(request):
-    if not usuario_pode_acessar_inventario_ti(request.user):
+    unidade_id = getattr(request.user, "unidade_id", None)
+    setor_id = getattr(request.user, "setor_id", None)
+    if not unidade_id:
         return render(request, "core/sem_permissao.html", status=403)
-    return render(request, "inventario_ti/suprimentos.html")
+
+    itens = SuprimentoTI.objects.select_related("unidade", "setor").filter(unidade_id=unidade_id, ativo=True)
+    if not usuario_eh_ti(request.user):
+        if not setor_id:
+            return render(request, "core/sem_permissao.html", status=403)
+        itens = itens.filter(setor_id=setor_id)
+
+    busca = request.GET.get("busca", "").strip()
+    categoria = request.GET.get("categoria", "").strip()
+    setor_filtro = request.GET.get("setor", "").strip()
+    if busca:
+        itens = itens.filter(Q(codigo__icontains=busca) | Q(nome__icontains=busca) | Q(modelo_compativel__icontains=busca))
+    if categoria:
+        itens = itens.filter(categoria=categoria)
+    if setor_filtro and usuario_eh_ti(request.user):
+        itens = itens.filter(setor_id=setor_filtro)
+
+    lista = list(itens)
+    totais = {
+        "itens": len(lista),
+        "unidades_estoque": sum(item.quantidade for item in lista),
+        "estoque_baixo": sum(1 for item in lista if item.estoque_baixo),
+        "zerados": sum(1 for item in lista if item.quantidade == 0),
+    }
+    return render(request, "inventario_ti/suprimentos.html", {
+        "suprimentos": lista,
+        "totais": totais,
+        "busca": busca,
+        "categoria": categoria,
+        "setor_filtro": setor_filtro,
+        "categorias": SuprimentoTI.CATEGORIA_CHOICES,
+        "setores": Setor.objects.filter(ativo=True).order_by("nome"),
+        "pode_gerenciar_todos": usuario_eh_ti(request.user),
+    })
+
+
+@login_required
+def novo_suprimento(request):
+    unidade = getattr(request.user, "unidade", None)
+    setor_usuario = getattr(request.user, "setor", None)
+    if not unidade or (not usuario_eh_ti(request.user) and not setor_usuario):
+        return render(request, "core/sem_permissao.html", status=403)
+
+    setores = Setor.objects.filter(ativo=True).order_by("nome") if usuario_eh_ti(request.user) else Setor.objects.filter(id=setor_usuario.id)
+    if request.method == "POST":
+        codigo = request.POST.get("codigo", "").strip().upper()
+        nome = request.POST.get("nome", "").strip()
+        categoria = request.POST.get("categoria", "outro").strip()
+        setor = setores.filter(id=request.POST.get("setor", "")).first()
+        erros = []
+        if not codigo or not nome:
+            erros.append("Informe o código e o nome do suprimento.")
+        if not setor:
+            erros.append("Selecione um setor permitido.")
+        if categoria not in {valor for valor, _rotulo in SuprimentoTI.CATEGORIA_CHOICES}:
+            erros.append("Categoria inválida.")
+        if setor and SuprimentoTI.objects.filter(unidade=unidade, setor=setor, codigo__iexact=codigo).exists():
+            erros.append("Já existe um suprimento com este código no setor.")
+        try:
+            quantidade = max(0, int(request.POST.get("quantidade", "0")))
+            estoque_minimo = max(0, int(request.POST.get("estoque_minimo", "0")))
+        except ValueError:
+            quantidade = estoque_minimo = 0
+            erros.append("Quantidade e estoque mínimo devem ser números inteiros.")
+
+        if not erros:
+            item = SuprimentoTI.objects.create(
+                unidade=unidade, setor=setor, codigo=codigo, nome=nome, categoria=categoria,
+                fabricante=request.POST.get("fabricante", "").strip(),
+                modelo_compativel=request.POST.get("modelo_compativel", "").strip(),
+                quantidade=quantidade, estoque_minimo=estoque_minimo,
+            )
+            if quantidade:
+                MovimentacaoSuprimentoTI.objects.create(
+                    suprimento=item, tipo="entrada", quantidade=quantidade,
+                    saldo_anterior=0, saldo_atual=quantidade, usuario=request.user,
+                    observacao="Saldo inicial do cadastro.",
+                )
+            messages.success(request, "Suprimento cadastrado com sucesso.")
+            return redirect("inventario_ti_suprimentos")
+        for erro in erros:
+            messages.error(request, erro)
+
+    return render(request, "inventario_ti/formulario_suprimento.html", {
+        "setores": setores,
+        "categorias": SuprimentoTI.CATEGORIA_CHOICES,
+    })
+
+
+def _suprimento_permitido(user, item):
+    if item.unidade_id != getattr(user, "unidade_id", None):
+        return False
+    return usuario_eh_ti(user) or item.setor_id == getattr(user, "setor_id", None)
+
+
+@login_required
+def movimentar_suprimento(request, suprimento_id):
+    item = get_object_or_404(SuprimentoTI.objects.select_related("unidade", "setor"), id=suprimento_id, ativo=True)
+    if not _suprimento_permitido(request.user, item):
+        return render(request, "core/sem_permissao.html", status=403)
+
+    if request.method == "POST":
+        tipo = request.POST.get("tipo", "").strip()
+        try:
+            quantidade = int(request.POST.get("quantidade", "0"))
+        except ValueError:
+            quantidade = 0
+        setor_destino = Setor.objects.filter(id=request.POST.get("setor_destino", ""), ativo=True).first()
+        erros = []
+        if tipo not in {valor for valor, _rotulo in MovimentacaoSuprimentoTI.TIPO_CHOICES}:
+            erros.append("Tipo de movimentação inválido.")
+        if quantidade <= 0:
+            erros.append("Informe uma quantidade maior que zero.")
+        if tipo == "saida" and not setor_destino:
+            erros.append("Informe o setor que recebeu o material.")
+
+        if not erros:
+            with transaction.atomic():
+                bloqueado = SuprimentoTI.objects.select_for_update().get(id=item.id)
+                saldo_anterior = bloqueado.quantidade
+                if tipo == "entrada":
+                    saldo_atual = saldo_anterior + quantidade
+                elif tipo == "saida":
+                    saldo_atual = saldo_anterior - quantidade
+                    if saldo_atual < 0:
+                        erros.append("A saída não pode ser maior que o saldo disponível.")
+                else:
+                    saldo_atual = quantidade
+
+                if not erros:
+                    bloqueado.quantidade = saldo_atual
+                    bloqueado.save(update_fields=["quantidade", "atualizado_em"])
+                    MovimentacaoSuprimentoTI.objects.create(
+                        suprimento=bloqueado, tipo=tipo, quantidade=quantidade,
+                        saldo_anterior=saldo_anterior, saldo_atual=saldo_atual,
+                        setor_destino=setor_destino,
+                        impressora_destino=request.POST.get("impressora_destino", "").strip(),
+                        responsavel=request.POST.get("responsavel", "").strip(),
+                        observacao=request.POST.get("observacao", "").strip(),
+                        usuario=request.user,
+                    )
+            if not erros:
+                messages.success(request, "Movimentação registrada e saldo atualizado.")
+                return redirect("inventario_ti_suprimento_detalhe", suprimento_id=item.id)
+        for erro in erros:
+            messages.error(request, erro)
+
+    return render(request, "inventario_ti/movimentar_suprimento.html", {
+        "item": item,
+        "tipos": MovimentacaoSuprimentoTI.TIPO_CHOICES,
+        "setores": Setor.objects.filter(ativo=True).order_by("nome"),
+    })
+
+
+@login_required
+def detalhe_suprimento(request, suprimento_id):
+    item = get_object_or_404(SuprimentoTI.objects.select_related("unidade", "setor"), id=suprimento_id, ativo=True)
+    if not _suprimento_permitido(request.user, item):
+        return render(request, "core/sem_permissao.html", status=403)
+    return render(request, "inventario_ti/detalhe_suprimento.html", {
+        "item": item,
+        "movimentacoes": item.movimentacoes.select_related("setor_destino", "usuario")[:100],
+    })
 
 
 @login_required

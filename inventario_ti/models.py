@@ -240,6 +240,70 @@ class MovimentacaoPatrimonioTI(models.Model):
         return f"{self.patrimonio.codigo} - {self.get_tipo_display()}"
 
 
+class SuprimentoTI(models.Model):
+    CATEGORIA_CHOICES = [
+        ("toner", "Toner"),
+        ("cilindro", "Cilindro"),
+        ("papel", "Papel"),
+        ("cabo", "Cabo"),
+        ("periferico", "Periférico"),
+        ("peca", "Peça"),
+        ("outro", "Outro"),
+    ]
+
+    unidade = models.ForeignKey(Unidade, on_delete=models.PROTECT, related_name="suprimentos_ti")
+    setor = models.ForeignKey(Setor, on_delete=models.PROTECT, related_name="suprimentos_ti")
+    codigo = models.CharField(max_length=80)
+    nome = models.CharField(max_length=180)
+    categoria = models.CharField(max_length=30, choices=CATEGORIA_CHOICES, default="outro")
+    fabricante = models.CharField(max_length=120, blank=True, default="")
+    modelo_compativel = models.CharField(max_length=180, blank=True, default="")
+    quantidade = models.PositiveIntegerField(default=0)
+    estoque_minimo = models.PositiveIntegerField(default=0)
+    ativo = models.BooleanField(default=True)
+    criado_em = models.DateTimeField(auto_now_add=True)
+    atualizado_em = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["nome"]
+        constraints = [
+            models.UniqueConstraint(fields=["unidade", "setor", "codigo"], name="uniq_suprimento_unidade_setor_codigo"),
+        ]
+
+    def __str__(self):
+        return f"{self.codigo} - {self.nome}"
+
+    @property
+    def estoque_baixo(self):
+        return self.quantidade <= self.estoque_minimo
+
+
+class MovimentacaoSuprimentoTI(models.Model):
+    TIPO_CHOICES = [
+        ("entrada", "Entrada"),
+        ("saida", "Saída"),
+        ("ajuste", "Ajuste"),
+    ]
+
+    suprimento = models.ForeignKey(SuprimentoTI, on_delete=models.CASCADE, related_name="movimentacoes")
+    tipo = models.CharField(max_length=20, choices=TIPO_CHOICES)
+    quantidade = models.PositiveIntegerField()
+    saldo_anterior = models.PositiveIntegerField()
+    saldo_atual = models.PositiveIntegerField()
+    setor_destino = models.ForeignKey(Setor, on_delete=models.SET_NULL, null=True, blank=True, related_name="consumos_suprimentos_ti")
+    impressora_destino = models.CharField(max_length=180, blank=True, default="")
+    responsavel = models.CharField(max_length=180, blank=True, default="")
+    observacao = models.TextField(blank=True, default="")
+    usuario = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True)
+    criado_em = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["-criado_em"]
+
+    def __str__(self):
+        return f"{self.suprimento.codigo} - {self.get_tipo_display()} ({self.quantidade})"
+
+
 class ImpressoraMonitorada(models.Model):
     unidade = models.ForeignKey(Unidade, on_delete=models.SET_NULL, null=True, blank=True)
     ip = models.GenericIPAddressField(unique=True)
