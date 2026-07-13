@@ -8,6 +8,7 @@ from .models import (
     PatrimonioTI,
     ImpressoraMonitorada,
     MonitoramentoActiveDirectory,
+    MonitoramentoServidor,
 )
 
 
@@ -209,3 +210,9 @@ class ImpressoraMonitoradaAdmin(admin.ModelAdmin):
 class MonitoramentoActiveDirectoryAdmin(admin.ModelAdmin):
     list_display = ["controlador", "ip", "online", "ldap_ok", "kerberos_ok", "dns_ok", "smb_ok", "latencia_ms", "ultima_consulta"]
     readonly_fields = ["ip", "online", "ldap_ok", "kerberos_ok", "dns_ok", "smb_ok", "latencia_ms", "detalhe", "ultima_consulta", "atualizado_em"]
+
+
+@admin.register(MonitoramentoServidor)
+class MonitoramentoServidorAdmin(admin.ModelAdmin):
+    list_display = ["hostname", "ip", "cpu_percentual", "memoria_percentual", "disco_percentual", "disco_livre_gb", "ultima_consulta"]
+    readonly_fields = ["hostname", "ip", "cpu_percentual", "memoria_percentual", "memoria_total_gb", "disco_percentual", "disco_livre_gb", "uptime_segundos", "detalhe", "ultima_consulta", "atualizado_em"]

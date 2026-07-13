@@ -8,7 +8,7 @@ from django.test import RequestFactory, TestCase
 
 from usuarios.models import Unidade
 
-from .models import ComputadorInventario, ErroAgenteInventario, ImpressoraMonitorada, MonitoramentoActiveDirectory, MovimentacaoPatrimonioTI, PatrimonioTI
+from .models import ComputadorInventario, ErroAgenteInventario, ImpressoraMonitorada, MonitoramentoActiveDirectory, MonitoramentoServidor, MovimentacaoPatrimonioTI, PatrimonioTI
 from .services_ad import monitorar_active_directory
 from .services_impressoras import atualizar_impressora
 from .views import (
@@ -104,6 +104,16 @@ class MonitoramentoActiveDirectoryTests(TestCase):
         self.assertFalse(item.online)
         self.assertTrue(item.possui_alerta)
         self.assertTrue(self.usuario.notificacoes.filter(origem="active_directory", lida=False).exists())
+
+
+class MonitoramentoServidorTests(TestCase):
+    def test_limites_normais_nao_geram_alerta(self):
+        item = MonitoramentoServidor(cpu_percentual=50, memoria_percentual=70, disco_percentual=80)
+        self.assertFalse(item.possui_alerta)
+
+    def test_disco_acima_de_85_porcento_gera_alerta(self):
+        item = MonitoramentoServidor(cpu_percentual=20, memoria_percentual=30, disco_percentual=85)
+        self.assertTrue(item.possui_alerta)
 
 
 class HeartbeatHistoricoTests(TestCase):

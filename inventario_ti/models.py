@@ -302,3 +302,36 @@ class MonitoramentoActiveDirectory(models.Model):
     @property
     def possui_alerta(self):
         return not all((self.online, self.ldap_ok, self.kerberos_ok, self.dns_ok, self.smb_ok))
+
+
+class MonitoramentoServidor(models.Model):
+    hostname = models.CharField(max_length=255, unique=True)
+    ip = models.GenericIPAddressField(null=True, blank=True)
+    cpu_percentual = models.DecimalField(max_digits=5, decimal_places=1, null=True, blank=True)
+    memoria_percentual = models.DecimalField(max_digits=5, decimal_places=1, null=True, blank=True)
+    memoria_total_gb = models.DecimalField(max_digits=10, decimal_places=1, null=True, blank=True)
+    disco_percentual = models.DecimalField(max_digits=5, decimal_places=1, null=True, blank=True)
+    disco_livre_gb = models.DecimalField(max_digits=12, decimal_places=1, null=True, blank=True)
+    uptime_segundos = models.PositiveBigIntegerField(default=0)
+    detalhe = models.TextField(blank=True, default="")
+    ultima_consulta = models.DateTimeField(null=True, blank=True)
+    atualizado_em = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = "Monitoramento do servidor"
+        verbose_name_plural = "Monitoramentos dos servidores"
+        ordering = ["hostname"]
+
+    def __str__(self):
+        return self.hostname
+
+    @property
+    def possui_alerta(self):
+        return any(
+            valor is not None and float(valor) >= limite
+            for valor, limite in (
+                (self.cpu_percentual, 90),
+                (self.memoria_percentual, 90),
+                (self.disco_percentual, 85),
+            )
+        )
