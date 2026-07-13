@@ -25,6 +25,9 @@ logs/
 
 # GSF Agent local config
 agentes/inventario_ti/config.json
+agentes/inventario_ti/build/
+agentes/inventario_ti/dist/
+agentes/inventario_ti/GSFAgent.spec
 
 # VS Code
 .vscode/

@@ -16,7 +16,11 @@ import requests
 
 
 AGENT_VERSION = "2.1.0"
-BASE_DIR = Path(__file__).resolve().parent
+BASE_DIR = (
+    Path(sys.executable).resolve().parent
+    if getattr(sys, "frozen", False)
+    else Path(__file__).resolve().parent
+)
 DEFAULT_CONFIG = {
     "server": "http://intranet.osascohsf.hosp",
     "unit_code": "",
@@ -43,7 +47,7 @@ def carregar_config(caminho_config=None):
     config["error_endpoint"] = "/" + str(config["error_endpoint"]).strip("/") + "/"
     config["interval"] = max(5, int(config.get("interval", 30)))
     config["request_timeout"] = max(3, int(config.get("request_timeout", 8)))
-    config["agent_version"] = str(config.get("agent_version") or AGENT_VERSION)
+    config["agent_version"] = AGENT_VERSION
     config["unit_code"] = str(config.get("unit_code") or "").strip().upper()
 
     return config
