@@ -611,6 +611,10 @@ table:not(.noc-grid table) tbody tr:hover {
   align-items: stretch;
 }
 
+.summary-grid {
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)) !important;
+}
+
 .summary-grid > *,
 .gsf-kpi-grid > * {
   min-width: 0;
@@ -619,6 +623,68 @@ table:not(.noc-grid table) tbody tr:hover {
 
 .top-actions {
   align-items: center;
+}
+
+/* Solicitações TI */
+.solicitacao-card,
+.notification-card,
+.sla-panel,
+.info-box,
+.side-row {
+  min-width: 0;
+}
+
+.solicitacao-card,
+.detail-section,
+.info-box,
+.side-row strong {
+  overflow-wrap: anywhere;
+}
+
+.solicitacao-title-line,
+.hero-main,
+.side-row {
+  min-width: 0;
+}
+
+.quick-actions form,
+.quick-actions button,
+.quick-actions a {
+  max-width: 100%;
+}
+
+/* Inventário TI: tabelas extensas rolam sem comprimir o conteúdo. */
+.gsf-table-wrap {
+  max-width: 100%;
+  overflow-x: auto !important;
+  scrollbar-gutter: stable;
+}
+
+.gsf-table-wrap > .gsf-table {
+  min-width: 760px;
+}
+
+.gsf-table th,
+.gsf-table td {
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+
+.gsf-table th:last-child,
+.gsf-table td:last-child {
+  white-space: nowrap;
+}
+
+.gsf-table td .top-actions,
+.gsf-table td .item-actions {
+  flex-wrap: nowrap;
+  margin: 0;
+}
+
+.form-card,
+.detail-card,
+.gsf-table-card {
+  min-width: 0;
 }
 
 .category-section,
@@ -711,6 +777,13 @@ body.gsf-legacy-with-sidebar.gsf-sidebar-collapsed .chat-page {
     flex: 1 1 auto;
   }
 
+  .top-actions .gsf-button,
+  .top-actions .btn-link,
+  .top-actions .btn-submit {
+    justify-content: center;
+    text-align: center;
+  }
+
   .hero,
   .hero-box,
   .summary-grid,
@@ -728,6 +801,25 @@ body.gsf-legacy-with-sidebar.gsf-sidebar-collapsed .chat-page {
   .aviso-actions,
   .item-actions {
     justify-content: flex-start;
+  }
+
+  .solicitacao-card {
+    grid-template-columns: 1fr !important;
+  }
+
+  .solicitacao-icon {
+    margin-bottom: 4px;
+  }
+
+  .solicitacao-title-line,
+  .hero-main,
+  .side-row {
+    align-items: flex-start !important;
+    flex-direction: column;
+  }
+
+  .side-row strong {
+    text-align: left !important;
   }
 }
 

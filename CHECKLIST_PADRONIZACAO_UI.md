@@ -23,8 +23,8 @@ Padrão-alvo: tema escuro corporativo, sidebar/topbar únicas, cards `gsf-*`, fo
 - [x] Conversas.
 - [x] Documentos e protocolos.
 - [x] Ramais e contatos — tema escuro e exportação CSV com filtros.
-- [ ] Solicitações TI.
-- [ ] Inventário TI — visão geral, patrimônio, máquinas e suprimentos.
+- [x] Solicitações TI.
+- [x] Inventário TI — visão geral, patrimônio, máquinas e suprimentos.
 - [ ] Estoque Setorial.
 - [ ] NOC.
 - [ ] Status de sistemas.
