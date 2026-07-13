@@ -1,5 +1,5 @@
 {% extends "base/base.html" %}{% block title %}Novo suprimento{% endblock %}{% block content %}<div class="page">
-{% include "components/page_header.html" with eyebrow="Suprimentos" icon="➕" title="Adicionar suprimento" subtitle="Cadastre um novo material ou some a quantidade a um item já existente." secondary_url_name="inventario_ti_suprimentos" secondary_text="Voltar" %}
+{% if modulo_setorial %}{% url 'estoque_setorial' as voltar_url %}{% else %}{% url 'inventario_ti_suprimentos' as voltar_url %}{% endif %}{% include "components/page_header.html" with eyebrow="Suprimentos" icon="➕" title="Adicionar suprimento" subtitle="Cadastre um novo material ou some a quantidade a um item já existente." secondary_href=voltar_url secondary_text="Voltar" %}
 <div class="form-card"><form method="post">{% csrf_token %}<div class="form-grid">
 <div class="form-group"><label>Suprimento</label><input name="nome" required placeholder="Ex.: Toner TN-3472"></div>
 <div class="form-group"><label>Categoria</label><select name="categoria">{% for valor, rotulo in categorias %}<option value="{{ valor }}">{{ rotulo }}</option>{% endfor %}</select></div>

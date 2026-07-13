@@ -241,6 +241,10 @@ class MovimentacaoPatrimonioTI(models.Model):
 
 
 class SuprimentoTI(models.Model):
+    ESCOPO_CHOICES = [
+        ("ti", "Tecnologia da Informação"),
+        ("setorial", "Estoque Setorial"),
+    ]
     CATEGORIA_CHOICES = [
         ("toner", "Toner"),
         ("cilindro", "Cilindro"),
@@ -253,6 +257,7 @@ class SuprimentoTI(models.Model):
 
     unidade = models.ForeignKey(Unidade, on_delete=models.PROTECT, related_name="suprimentos_ti")
     setor = models.ForeignKey(Setor, on_delete=models.PROTECT, related_name="suprimentos_ti", null=True, blank=True)
+    escopo = models.CharField(max_length=20, choices=ESCOPO_CHOICES, default="ti")
     codigo = models.CharField(max_length=80)
     nome = models.CharField(max_length=180)
     categoria = models.CharField(max_length=30, choices=CATEGORIA_CHOICES, default="outro")
@@ -267,7 +272,7 @@ class SuprimentoTI(models.Model):
     class Meta:
         ordering = ["nome"]
         constraints = [
-            models.UniqueConstraint(fields=["unidade", "codigo"], name="uniq_suprimento_unidade_codigo"),
+            models.UniqueConstraint(fields=["unidade", "setor", "escopo", "codigo"], name="uniq_suprimento_escopo_codigo"),
         ]
 
     def __str__(self):

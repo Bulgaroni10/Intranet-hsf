@@ -20,6 +20,7 @@ from .views import (
     erros_agentes,
     exportar_erros_agentes_csv,
     exportar_inventario_csv,
+    estoque_setorial,
     estornar_movimentacao_suprimento,
     heartbeat,
     maquinas,
@@ -27,6 +28,7 @@ from .views import (
     movimentar_suprimento,
     novo_patrimonio,
     novo_suprimento,
+    novo_suprimento_setorial,
     patrimonios,
     suprimentos,
 )
@@ -651,7 +653,7 @@ class PatrimonioTITests(TestCase):
         self.assertEqual(movimento.setor_destino, destino)
 
 
-class SuprimentosTITests(TestCase):
+class EstoqueSetorialTests(TestCase):
     def setUp(self):
         self.factory = RequestFactory()
         self.unidade = Unidade.objects.create(nome="Hospital Estoque", sigla="HE")
@@ -661,19 +663,19 @@ class SuprimentosTITests(TestCase):
             username="setor.a", password="teste", unidade=self.unidade, setor=self.setor_a,
         )
 
-    def test_usuario_enxerga_estoque_compartilhado_da_unidade(self):
-        SuprimentoTI.objects.create(unidade=self.unidade, setor=self.setor_a, codigo="SUP-A", nome="Material A")
-        SuprimentoTI.objects.create(unidade=self.unidade, setor=self.setor_b, codigo="SUP-B", nome="Material B")
+    def test_usuario_enxerga_somente_estoque_do_proprio_setor(self):
+        SuprimentoTI.objects.create(unidade=self.unidade, setor=self.setor_a, escopo="setorial", codigo="SUP-A", nome="Material A")
+        SuprimentoTI.objects.create(unidade=self.unidade, setor=self.setor_b, escopo="setorial", codigo="SUP-B", nome="Material B")
         self.client.force_login(self.usuario)
 
-        resposta = self.client.get(reverse("inventario_ti_suprimentos"))
+        resposta = self.client.get(reverse("estoque_setorial"))
 
         self.assertContains(resposta, "SUP-A")
-        self.assertContains(resposta, "SUP-B")
+        self.assertNotContains(resposta, "SUP-B")
 
     def test_novo_cadastro_soma_quantidade_quando_nome_e_categoria_sao_iguais(self):
         existente = SuprimentoTI.objects.create(
-            unidade=self.unidade, setor=self.setor_a, codigo="SUP-ANTIGO",
+            unidade=self.unidade, setor=self.setor_a, escopo="setorial", codigo="SUP-ANTIGO",
             nome="Toner TN-3472", categoria="toner", quantidade=10,
         )
         request = self.factory.post(
@@ -684,7 +686,7 @@ class SuprimentosTITests(TestCase):
         request.session = {}
         request._messages = FallbackStorage(request)
 
-        resposta = novo_suprimento(request)
+        resposta = novo_suprimento_setorial(request)
         existente.refresh_from_db()
 
         self.assertEqual(resposta.status_code, 302)
@@ -696,7 +698,7 @@ class SuprimentosTITests(TestCase):
 
     def test_toners_com_nomes_diferentes_permanecem_separados(self):
         SuprimentoTI.objects.create(
-            unidade=self.unidade, setor=self.setor_a, codigo="SUP-3472",
+            unidade=self.unidade, setor=self.setor_a, escopo="setorial", codigo="SUP-3472",
             nome="Toner TN-3472", categoria="toner", quantidade=10,
         )
         request = self.factory.post(
@@ -707,13 +709,13 @@ class SuprimentosTITests(TestCase):
         request.session = {}
         request._messages = FallbackStorage(request)
 
-        novo_suprimento(request)
+        novo_suprimento_setorial(request)
 
         self.assertEqual(SuprimentoTI.objects.count(), 2)
 
     def test_saida_registra_destino_e_atualiza_saldo(self):
         item = SuprimentoTI.objects.create(
-            unidade=self.unidade, setor=self.setor_a, codigo="TONER-1",
+            unidade=self.unidade, setor=self.setor_a, escopo="setorial", codigo="TONER-1",
             nome="Toner Brother", categoria="toner", quantidade=5, estoque_minimo=2,
         )
         request = self.factory.post(
@@ -740,7 +742,7 @@ class SuprimentosTITests(TestCase):
 
     def test_saida_acima_do_saldo_e_bloqueada(self):
         item = SuprimentoTI.objects.create(
-            unidade=self.unidade, setor=self.setor_a, codigo="CABO-1", nome="Cabo", quantidade=1,
+            unidade=self.unidade, setor=self.setor_a, escopo="setorial", codigo="CABO-1", nome="Cabo", quantidade=1,
         )
         request = self.factory.post(
             f"/portal/modulos/inventario-ti/suprimentos/{item.id}/movimentar/",
@@ -759,7 +761,7 @@ class SuprimentosTITests(TestCase):
 
     def test_estorno_da_ultima_movimentacao_restaura_saldo_e_preserva_historico(self):
         item = SuprimentoTI.objects.create(
-            unidade=self.unidade, setor=self.setor_a, codigo="TONER-EST",
+            unidade=self.unidade, setor=self.setor_a, escopo="setorial", codigo="TONER-EST",
             nome="Toner Estorno", quantidade=3,
         )
         movimento = MovimentacaoSuprimentoTI.objects.create(
@@ -792,7 +794,7 @@ class SuprimentosTITests(TestCase):
         )
         tecnico.groups.add(grupo_ti)
         item = SuprimentoTI.objects.create(
-            unidade=self.unidade, codigo="ALERTA-5", nome="Toner Alerta",
+            unidade=self.unidade, setor=self.setor_a, escopo="setorial", codigo="ALERTA-5", nome="Toner Alerta",
             categoria="toner", quantidade=6,
         )
         request = self.factory.post(

@@ -1,7 +1,8 @@
 {% extends "base/base.html" %}
 {% block title %}Suprimentos{% endblock %}
 {% block content %}<div class="page">
-  {% include "components/page_header.html" with eyebrow="Estoque" icon="📦" title="Suprimentos" subtitle="Controle compartilhado de materiais da unidade." action_url_name="inventario_ti_suprimento_novo" action_text="Novo suprimento" %}
+  {% if modulo_setorial %}{% url 'estoque_setorial_novo' as novo_url %}{% else %}{% url 'inventario_ti_suprimento_novo' as novo_url %}{% endif %}
+  {% include "components/page_header.html" with eyebrow="Estoque" icon="📦" title="Suprimentos" subtitle="Controle de materiais com acesso isolado por unidade e setor." action_href=novo_url action_text="Novo suprimento" %}
   <div class="summary-grid">
     {% include "components/kpi_card.html" with icon="📋" title="Itens" value=totais.itens %}
     {% include "components/kpi_card.html" with icon="📦" title="Unidades em estoque" value=totais.unidades_estoque %}
@@ -15,6 +16,6 @@
   </form></div><br>
   <div class="gsf-table-card"><div class="gsf-table-wrap"><table class="gsf-table">
     <thead><tr><th>Código</th><th>Suprimento</th><th>Categoria</th><th>Saldo</th><th>Alerta</th><th>Situação</th><th>Ações</th></tr></thead>
-    <tbody>{% for item in suprimentos %}<tr><td><strong>{{ item.codigo }}</strong></td><td>{{ item.nome }}</td><td>{{ item.get_categoria_display }}</td><td><strong>{{ item.quantidade }}</strong></td><td>5 unidades</td><td>{% if item.estoque_baixo %}<span class="gsf-badge gsf-badge-danger">Estoque baixo</span>{% else %}<span class="gsf-badge gsf-badge-success">Normal</span>{% endif %}</td><td><a class="btn-link" href="{% url 'inventario_ti_suprimento_detalhe' item.id %}">Histórico</a> <a class="btn-success" href="{% url 'inventario_ti_suprimento_movimentar' item.id %}">Movimentar</a></td></tr>{% empty %}<tr><td colspan="7">Nenhum suprimento cadastrado nesta unidade.</td></tr>{% endfor %}</tbody>
+    <tbody>{% for item in suprimentos %}<tr><td><strong>{{ item.codigo }}</strong></td><td>{{ item.nome }}</td><td>{{ item.get_categoria_display }}</td><td><strong>{{ item.quantidade }}</strong></td><td>5 unidades</td><td>{% if item.estoque_baixo %}<span class="gsf-badge gsf-badge-danger">Estoque baixo</span>{% else %}<span class="gsf-badge gsf-badge-success">Normal</span>{% endif %}</td><td>{% if modulo_setorial %}<a class="btn-link" href="{% url 'estoque_setorial_detalhe' item.id %}">Histórico</a> <a class="btn-success" href="{% url 'estoque_setorial_movimentar' item.id %}">Movimentar</a>{% else %}<a class="btn-link" href="{% url 'inventario_ti_suprimento_detalhe' item.id %}">Histórico</a> <a class="btn-success" href="{% url 'inventario_ti_suprimento_movimentar' item.id %}">Movimentar</a>{% endif %}</td></tr>{% empty %}<tr><td colspan="7">Nenhum suprimento cadastrado neste estoque.</td></tr>{% endfor %}</tbody>
   </table></div></div>
 </div>{% endblock %}
