@@ -1038,6 +1038,113 @@ def patrimonios(request):
 
 
 @login_required
+def maquinas(request):
+    if not usuario_pode_acessar_inventario_ti(request.user):
+        return render(request, "core/sem_permissao.html", status=403)
+
+    busca = request.GET.get("busca", "").strip()
+    setor_id = request.GET.get("setor", "").strip()
+    itens = aplicar_escopo_unidade(
+        PatrimonioTI.objects.select_related("computador", "unidade", "setor").filter(
+            tipo__in=("computador", "notebook"),
+            ativo=True,
+        ),
+        request.user,
+    )
+    if busca:
+        itens = itens.filter(
+            Q(codigo__icontains=busca) |
+            Q(serial__icontains=busca) |
+            Q(modelo__icontains=busca) |
+            Q(computador__hostname__icontains=busca) |
+            Q(responsavel__icontains=busca)
+        )
+    if setor_id:
+        itens = itens.filter(setor_id=setor_id)
+
+    base = aplicar_escopo_unidade(
+        PatrimonioTI.objects.filter(tipo__in=("computador", "notebook"), ativo=True),
+        request.user,
+    )
+    totais = {
+        "total": base.count(),
+        "computadores": base.filter(tipo="computador").count(),
+        "notebooks": base.filter(tipo="notebook").count(),
+        "em_uso": base.filter(status="em_uso").count(),
+        "estoque": base.filter(status="estoque").count(),
+        "manutencao": base.filter(status="manutencao").count(),
+        "sem_setor": base.filter(setor__isnull=True).count(),
+    }
+    pagina = Paginator(itens.order_by("codigo"), 25).get_page(request.GET.get("page"))
+    return render(request, "inventario_ti/maquinas.html", {
+        "maquinas": pagina,
+        "totais": totais,
+        "busca": busca,
+        "setor_selecionado": setor_id,
+        "setores": Setor.objects.filter(ativo=True).order_by("nome"),
+    })
+
+
+@login_required
+def movimentar_patrimonio(request, patrimonio_id):
+    if not usuario_pode_gerenciar_patrimonio_ti(request.user):
+        return render(request, "core/sem_permissao.html", status=403)
+
+    patrimonio = get_object_or_404(
+        aplicar_escopo_unidade(PatrimonioTI.objects.select_related("unidade", "setor"), request.user),
+        id=patrimonio_id,
+    )
+    unidades = Unidade.objects.filter(ativo=True).order_by("nome")
+    unidade_usuario = obter_unidade_usuario(request.user)
+    if not request.user.is_superuser and unidade_usuario:
+        unidades = unidades.filter(id=unidade_usuario.id)
+
+    if request.method == "POST":
+        unidade_id = request.POST.get("unidade", "").strip()
+        setor_id = request.POST.get("setor", "").strip()
+        status = request.POST.get("status", "em_uso").strip()
+        responsavel = request.POST.get("responsavel", "").strip()
+        observacao = request.POST.get("observacao", "").strip()
+        unidade_destino = unidades.filter(id=unidade_id).first()
+        setor_destino = Setor.objects.filter(id=setor_id, ativo=True).first() if setor_id else None
+        status_validos = {valor for valor, _rotulo in PatrimonioTI.STATUS_CHOICES}
+        erros = []
+        if not unidade_destino:
+            erros.append("Selecione uma unidade permitida.")
+        if status not in status_validos:
+            erros.append("Selecione um status válido.")
+        if not observacao:
+            erros.append("Informe o motivo da movimentação.")
+
+        if not erros:
+            origem = snapshot_origem_patrimonio(patrimonio)
+            patrimonio.unidade = unidade_destino
+            patrimonio.setor = setor_destino
+            patrimonio.status = status
+            patrimonio.responsavel = responsavel
+            patrimonio.save(update_fields=["unidade", "setor", "status", "responsavel", "atualizado_em"])
+            tipo = "manutencao" if status == "manutencao" else "transferencia"
+            registrar_movimentacao_patrimonio(
+                patrimonio=patrimonio,
+                tipo=tipo,
+                usuario=request.user,
+                observacao=observacao,
+                origem=origem,
+            )
+            messages.success(request, "Máquina movimentada e histórico atualizado.")
+            return redirect("inventario_ti_patrimonio_detalhe", patrimonio_id=patrimonio.id)
+
+        for erro in erros:
+            messages.error(request, erro)
+
+    return render(request, "inventario_ti/movimentar_patrimonio.html", {
+        "patrimonio": patrimonio,
+        "unidades": unidades,
+        "setores": Setor.objects.filter(ativo=True).order_by("nome"),
+        "status_choices": PatrimonioTI.STATUS_CHOICES,
+    })
+
+@login_required
 def modelo_importacao_patrimonios(request):
     if not usuario_pode_gerenciar_patrimonio_ti(request.user):
         return render(request, "core/sem_permissao.html", status=403)
@@ -1099,7 +1206,7 @@ def novo_patrimonio(request):
 
     form_data = {
         "codigo": "",
-        "tipo": "computador",
+        "tipo": request.GET.get("tipo", "computador") if request.GET.get("tipo", "computador") in {valor for valor, _rotulo in PatrimonioTI.TIPO_CHOICES} else "computador",
         "status": "em_uso",
         "computador": "",
         "unidade": "",

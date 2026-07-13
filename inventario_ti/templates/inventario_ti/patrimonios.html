@@ -5,6 +5,7 @@
 {% block content %}
 <div class="page">
   {% include "components/page_header.html" with eyebrow="Inventário TI" icon="🏷️" title="Patrimônio TI" subtitle="Cadastro patrimonial, vínculo com computadores e movimentações." secondary_url_name="inventario_ti_dashboard" secondary_text="Voltar ao inventário" action_url_name="inventario_ti_patrimonio_novo" action_text="Novo patrimônio" %}
+  {% include "inventario_ti/_abas.html" %}
 
   <div class="summary-grid">
     {% include "components/kpi_card.html" with icon="🏷️" title="Total" value=totais.total %}

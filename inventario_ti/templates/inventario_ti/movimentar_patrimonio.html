@@ -1,0 +1,15 @@
+{% extends "base/base.html" %}
+{% block title %}Movimentar {{ patrimonio.codigo }}{% endblock %}
+{% block content %}
+<div class="page">
+  {% include "components/page_header.html" with eyebrow="Inventário TI" icon="🔄" title="Movimentar máquina" subtitle="Registre a mudança de setor, responsável ou situação do equipamento." secondary_url_name="inventario_ti_maquinas" secondary_text="Voltar" %}
+  <div class="detail-card"><p><strong>{{ patrimonio.codigo }}</strong> · {{ patrimonio.fabricante }} {{ patrimonio.modelo }} · {{ patrimonio.serial|default:"Sem serial" }}</p><p>Origem: {{ patrimonio.unidade|default:"-" }} / {{ patrimonio.setor|default:"-" }}</p></div>
+  <div class="form-card"><form method="post">{% csrf_token %}<div class="form-grid">
+    <div class="form-group"><label>Unidade de destino</label><select name="unidade" required>{% for unidade in unidades %}<option value="{{ unidade.id }}" {% if patrimonio.unidade_id == unidade.id %}selected{% endif %}>{{ unidade.nome }}</option>{% endfor %}</select></div>
+    <div class="form-group"><label>Setor de destino</label><select name="setor"><option value="">Sem setor</option>{% for setor in setores %}<option value="{{ setor.id }}" {% if patrimonio.setor_id == setor.id %}selected{% endif %}>{{ setor.nome }}</option>{% endfor %}</select></div>
+    <div class="form-group"><label>Status</label><select name="status">{% for valor, rotulo in status_choices %}<option value="{{ valor }}" {% if patrimonio.status == valor %}selected{% endif %}>{{ rotulo }}</option>{% endfor %}</select></div>
+    <div class="form-group"><label>Responsável</label><input name="responsavel" value="{{ patrimonio.responsavel }}"></div>
+    <div class="form-group"><label>Motivo da movimentação</label><textarea name="observacao" required placeholder="Ex.: substituição do computador do Faturamento"></textarea></div>
+  </div><div class="top-actions"><button class="btn-submit" type="submit">Confirmar movimentação</button><a class="btn-link" href="{% url 'inventario_ti_maquinas' %}">Cancelar</a></div></form></div>
+</div>
+{% endblock %}

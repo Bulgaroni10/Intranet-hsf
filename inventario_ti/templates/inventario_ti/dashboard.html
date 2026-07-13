@@ -6,6 +6,7 @@
 <div class="page">
 
   {% include "components/page_header.html" with eyebrow="Tecnologia" icon="💻" title="Inventário TI" subtitle="Monitoramento técnico de computadores, agentes, rede e saúde do parque." %}
+  {% include "inventario_ti/_abas.html" %}
 
   <div class="summary-grid">
     {% include "components/kpi_card.html" with icon="💻" title="Total" value=totais.total %}

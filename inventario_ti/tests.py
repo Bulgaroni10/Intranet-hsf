@@ -21,6 +21,8 @@ from .views import (
     exportar_erros_agentes_csv,
     exportar_inventario_csv,
     heartbeat,
+    maquinas,
+    movimentar_patrimonio,
     novo_patrimonio,
     patrimonios,
 )
@@ -593,3 +595,44 @@ class PatrimonioTITests(TestCase):
 
         self.assertEqual(resposta.status_code, 200)
         self.assertFalse(PatrimonioTI.objects.filter(codigo__in=["PAT-VALIDO", "PAT-INVALIDO"]).exists())
+
+    def test_relatorio_maquinas_respeita_unidade_do_usuario(self):
+        outra = Unidade.objects.create(nome="Outra Unidade", sigla="OUT")
+        PatrimonioTI.objects.create(codigo="MAQ-HT", tipo="computador", unidade=self.unidade)
+        PatrimonioTI.objects.create(codigo="MAQ-OUT", tipo="notebook", unidade=outra)
+
+        request = self.factory.get("/portal/modulos/inventario-ti/maquinas/")
+        request.user = self.user
+        resposta = maquinas(request)
+        conteudo = resposta.content.decode()
+
+        self.assertEqual(resposta.status_code, 200)
+        self.assertIn("MAQ-HT", conteudo)
+        self.assertNotIn("MAQ-OUT", conteudo)
+
+    def test_movimentacao_maquina_altera_setor_e_registra_origem_destino(self):
+        origem = Setor.objects.create(nome="Recepção")
+        destino = Setor.objects.create(nome="Faturamento")
+        patrimonio = PatrimonioTI.objects.create(
+            codigo="MAQ-MOV", tipo="computador", unidade=self.unidade, setor=origem,
+        )
+        request = self.factory.post(
+            f"/portal/modulos/inventario-ti/patrimonios/{patrimonio.id}/movimentar/",
+            {
+                "unidade": str(self.unidade.id), "setor": str(destino.id),
+                "status": "em_uso", "responsavel": "Maria",
+                "observacao": "Substituição da máquina do setor.",
+            },
+        )
+        request.user = self.user
+        request.session = {}
+        request._messages = FallbackStorage(request)
+
+        resposta = movimentar_patrimonio(request, patrimonio.id)
+        patrimonio.refresh_from_db()
+        movimento = patrimonio.movimentacoes.first()
+
+        self.assertEqual(resposta.status_code, 302)
+        self.assertEqual(patrimonio.setor, destino)
+        self.assertEqual(movimento.setor_origem, origem)
+        self.assertEqual(movimento.setor_destino, destino)

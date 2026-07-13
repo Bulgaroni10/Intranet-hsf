@@ -1,0 +1,41 @@
+{% extends "base/base.html" %}
+{% block title %}Máquinas | Inventário TI{% endblock %}
+{% block content %}
+<div class="page">
+  {% include "components/page_header.html" with eyebrow="Inventário TI" icon="🖥️" title="Máquinas" subtitle="Cadastro, relatório e movimentação de computadores e notebooks da unidade." secondary_url_name="inventario_ti_dashboard" secondary_text="Voltar" %}
+  {% include "inventario_ti/_abas.html" %}
+
+  <div class="summary-grid">
+    {% include "components/kpi_card.html" with icon="🖥️" title="Total" value=totais.total %}
+    {% include "components/kpi_card.html" with icon="💻" title="Computadores" value=totais.computadores %}
+    {% include "components/kpi_card.html" with icon="📱" title="Notebooks" value=totais.notebooks %}
+    {% include "components/kpi_card.html" with icon="✅" title="Em uso" value=totais.em_uso color="success" %}
+    {% include "components/kpi_card.html" with icon="📦" title="Estoque" value=totais.estoque color="info" %}
+    {% include "components/kpi_card.html" with icon="🛠️" title="Manutenção" value=totais.manutencao color="warning" %}
+    {% include "components/kpi_card.html" with icon="📍" title="Sem setor" value=totais.sem_setor color="warning" %}
+  </div>
+
+  <div class="form-card">
+    <form method="get" class="form-grid">
+      <div class="form-group"><label>Pesquisar</label><input name="busca" value="{{ busca }}" placeholder="Código, hostname, serial, modelo ou responsável"></div>
+      <div class="form-group"><label>Setor</label><select name="setor"><option value="">Todos</option>{% for setor in setores %}<option value="{{ setor.id }}" {% if setor_selecionado == setor.id|stringformat:"s" %}selected{% endif %}>{{ setor.nome }}</option>{% endfor %}</select></div>
+      <div class="form-group"><label>&nbsp;</label><button class="btn-submit" type="submit">Filtrar</button></div>
+    </form>
+    <div class="top-actions" style="margin-top: 14px;">
+      <a class="btn-success" href="{% url 'inventario_ti_patrimonio_novo' %}?tipo=computador">Cadastrar máquina</a>
+      <a class="btn-link" href="{% url 'inventario_ti_maquinas' %}">Limpar filtros</a>
+    </div>
+  </div>
+
+  <br>
+  <div class="gsf-table-card"><div class="gsf-table-wrap"><table class="gsf-table">
+    <thead><tr><th>Patrimônio</th><th>Tipo</th><th>Hostname</th><th>Fabricante / Modelo</th><th>Serial</th><th>Setor</th><th>Responsável</th><th>Status</th><th>Ações</th></tr></thead>
+    <tbody>{% for item in maquinas %}<tr>
+      <td><strong>{{ item.codigo }}</strong></td><td>{{ item.get_tipo_display }}</td><td>{{ item.computador.hostname|default:"-" }}</td>
+      <td>{{ item.fabricante }} {{ item.modelo }}</td><td>{{ item.serial|default:"-" }}</td><td>{{ item.setor|default:"-" }}</td>
+      <td>{{ item.responsavel|default:"-" }}</td><td><span class="gsf-badge gsf-badge-info">{{ item.get_status_display }}</span></td>
+      <td><a class="btn-link" href="{% url 'inventario_ti_patrimonio_detalhe' item.id %}">Detalhes</a> <a class="btn-success" href="{% url 'inventario_ti_patrimonio_movimentar' item.id %}">Movimentar</a></td>
+    </tr>{% empty %}<tr><td colspan="9">Nenhuma máquina cadastrada nesta unidade.</td></tr>{% endfor %}</tbody>
+  </table></div></div>
+</div>
+{% endblock %}

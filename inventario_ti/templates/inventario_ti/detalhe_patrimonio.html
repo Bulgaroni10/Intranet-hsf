@@ -6,6 +6,10 @@
 <div class="page">
   {% url 'inventario_ti_patrimonio_editar' patrimonio.id as editar_url %}
   {% include "components/page_header.html" with eyebrow="Patrimônio TI" icon="🏷️" title=patrimonio.codigo subtitle="Detalhes patrimoniais e movimentações." secondary_url_name="inventario_ti_patrimonios" secondary_text="Voltar" action_href=editar_url action_text="Editar" %}
+  <div class="top-actions" style="margin-bottom: 18px;">
+    <a class="btn-success" href="{% url 'inventario_ti_patrimonio_movimentar' patrimonio.id %}">Movimentar</a>
+    <a class="btn-link" href="{% url 'inventario_ti_maquinas' %}">Relatório de máquinas</a>
+  </div>
 
   <div class="summary-grid">
     {% include "components/kpi_card.html" with icon="🏷️" title="Tipo" value=patrimonio.get_tipo_display %}
