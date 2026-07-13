@@ -21,5 +21,6 @@ class Command(BaseCommand):
             raise CommandError(str(exc)) from exc
         self.stdout.write(self.style.SUCCESS(
             f'{unidade.sigla}: {resultado["convenios"]} convênios, '
-            f'{resultado["planos"]} planos e {resultado["regras"]} regras.'
+            f'{resultado["planos"]} planos, {resultado["regras"]} regras e '
+            f'{resultado["procedimentos"]} procedimentos proibidos.'
         ))

@@ -3,8 +3,13 @@ from unittest.mock import patch
 from django.test import TestCase
 
 from usuarios.models import Unidade
-from .models import Convenio, PlanoConvenio, RegraAtendimentoConvenio
-from .mv_oracle import IntegracaoMVErro, aplicar_convenios_planos, sincronizar_unidade
+from .models import Convenio, PlanoConvenio, ProcedimentoProibidoPlano, RegraAtendimentoConvenio
+from .mv_oracle import (
+    IntegracaoMVErro,
+    aplicar_convenios_planos,
+    aplicar_procedimentos_proibidos,
+    sincronizar_unidade,
+)
 
 
 class SincronizacaoMVTests(TestCase):
@@ -66,3 +71,20 @@ class SincronizacaoMVTests(TestCase):
         self.assertTrue(atualizado.unidades.filter(pk=self.unidade.pk).exists())
         self.assertFalse(pelo_codigo.unidades.filter(pk=self.unidade.pk).exists())
         self.assertTrue(pelo_codigo.unidades.filter(pk=self.outra.pk).exists())
+
+    def test_importa_procedimentos_proibidos_por_unidade(self):
+        aplicar_convenios_planos(self.unidade, self.dados())
+        resultado = aplicar_procedimentos_proibidos(self.unidade, [{
+            'codigo': '40302784',
+            'descricao': 'Procedimento de teste',
+            'codigo_convenio': '10',
+            'codigo_plano': '20',
+            'tipo_proibicao': 'P',
+            'tipo_atendimento': 'A',
+            'inicio_vigencia': None,
+            'fim_vigencia': None,
+        }])
+        self.assertEqual(resultado['procedimentos'], 1)
+        proibicao = ProcedimentoProibidoPlano.objects.get(unidade=self.unidade)
+        self.assertEqual(proibicao.codigo_procedimento, '40302784')
+        self.assertEqual(proibicao.tipo_atendimento, 'A')

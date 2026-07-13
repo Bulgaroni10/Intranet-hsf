@@ -183,6 +183,13 @@ class RegraAtendimentoConvenio(models.Model):
 
 
 class ProcedimentoProibidoPlano(models.Model):
+    unidade = models.ForeignKey(
+        Unidade,
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        related_name='procedimentos_proibidos_mv',
+    )
     convenio = models.ForeignKey(
         Convenio,
         on_delete=models.CASCADE,
@@ -205,6 +212,11 @@ class ProcedimentoProibidoPlano(models.Model):
         db_index=True
     )
 
+    tipo_proibicao = models.CharField(max_length=30, blank=True)
+    tipo_atendimento = models.CharField(max_length=30, blank=True)
+    inicio_vigencia = models.DateField(null=True, blank=True)
+    fim_vigencia = models.DateField(null=True, blank=True)
+
     ativo = models.BooleanField(default=True)
 
     criado_em = models.DateTimeField(auto_now_add=True)
@@ -218,10 +230,12 @@ class ProcedimentoProibidoPlano(models.Model):
             'plano__nome',
             'descricao_procedimento',
         ]
-        unique_together = (
-            'plano',
-            'codigo_procedimento',
-        )
+        constraints = [
+            models.UniqueConstraint(
+                fields=('unidade', 'plano', 'codigo_procedimento'),
+                name='unico_procedimento_proibido_unidade_plano',
+            ),
+        ]
 
     def __str__(self):
         return f'{self.convenio.nome} - {self.plano.nome} - {self.codigo_procedimento} - {self.descricao_procedimento}'

@@ -3,7 +3,12 @@ from collections import OrderedDict
 
 from django.db import transaction
 
-from .models import Convenio, PlanoConvenio, RegraAtendimentoConvenio
+from .models import (
+    Convenio,
+    PlanoConvenio,
+    ProcedimentoProibidoPlano,
+    RegraAtendimentoConvenio,
+)
 
 
 class IntegracaoMVErro(Exception):
@@ -24,6 +29,23 @@ SQL_CONVENIOS_PLANOS = """
     FROM DBAMV.V_HSF_DADOS_CONV_PLANO
     WHERE cd_multi_empresa = :cd_multi_empresa
     ORDER BY nm_convenio, ds_con_pla
+"""
+
+SQL_PROCEDIMENTOS_PROIBIDOS = """
+    SELECT DISTINCT
+        cd_pro_fat,
+        ds_pro_fat,
+        cd_convenio,
+        cd_con_pla,
+        tp_proibicao,
+        tp_atendimento,
+        dt_inicial_proibicao,
+        dt_fim_proibicao
+    FROM DBAMV.V_HSF_DADOS_PROIB_PROCED
+    WHERE cd_multi_empresa = :cd_multi_empresa
+      AND (dt_inicial_proibicao IS NULL OR dt_inicial_proibicao <= SYSDATE)
+      AND (dt_fim_proibicao IS NULL OR dt_fim_proibicao >= TRUNC(SYSDATE))
+    ORDER BY cd_convenio, cd_con_pla, cd_pro_fat
 """
 
 
@@ -109,6 +131,39 @@ def consultar_convenios_planos(codigo_empresa, connection_factory=conectar_oracl
             'O MV não retornou convênios válidos. Os dados atuais não foram alterados.'
         )
     return list(dados.values())
+
+
+def consultar_procedimentos_proibidos(codigo_empresa, connection_factory=conectar_oracle):
+    try:
+        with connection_factory() as conexao:
+            with conexao.cursor() as cursor:
+                cursor.execute(SQL_PROCEDIMENTOS_PROIBIDOS, cd_multi_empresa=int(codigo_empresa))
+                colunas = [item[0].lower() for item in cursor.description]
+                linhas = [dict(zip(colunas, linha)) for linha in cursor.fetchall()]
+    except IntegracaoMVErro:
+        raise
+    except Exception as exc:
+        raise IntegracaoMVErro(f'Falha ao consultar procedimentos proibidos no MV: {exc}') from exc
+
+    resultado = []
+    for linha in linhas:
+        codigo = str(linha.get('cd_pro_fat') or '').strip()
+        descricao = str(linha.get('ds_pro_fat') or '').strip()
+        codigo_convenio = str(linha.get('cd_convenio') or '').strip()
+        codigo_plano = str(linha.get('cd_con_pla') or '').strip()
+        if not all((codigo, descricao, codigo_convenio, codigo_plano)):
+            continue
+        resultado.append({
+            'codigo': codigo,
+            'descricao': descricao,
+            'codigo_convenio': codigo_convenio,
+            'codigo_plano': codigo_plano,
+            'tipo_proibicao': str(linha.get('tp_proibicao') or '').strip(),
+            'tipo_atendimento': str(linha.get('tp_atendimento') or '').strip(),
+            'inicio_vigencia': linha.get('dt_inicial_proibicao'),
+            'fim_vigencia': linha.get('dt_fim_proibicao'),
+        })
+    return resultado
 
 
 @transaction.atomic
@@ -201,10 +256,56 @@ def aplicar_convenios_planos(unidade, dados):
     }
 
 
+def aplicar_procedimentos_proibidos(unidade, dados):
+    ProcedimentoProibidoPlano.objects.filter(unidade=unidade).delete()
+    # Remove a carga legada sem unidade na primeira sincronização real.
+    ProcedimentoProibidoPlano.objects.filter(unidade__isnull=True).delete()
+
+    convenios = {
+        item.codigo_mv: item
+        for item in Convenio.objects.filter(unidades=unidade).exclude(codigo_mv='')
+    }
+    planos = {
+        (item.convenio.codigo_mv, item.codigo_mv): item
+        for item in PlanoConvenio.objects.select_related('convenio').filter(
+            convenio__unidades=unidade,
+        ).exclude(codigo_mv='')
+    }
+    novos = []
+    ignorados = 0
+    vistos = set()
+    for item in dados:
+        plano = planos.get((item['codigo_convenio'], item['codigo_plano']))
+        convenio = convenios.get(item['codigo_convenio'])
+        chave = (getattr(plano, 'pk', None), item['codigo'])
+        if not convenio or not plano or chave in vistos:
+            ignorados += 1
+            continue
+        vistos.add(chave)
+        novos.append(ProcedimentoProibidoPlano(
+            unidade=unidade,
+            convenio=convenio,
+            plano=plano,
+            codigo_procedimento=item['codigo'],
+            descricao_procedimento=item['descricao'],
+            tipo_proibicao=item['tipo_proibicao'],
+            tipo_atendimento=item['tipo_atendimento'],
+            inicio_vigencia=item['inicio_vigencia'],
+            fim_vigencia=item['fim_vigencia'],
+            ativo=True,
+        ))
+    ProcedimentoProibidoPlano.objects.bulk_create(novos, batch_size=500)
+    return {'procedimentos': len(novos), 'procedimentos_ignorados': ignorados}
+
+
 def sincronizar_unidade(unidade, connection_factory=conectar_oracle):
     dados = consultar_convenios_planos(unidade.codigo_mv, connection_factory)
+    proibicoes = consultar_procedimentos_proibidos(unidade.codigo_mv, connection_factory)
     try:
-        return aplicar_convenios_planos(unidade, dados)
+        with transaction.atomic():
+            resultado = aplicar_convenios_planos(unidade, dados)
+            resultado.update(aplicar_procedimentos_proibidos(unidade, proibicoes))
+            return resultado
     except IntegracaoMVErro:
         raise
     except Exception as exc:

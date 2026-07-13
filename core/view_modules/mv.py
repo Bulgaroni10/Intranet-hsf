@@ -152,6 +152,10 @@ def mv_convenios(request):
     busca = request.GET.get('busca', '').strip()
     unidade_ativa = getattr(request.user, 'unidade', None)
     unidade_id = str(unidade_ativa.id) if unidade_ativa else ''
+    if unidade_ativa:
+        proibicoes = proibicoes.filter(unidade=unidade_ativa)
+    else:
+        proibicoes = proibicoes.none()
     convenio_id = request.GET.get('convenio', '').strip()
     plano_id = request.GET.get('plano', '').strip()
     tipo_atendimento = request.GET.get('tipo_atendimento', '').strip()
@@ -237,7 +241,7 @@ def mv_convenios(request):
             unidade=unidade_ativa,
         ).count()
         total_procedimentos_unidade = ProcedimentoProibidoPlano.objects.filter(
-            convenio__unidades=unidade_ativa,
+            unidade=unidade_ativa,
         ).distinct().count()
     else:
         total_convenios_unidade = 0
@@ -299,7 +303,8 @@ def sincronizar_convenios_mv(request):
             request,
             f'MV sincronizado para {unidade.sigla}: '
             f'{resultado["convenios"]} convênios, {resultado["planos"]} planos e '
-            f'{resultado["regras"]} regras.',
+            f'{resultado["regras"]} regras, '
+            f'{resultado["procedimentos"]} procedimentos proibidos.',
         )
         RegistroAuditoria.objects.create(
             modulo='convenios',
