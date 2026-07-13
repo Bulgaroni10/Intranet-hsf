@@ -1114,7 +1114,7 @@ def suprimentos(request):
         "totais": totais,
         "busca": busca,
         "categoria": categoria,
-        "categorias": SuprimentoTI.CATEGORIA_CHOICES,
+        "categorias": SuprimentoTI.objects.filter(unidade_id=unidade_id, escopo="ti", ativo=True).exclude(categoria="").order_by("categoria").values_list("categoria", flat=True).distinct(),
         "limite_alerta": LIMITE_ALERTA_SUPRIMENTO,
         "modulo_setorial": False,
     })
@@ -1154,7 +1154,7 @@ def estoque_setorial(request):
         },
         "busca": busca,
         "categoria": categoria,
-        "categorias": SuprimentoTI.CATEGORIA_CHOICES,
+        "categorias": SuprimentoTI.objects.filter(unidade_id=unidade_id, setor_id=setor_id, escopo="setorial", ativo=True).exclude(categoria="").order_by("categoria").values_list("categoria", flat=True).distinct(),
         "limite_alerta": LIMITE_ALERTA_SUPRIMENTO,
         "modulo_setorial": True,
     })
@@ -1177,12 +1177,12 @@ def _cadastrar_suprimento(request, escopo):
 
     if request.method == "POST":
         nome = request.POST.get("nome", "").strip()
-        categoria = request.POST.get("categoria", "outro").strip()
+        categoria = request.POST.get("categoria", "").strip()
         erros = []
         if not nome:
             erros.append("Informe o suprimento.")
-        if categoria not in {valor for valor, _rotulo in SuprimentoTI.CATEGORIA_CHOICES}:
-            erros.append("Informe uma categoria válida.")
+        if not categoria:
+            erros.append("Informe a categoria.")
         try:
             quantidade = int(request.POST.get("quantidade", "0"))
         except ValueError:
@@ -1234,7 +1234,6 @@ def _cadastrar_suprimento(request, escopo):
             messages.error(request, erro)
 
     return render(request, "inventario_ti/formulario_suprimento.html", {
-        "categorias": SuprimentoTI.CATEGORIA_CHOICES,
         "modulo_setorial": escopo == "setorial",
     })
 

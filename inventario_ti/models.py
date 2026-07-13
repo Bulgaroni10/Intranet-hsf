@@ -245,22 +245,12 @@ class SuprimentoTI(models.Model):
         ("ti", "Tecnologia da Informação"),
         ("setorial", "Estoque Setorial"),
     ]
-    CATEGORIA_CHOICES = [
-        ("toner", "Toner"),
-        ("cilindro", "Cilindro"),
-        ("papel", "Papel"),
-        ("cabo", "Cabo"),
-        ("periferico", "Periférico"),
-        ("peca", "Peça"),
-        ("outro", "Outro"),
-    ]
-
     unidade = models.ForeignKey(Unidade, on_delete=models.PROTECT, related_name="suprimentos_ti")
     setor = models.ForeignKey(Setor, on_delete=models.PROTECT, related_name="suprimentos_ti", null=True, blank=True)
     escopo = models.CharField(max_length=20, choices=ESCOPO_CHOICES, default="ti")
     codigo = models.CharField(max_length=80)
     nome = models.CharField(max_length=180)
-    categoria = models.CharField(max_length=30, choices=CATEGORIA_CHOICES, default="outro")
+    categoria = models.CharField(max_length=80)
     fabricante = models.CharField(max_length=120, blank=True, default="")
     modelo_compativel = models.CharField(max_length=180, blank=True, default="")
     quantidade = models.PositiveIntegerField(default=0)

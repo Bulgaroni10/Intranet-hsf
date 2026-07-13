@@ -713,6 +713,24 @@ class EstoqueSetorialTests(TestCase):
 
         self.assertEqual(SuprimentoTI.objects.count(), 2)
 
+    def test_categoria_livre_digitada_pelo_setor_e_aceita(self):
+        request = self.factory.post(
+            "/portal/estoque-setorial/novo/",
+            {"nome": "Material específico", "categoria": "Higiene da copa", "quantidade": "4"},
+        )
+        request.user = self.usuario
+        request.session = {}
+        request._messages = FallbackStorage(request)
+
+        resposta = novo_suprimento_setorial(request)
+
+        self.assertEqual(resposta.status_code, 302)
+        self.assertTrue(
+            SuprimentoTI.objects.filter(
+                escopo="setorial", setor=self.setor_a, categoria="Higiene da copa",
+            ).exists()
+        )
+
     def test_saida_registra_destino_e_atualiza_saldo(self):
         item = SuprimentoTI.objects.create(
             unidade=self.unidade, setor=self.setor_a, escopo="setorial", codigo="TONER-1",
