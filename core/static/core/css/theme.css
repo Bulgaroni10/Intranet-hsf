@@ -389,6 +389,124 @@ label,
   box-shadow: var(--gsf-shadow-sm) !important;
 }
 
+/* Compatibilidade completa com telas anteriores ao layout GSF. */
+.admin-hero,
+.audit-card,
+.audit-summary-card,
+.aviso-card,
+.aviso-dashboard-card,
+.chat-file-card,
+.chat-start-card,
+.check-card,
+.contato-card,
+.dashboard-card,
+.dashboard-hero,
+.dashboard-side-card,
+.doc-card,
+.doc-dashboard-card,
+.doc-summary-card,
+.document-card,
+.filter-card,
+.filters-card,
+.form-hero,
+.help-card,
+.hint-box,
+.info-box,
+.management-card,
+.manual-card,
+.modal-card,
+.modelo-card,
+.module-box,
+.panel-box,
+.pending-card,
+.portal-module-card,
+.reset-card,
+.reset-hero,
+.result-card,
+.support-card,
+.users-table-card {
+  background: var(--gsf-card) !important;
+  color: var(--gsf-text) !important;
+  border-color: var(--gsf-border) !important;
+  box-shadow: var(--gsf-shadow-sm) !important;
+}
+
+.admin-page,
+.admin-users-page,
+.chat-page,
+.form-page,
+.reset-page,
+.user-form-page,
+.portal-shell,
+.portal-content,
+.main-content,
+main {
+  color: var(--gsf-text) !important;
+}
+
+.content-list,
+.conversation-item,
+.chat-item,
+.user-item,
+.mini-item,
+.item-row,
+.list-item {
+  background: var(--gsf-card-soft) !important;
+  color: var(--gsf-text-soft) !important;
+  border-color: var(--gsf-border) !important;
+}
+
+.content-list > *:hover,
+.conversation-item:hover,
+.chat-item:hover,
+.user-item:hover,
+.mini-item:hover,
+.item-row:hover,
+.list-item:hover {
+  background: var(--gsf-card-hover) !important;
+}
+
+.table-header,
+.category-header,
+.section-header,
+.chat-main-header,
+.chat-sidebar-header,
+.admin-card-footer,
+.form-footer {
+  background: var(--gsf-card-soft) !important;
+  color: var(--gsf-text) !important;
+  border-color: var(--gsf-border) !important;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+.item-title,
+.content-title,
+.section-title {
+  color: var(--gsf-text) !important;
+}
+
+p,
+.item-subtitle,
+.content-subtitle,
+.page-subtitle,
+.meta-item {
+  color: var(--gsf-text-soft) !important;
+}
+
+select option {
+  background: var(--gsf-card-soft) !important;
+  color: var(--gsf-text) !important;
+}
+
+.modal-overlay {
+  background: rgba(2, 6, 23, 0.78) !important;
+}
+
 .page,
 .gsf-content > .container {
   width: 100%;
