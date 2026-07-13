@@ -61,6 +61,13 @@ class Usuario(AbstractUser):
         related_name='usuarios'
     )
 
+    unidades_permitidas = models.ManyToManyField(
+        Unidade,
+        blank=True,
+        related_name='usuarios_autorizados',
+        help_text='Empresas/unidades que o usuário pode selecionar durante o uso da intranet.'
+    )
+
     setor = models.ForeignKey(
         Setor,
         on_delete=models.SET_NULL,

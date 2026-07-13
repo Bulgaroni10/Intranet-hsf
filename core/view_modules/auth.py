@@ -1,4 +1,5 @@
 from .common import *
+from django.utils.http import url_has_allowed_host_and_scheme
 
 
 def home(request):
@@ -79,3 +80,27 @@ def logout_intranet(request):
         'message': 'Logout realizado com sucesso.',
         'redirect_url': '/'
     })
+
+
+@login_required(login_url='/')
+@require_POST
+def selecionar_unidade_ativa(request):
+    unidade_id = request.POST.get('unidade_id', '').strip()
+    unidade = request.user.unidades_permitidas.filter(id=unidade_id, ativo=True).first()
+
+    if unidade is None and str(request.user.unidade_id) == unidade_id:
+        unidade = request.user.unidade
+
+    if unidade is None:
+        messages.error(request, 'Você não possui acesso à empresa selecionada.')
+        return redirect('portal')
+
+    request.session['unidade_id'] = unidade.id
+    request.session.modified = True
+    messages.success(request, f'Empresa ativa alterada para {unidade.sigla}.')
+
+    destino = request.POST.get('next', '')
+    if not url_has_allowed_host_and_scheme(destino, allowed_hosts={request.get_host()}):
+        destino = '/portal/'
+
+    return redirect(destino)

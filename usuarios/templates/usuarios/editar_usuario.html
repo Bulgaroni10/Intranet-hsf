@@ -430,6 +430,18 @@
                 <label for="telefone">Telefone</label>
                 <input type="text" id="telefone" name="telefone" value="{{ form_data.telefone|default:'' }}">
               </div>
+
+              <div class="field" style="grid-column: 1 / -1;">
+                <label for="unidades_permitidas">Outras empresas autorizadas pela TI</label>
+                <select id="unidades_permitidas" name="unidades_permitidas" multiple size="5">
+                  {% for unidade in unidades %}
+                    <option value="{{ unidade.id }}" {% if unidade.id|stringformat:"s" in form_data.unidades_permitidas %}selected{% endif %}>
+                      {{ unidade.sigla }} - {{ unidade.nome }}
+                    </option>
+                  {% endfor %}
+                </select>
+                <small>Use Ctrl para selecionar mais de uma. A unidade principal sempre será autorizada automaticamente.</small>
+              </div>
             </div>
           </div>
 

@@ -38,6 +38,7 @@ def montar_form_data_usuario(request):
         'last_name': request.POST.get('last_name', '').strip(),
         'email': request.POST.get('email', '').strip().lower(),
         'unidade': request.POST.get('unidade', '').strip(),
+        'unidades_permitidas': request.POST.getlist('unidades_permitidas'),
         'setor': request.POST.get('setor', '').strip(),
         'tipo_prestador': request.POST.get('tipo_prestador', 'colaborador').strip(),
         'tipo_conselho': request.POST.get('tipo_conselho', '').strip(),
@@ -60,6 +61,9 @@ def usuario_para_form_data(usuario):
         'last_name': usuario.last_name,
         'email': usuario.email,
         'unidade': str(usuario.unidade_id) if usuario.unidade_id else '',
+        'unidades_permitidas': [
+            str(unidade.id) for unidade in usuario.unidades_permitidas.all()
+        ],
         'setor': str(usuario.setor_id) if usuario.setor_id else '',
         'tipo_prestador': usuario.tipo_prestador,
         'tipo_conselho': usuario.tipo_conselho,
@@ -168,7 +172,8 @@ def administracao_usuarios(request):
         'unidade',
         'setor'
     ).prefetch_related(
-        'groups'
+        'groups',
+        'unidades_permitidas',
     ).order_by(
         'first_name',
         'last_name',
@@ -183,11 +188,15 @@ def administracao_usuarios(request):
             Q(email__icontains=busca) |
             Q(unidade__nome__icontains=busca) |
             Q(unidade__sigla__icontains=busca) |
+            Q(unidades_permitidas__nome__icontains=busca) |
+            Q(unidades_permitidas__sigla__icontains=busca) |
             Q(setor__nome__icontains=busca)
-        )
+        ).distinct()
 
     if unidade_id:
-        usuarios = usuarios.filter(unidade_id=unidade_id)
+        usuarios = usuarios.filter(
+            Q(unidade_id=unidade_id) | Q(unidades_permitidas__id=unidade_id)
+        ).distinct()
 
     if setor_id:
         usuarios = usuarios.filter(setor_id=setor_id)
@@ -237,6 +246,7 @@ def novo_usuario(request):
         'tipo_prestador': 'colaborador',
         'tipo_conselho': '',
         'groups': [],
+        'unidades_permitidas': [],
     }
 
     if request.method == 'POST':
@@ -299,6 +309,11 @@ def novo_usuario(request):
                 usuario.full_clean()
                 usuario.save()
 
+                unidades_autorizadas = set(form_data['unidades_permitidas'])
+                if form_data['unidade']:
+                    unidades_autorizadas.add(form_data['unidade'])
+                usuario.unidades_permitidas.set(unidades_autorizadas)
+
                 if form_data['groups']:
                     usuario.groups.set(form_data['groups'])
                 else:
@@ -330,7 +345,7 @@ def editar_usuario(request, usuario_id):
         return render(request, 'core/sem_permissao.html', status=403)
 
     usuario = get_object_or_404(
-        Usuario.objects.prefetch_related('groups'),
+        Usuario.objects.prefetch_related('groups', 'unidades_permitidas'),
         id=usuario_id
     )
 
@@ -387,6 +402,11 @@ def editar_usuario(request, usuario_id):
 
                 usuario.full_clean()
                 usuario.save()
+
+                unidades_autorizadas = set(form_data['unidades_permitidas'])
+                if form_data['unidade']:
+                    unidades_autorizadas.add(form_data['unidade'])
+                usuario.unidades_permitidas.set(unidades_autorizadas)
 
                 if form_data['groups']:
                     usuario.groups.set(form_data['groups'])

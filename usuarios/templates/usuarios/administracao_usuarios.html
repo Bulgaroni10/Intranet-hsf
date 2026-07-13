@@ -603,8 +603,14 @@
                     </td>
 
                     <td>
-                      {% if usuario.unidade %}
-                        <span class="badge green">{{ usuario.unidade.sigla }}</span>
+                      {% if usuario.unidades_permitidas.all %}
+                        {% for unidade in usuario.unidades_permitidas.all %}
+                          <span class="badge {% if usuario.unidade_id == unidade.id %}green{% endif %}" title="{% if usuario.unidade_id == unidade.id %}Empresa principal{% else %}Empresa autorizada{% endif %}">
+                            {{ unidade.sigla }}{% if usuario.unidade_id == unidade.id %} ★{% endif %}
+                          </span>
+                        {% endfor %}
+                      {% elif usuario.unidade %}
+                        <span class="badge green">{{ usuario.unidade.sigla }} ★</span>
                       {% else %}
                         <span class="badge orange">Sem unidade</span>
                       {% endif %}

@@ -372,6 +372,29 @@ textarea::placeholder {
   border-color: var(--gsf-border) !important;
 }
 
+.gsf-company-switcher {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  margin: 0;
+}
+
+.gsf-company-switcher label {
+  margin: 0;
+  color: var(--gsf-muted) !important;
+  font-size: 10px;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.gsf-company-switcher select {
+  width: auto;
+  min-width: 82px;
+  min-height: 38px;
+  padding: 7px 30px 7px 10px;
+  border-radius: 10px;
+}
+
 button,
 input,
 select,

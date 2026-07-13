@@ -186,6 +186,43 @@ class LoginUnidadeEFavoritosTests(TestCase):
         self.assertContains(resposta, 'Dashboard')
 
 
+class SelecaoEmpresaUsuarioTests(TestCase):
+    def setUp(self):
+        self.empresa_a = Unidade.objects.create(nome='Empresa A', sigla='EA')
+        self.empresa_b = Unidade.objects.create(nome='Empresa B', sigla='EB')
+        self.empresa_bloqueada = Unidade.objects.create(nome='Empresa Bloqueada', sigla='EX')
+        self.usuario = get_user_model().objects.create_user(
+            'empresa.usuario', password='senha', unidade=self.empresa_a,
+        )
+        self.usuario.unidades_permitidas.set([self.empresa_a, self.empresa_b])
+        self.client.force_login(self.usuario)
+
+    def test_usuario_troca_somente_para_empresa_autorizada(self):
+        resposta = self.client.post(
+            reverse('selecionar_unidade_ativa'),
+            {'unidade_id': self.empresa_b.id, 'next': '/portal/'},
+        )
+        self.assertRedirects(resposta, '/portal/', fetch_redirect_response=False)
+        self.assertEqual(self.client.session['unidade_id'], self.empresa_b.id)
+
+    def test_empresa_nao_autorizada_e_bloqueada_no_servidor(self):
+        self.client.post(
+            reverse('selecionar_unidade_ativa'),
+            {'unidade_id': self.empresa_bloqueada.id},
+        )
+        self.assertNotEqual(self.client.session.get('unidade_id'), self.empresa_bloqueada.id)
+
+    def test_middleware_aplica_empresa_da_sessao_sem_alterar_cadastro(self):
+        sessao = self.client.session
+        sessao['unidade_id'] = self.empresa_b.id
+        sessao.save()
+
+        resposta = self.client.get(reverse('sidebar_global'))
+        self.assertContains(resposta, 'EB')
+        self.usuario.refresh_from_db()
+        self.assertEqual(self.usuario.unidade_id, self.empresa_a.id)
+
+
 class BuscaGlobalPermissoesTests(TestCase):
     def setUp(self):
         User = get_user_model()

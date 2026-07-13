@@ -71,6 +71,21 @@
       </a>
     {% endif %}
 
+    {% if unidades_disponiveis_usuario|length > 1 %}
+      <form class="gsf-company-switcher" method="post" action="{% url 'selecionar_unidade_ativa' %}">
+        {% csrf_token %}
+        <input type="hidden" name="next" value="{{ request.get_full_path }}">
+        <label for="gsf-company-select">Empresa</label>
+        <select id="gsf-company-select" name="unidade_id" onchange="this.form.submit()">
+          {% for unidade in unidades_disponiveis_usuario %}
+            <option value="{{ unidade.id }}" {% if request.user.unidade_id == unidade.id %}selected{% endif %}>
+              {{ unidade.sigla }}
+            </option>
+          {% endfor %}
+        </select>
+      </form>
+    {% endif %}
+
     <div class="gsf-user-chip">
       {% if request.user.unidade %}
         {% if request.user.unidade.sigla == "HSFVF" or request.user.unidade.sigla == "HSFMA" %}
