@@ -28,6 +28,7 @@ from .services import (
     registrar_cadastro_computador,
     registrar_erro_agente,
     registrar_retorno_online,
+    reconciliar_patrimonios_por_serial,
     vincular_patrimonio_por_serial,
 )
 
@@ -1077,7 +1078,13 @@ def importar_patrimonios(request):
                                 patrimonio=patrimonio, tipo="cadastro", usuario=request.user,
                                 observacao="Patrimônio importado por CSV.",
                             )
-                    messages.success(request, f"{len(preparados)} patrimônio(s) importado(s) com sucesso.")
+                    unidades_importadas = {dados["unidade"].id for dados in preparados if dados["unidade"]}
+                    vinculados = reconciliar_patrimonios_por_serial(unidades_importadas)
+                    messages.success(
+                        request,
+                        f"{len(preparados)} patrimônio(s) importado(s) e "
+                        f"{len(vinculados)} vínculo(s) automático(s) realizado(s).",
+                    )
                     return redirect("inventario_ti_patrimonios")
             except (UnicodeError, csv.Error, ValueError) as erro:
                 messages.error(request, str(erro))

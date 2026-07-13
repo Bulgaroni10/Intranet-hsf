@@ -97,6 +97,34 @@ def vincular_patrimonio_por_serial(computador):
         return patrimonio
 
 
+def reconciliar_patrimonios_por_serial(unidade_ids=None):
+    """Concilia o estoque existente sem arriscar seriais repetidos entre computadores."""
+    computadores = ComputadorInventario.objects.filter(
+        patrimonio_vinculado__isnull=True,
+        patrimonio__in=("", "-"),
+    ).select_related("unidade")
+    if unidade_ids:
+        computadores = computadores.filter(unidade_id__in=set(unidade_ids))
+
+    computadores_por_chave = {}
+    for computador in computadores:
+        serial = normalizar_valor(computador.serial)
+        if serial.upper() in SERIAIS_INVALIDOS or not computador.unidade_id:
+            continue
+        chave = (computador.unidade_id, serial.casefold())
+        computadores_por_chave.setdefault(chave, []).append(computador)
+
+    vinculados = []
+    for candidatos in computadores_por_chave.values():
+        if len(candidatos) != 1:
+            continue
+        patrimonio = vincular_patrimonio_por_serial(candidatos[0])
+        if patrimonio:
+            vinculados.append(patrimonio)
+
+    return vinculados
+
+
 def computador_estava_offline(computador):
     if not computador or not computador.ultimo_contato:
         return True

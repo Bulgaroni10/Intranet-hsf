@@ -554,6 +554,30 @@ class PatrimonioTITests(TestCase):
         self.assertEqual(patrimonio.setor.nome, "TI")
         self.assertTrue(patrimonio.movimentacoes.filter(tipo="cadastro").exists())
 
+    def test_importacao_csv_vincula_computador_existente_imediatamente(self):
+        computador = ComputadorInventario.objects.create(
+            hostname="PC-JA-DESCOBERTO",
+            unidade=self.unidade,
+            serial="SERIAL-JA-DESCOBERTO",
+        )
+        conteudo = (
+            "codigo;tipo;status;unidade;setor;serial\n"
+            "PAT-AUTO;computador;em_uso;HT;;SERIAL-JA-DESCOBERTO\n"
+        ).encode("utf-8")
+        arquivo = SimpleUploadedFile("patrimonios.csv", conteudo, content_type="text/csv")
+
+        resposta = self.client.post(
+            reverse("inventario_ti_patrimonios_importar"),
+            {"arquivo": arquivo},
+            follow=True,
+        )
+
+        computador.refresh_from_db()
+        patrimonio = PatrimonioTI.objects.get(codigo="PAT-AUTO")
+        self.assertEqual(resposta.status_code, 200)
+        self.assertEqual(patrimonio.computador, computador)
+        self.assertEqual(computador.patrimonio, "PAT-AUTO")
+
     def test_importacao_csv_com_erro_nao_grava_parcialmente(self):
         conteudo = (
             "codigo;tipo;status;unidade;setor;serial\n"
