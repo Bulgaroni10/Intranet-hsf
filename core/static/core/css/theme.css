@@ -1,55 +1,56 @@
 :root {
   /* Fundos */
-  --gsf-bg: #0b1220;
-  --gsf-bg-soft: #0f172a;
-  --gsf-sidebar: #0f172a;
-  --gsf-topbar: #111827;
+  --gsf-bg: #0b1220 !important;
+  --gsf-bg-soft: #0f172a !important;
+  --gsf-sidebar: #0f172a !important;
+  --gsf-sidebar-soft: #111827 !important;
+  --gsf-topbar: #111827 !important;
 
   /* Superfícies */
-  --gsf-card: #171c22;
-  --gsf-card-soft: #1b222b;
-  --gsf-card-hover: #222b36;
+  --gsf-card: #171c22 !important;
+  --gsf-card-soft: #1b222b !important;
+  --gsf-card-hover: #222b36 !important;
 
   /* Bordas */
-  --gsf-border: #2a3543;
-  --gsf-border-strong: #354355;
+  --gsf-border: #2a3543 !important;
+  --gsf-border-strong: #354355 !important;
 
   /* Textos */
-  --gsf-text: #f8fafc;
-  --gsf-text-soft: #d7dee8;
-  --gsf-muted: #94a3b8;
-  --gsf-muted-strong: #718096;
+  --gsf-text: #f8fafc !important;
+  --gsf-text-soft: #d7dee8 !important;
+  --gsf-muted: #94a3b8 !important;
+  --gsf-muted-strong: #718096 !important;
+  --gsf-subtle: #718096 !important;
 
   /* Marca */
-  --gsf-primary: #14b8a6;
-  --gsf-primary-hover: #2dd4bf;
-  --gsf-primary-strong: #0f766e;
-  --gsf-primary-dark: #0f766e;
-  --gsf-primary-soft: rgba(20, 184, 166, 0.14);
+  --gsf-primary: #14b8a6 !important;
+  --gsf-primary-hover: #2dd4bf !important;
+  --gsf-primary-strong: #0f766e !important;
+  --gsf-primary-dark: #0f766e !important;
+  --gsf-primary-soft: rgba(20, 184, 166, 0.14) !important;
 
   /* Compatibilidade com componentes antigos */
-  --gsf-blue: #60a5fa;
-  --gsf-blue-soft: rgba(59, 130, 246, 0.14);
-  --gsf-green: #4ade80;
-  --gsf-green-soft: rgba(34, 197, 94, 0.14);
-  --gsf-yellow: #fbbf24;
-  --gsf-yellow-soft: rgba(245, 158, 11, 0.14);
-  --gsf-red: #f87171;
-  --gsf-red-soft: rgba(239, 68, 68, 0.14);
-  --gsf-subtle: #718096;
+  --gsf-blue: #60a5fa !important;
+  --gsf-blue-soft: rgba(59, 130, 246, 0.14) !important;
+  --gsf-green: #4ade80 !important;
+  --gsf-green-soft: rgba(34, 197, 94, 0.14) !important;
+  --gsf-yellow: #fbbf24 !important;
+  --gsf-yellow-soft: rgba(245, 158, 11, 0.14) !important;
+  --gsf-red: #f87171 !important;
+  --gsf-red-soft: rgba(239, 68, 68, 0.14) !important;
 
   /* Estados */
-  --gsf-success: #22c55e;
-  --gsf-success-soft: rgba(34, 197, 94, 0.14);
+  --gsf-success: #22c55e !important;
+  --gsf-success-soft: rgba(34, 197, 94, 0.14) !important;
 
-  --gsf-warning: #f59e0b;
-  --gsf-warning-soft: rgba(245, 158, 11, 0.14);
+  --gsf-warning: #f59e0b !important;
+  --gsf-warning-soft: rgba(245, 158, 11, 0.14) !important;
 
-  --gsf-danger: #ef4444;
-  --gsf-danger-soft: rgba(239, 68, 68, 0.14);
+  --gsf-danger: #ef4444 !important;
+  --gsf-danger-soft: rgba(239, 68, 68, 0.14) !important;
 
-  --gsf-info: #3b82f6;
-  --gsf-info-soft: rgba(59, 130, 246, 0.14);
+  --gsf-info: #3b82f6 !important;
+  --gsf-info-soft: rgba(59, 130, 246, 0.14) !important;
 
   /* Medidas */
   --gsf-radius-sm: 10px;
@@ -441,6 +442,7 @@ label,
 .portal-content,
 .main-content,
 main {
+  background: var(--gsf-bg) !important;
   color: var(--gsf-text) !important;
 }
 
