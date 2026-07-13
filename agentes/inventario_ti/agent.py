@@ -39,7 +39,8 @@ def carregar_config(caminho_config=None):
     config = DEFAULT_CONFIG.copy()
 
     if caminho.exists():
-        with caminho.open("r", encoding="utf-8") as arquivo:
+        # Windows PowerShell 5 grava UTF-8 com BOM por padrão.
+        with caminho.open("r", encoding="utf-8-sig") as arquivo:
             config.update(json.load(arquivo))
 
     config["server"] = str(config["server"]).rstrip("/")
