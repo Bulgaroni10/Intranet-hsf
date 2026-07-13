@@ -308,6 +308,10 @@
       <div class="top-actions">
         <a class="btn-action" href="/portal/">← Voltar ao portal</a>
 
+        <a class="btn-action" href="{% url 'exportar_ramais_csv' %}?{{ request.GET.urlencode }}">
+          ⇩ Exportar CSV
+        </a>
+
         {% if pode_gerenciar %}
           <a class="btn-action btn-primary" href="/portal/modulos/ramais-contatos/novo/">
             + Novo ramal / contato

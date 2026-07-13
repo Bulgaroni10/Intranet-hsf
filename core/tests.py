@@ -204,6 +204,36 @@ class BuscaGlobalPermissoesTests(TestCase):
         self.assertEqual([item['tipo'] for item in resultados], ['Solicitação TI'])
 
 
+class ExportacaoRamaisCSVTests(TestCase):
+    def setUp(self):
+        self.unidade_a = Unidade.objects.create(nome='CSV A', sigla='CA')
+        self.unidade_b = Unidade.objects.create(nome='CSV B', sigla='CB')
+        self.usuario = get_user_model().objects.create_user(
+            'csv.usuario', unidade=self.unidade_a,
+        )
+        Modulo.objects.create(nome='Ramais e Contatos', link='/ramais/')
+        RamalContato.objects.create(
+            nome='Recepção A', setor='Recepção', ramal='100',
+            unidade=self.unidade_a,
+        )
+        RamalContato.objects.create(
+            nome='Contato B', setor='TI', ramal='999', unidade=self.unidade_b,
+        )
+
+    def test_csv_respeita_unidade_e_filtros_da_tela(self):
+        self.client.force_login(self.usuario)
+        resposta = self.client.get(
+            reverse('exportar_ramais_csv'), {'busca': 'Recepção'},
+        )
+        conteudo = resposta.content.decode('utf-8-sig')
+
+        self.assertEqual(resposta.status_code, 200)
+        self.assertEqual(resposta['Content-Type'], 'text/csv; charset=utf-8')
+        self.assertIn('Recepção A', conteudo)
+        self.assertNotIn('Contato B', conteudo)
+        self.assertNotIn('999', conteudo)
+
+
 class ArquivosEstaticosProducaoTests(TestCase):
     @override_settings(DEBUG=False)
     def test_javascript_do_login_e_servido_com_debug_desligado(self):

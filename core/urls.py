@@ -148,6 +148,7 @@ urlpatterns = [
 
     # Ramais e Contatos
     path('portal/modulos/ramais-contatos/', ramais_views.ramais_contatos, name='ramais_contatos'),
+    path('portal/modulos/ramais-contatos/exportar-csv/', ramais_views.exportar_ramais_csv, name='exportar_ramais_csv'),
     path('portal/modulos/ramais-contatos/novo/', ramais_views.novo_ramal_contato, name='novo_ramal_contato'),
     path('portal/modulos/ramais-contatos/editar/<int:contato_id>/', ramais_views.editar_ramal_contato, name='editar_ramal_contato'),
     path('portal/modulos/ramais-contatos/inativar/<int:contato_id>/', ramais_views.inativar_ramal_contato, name='inativar_ramal_contato'),

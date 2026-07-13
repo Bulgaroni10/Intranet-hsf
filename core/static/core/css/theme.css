@@ -168,6 +168,50 @@ body {
   box-shadow: var(--gsf-shadow-sm) !important;
 }
 
+/* Indicadores compartilhados: elimina o cartão branco legado. */
+.gsf-kpi-card,
+.kpi-card,
+.stat-card,
+.metric-card {
+  background: var(--gsf-card) !important;
+  color: var(--gsf-text) !important;
+  border-color: var(--gsf-border) !important;
+  box-shadow: var(--gsf-shadow-sm) !important;
+}
+
+.gsf-kpi-card:hover,
+.kpi-card:hover,
+.stat-card:hover,
+.metric-card:hover {
+  background: var(--gsf-card-hover) !important;
+  border-color: var(--gsf-border-strong) !important;
+}
+
+.gsf-kpi-title,
+.gsf-kpi-subtitle,
+.kpi-card small,
+.stat-card small,
+.metric-card small {
+  color: var(--gsf-muted) !important;
+}
+
+.gsf-kpi-value,
+.kpi-card strong,
+.stat-card strong,
+.metric-card strong {
+  color: var(--gsf-text) !important;
+}
+
+.gsf-kpi-icon {
+  background: rgba(20, 184, 166, 0.12) !important;
+  border: 1px solid rgba(45, 212, 191, 0.18);
+}
+
+.gsf-kpi-card.success .gsf-kpi-icon { background: rgba(34, 197, 94, 0.13) !important; }
+.gsf-kpi-card.warning .gsf-kpi-icon { background: rgba(245, 158, 11, 0.14) !important; }
+.gsf-kpi-card.danger .gsf-kpi-icon { background: rgba(239, 68, 68, 0.14) !important; }
+.gsf-kpi-card.info .gsf-kpi-icon { background: rgba(59, 130, 246, 0.14) !important; }
+
 .gsf-hero {
   background:
     radial-gradient(

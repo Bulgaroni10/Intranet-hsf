@@ -1,7 +1,10 @@
+import csv
+
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import ValidationError
 from django.db.models import Q
+from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 
 from auditoria.models import RegistroAuditoria
@@ -240,6 +243,35 @@ def ramais_contatos(request):
         'total_emergencia': total_emergencia,
         'pode_gerenciar': pode_gerenciar,
     })
+
+
+@login_required(login_url='/')
+def exportar_ramais_csv(request):
+    if not usuario_pode_acessar_modulo(request.user, NOME_MODULO_RAMAIS):
+        return render(request, 'core/sem_permissao.html', status=403)
+
+    response = HttpResponse(content_type='text/csv; charset=utf-8')
+    response['Content-Disposition'] = 'attachment; filename="ramais_contatos.csv"'
+    response.write('\ufeff')
+
+    writer = csv.writer(response, delimiter=';')
+    writer.writerow([
+        'Unidade', 'Tipo', 'Setor', 'Nome', 'Cargo/Função', 'Ramal',
+        'Telefone', 'Celular', 'WhatsApp', 'E-mail', 'Localização',
+        'Observação', 'Status',
+    ])
+
+    for contato in buscar_contatos_visiveis(request):
+        writer.writerow([
+            contato.unidade.sigla if contato.unidade else 'Geral',
+            contato.get_tipo_display(), contato.setor, contato.nome,
+            contato.cargo_funcao, contato.ramal, contato.telefone,
+            contato.celular, contato.whatsapp, contato.email,
+            contato.localizacao, contato.observacao,
+            'Ativo' if contato.ativo else 'Inativo',
+        ])
+
+    return response
 
 
 @login_required(login_url='/')

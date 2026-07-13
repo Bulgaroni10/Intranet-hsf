@@ -8,6 +8,7 @@ Padrão-alvo: tema escuro corporativo, sidebar/topbar únicas, cards `gsf-*`, fo
 - [x] Unificar variáveis de cores antigas e atuais.
 - [x] Padronizar inputs, selects, textareas, foco e botões.
 - [x] Padronizar tabelas, cards, grids e alinhamento vertical.
+- [x] Remover fundos brancos dos cards de indicadores compartilhados.
 - [ ] Revisar visualmente desktop e resolução 1366×768 no servidor.
 - [ ] Revisar responsividade em telas menores.
 
@@ -18,7 +19,7 @@ Padrão-alvo: tema escuro corporativo, sidebar/topbar únicas, cards `gsf-*`, fo
 - [ ] Base de conhecimento.
 - [ ] Conversas.
 - [ ] Documentos e protocolos.
-- [ ] Ramais e contatos.
+- [x] Ramais e contatos — tema escuro e exportação CSV com filtros.
 - [ ] Solicitações TI.
 - [ ] Inventário TI — visão geral, patrimônio, máquinas e suprimentos.
 - [ ] Estoque Setorial.
