@@ -49,10 +49,17 @@
 
     {% if pode_ver_inventario %}
       <a href="{% url 'painel_noc' %}" class="gsf-sidebar-link"><span>📺</span><strong>NOC</strong></a>
-      <a href="/portal/modulos/inventario-ti/" class="gsf-sidebar-link">
-        <span>💻</span>
-        <strong>Inventário TI</strong>
-      </a>
+      <details class="gsf-sidebar-menu" {% if '/portal/modulos/inventario-ti/' in request.path %}open{% endif %}>
+        <summary class="gsf-sidebar-link">
+          <span>💻</span>
+          <strong>Inventário TI</strong>
+          <i class="gsf-sidebar-chevron">⌄</i>
+        </summary>
+        <div class="gsf-sidebar-submenu">
+          <a href="{% url 'inventario_ti_patrimonios' %}" class="gsf-sidebar-sublink"><span>🏷️</span><strong>Patrimônio</strong></a>
+          <a href="{% url 'inventario_ti_suprimentos' %}" class="gsf-sidebar-sublink"><span>📦</span><strong>Suprimentos</strong></a>
+        </div>
+      </details>
     {% endif %}
 
     <div class="gsf-sidebar-section">Comunicação</div>

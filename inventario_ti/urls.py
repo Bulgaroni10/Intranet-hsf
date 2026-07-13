@@ -13,6 +13,7 @@ urlpatterns = [
     path("portal/modulos/inventario-ti/patrimonios/importar/", views.importar_patrimonios, name="inventario_ti_patrimonios_importar"),
     path("portal/modulos/inventario-ti/patrimonios/modelo-importacao.csv", views.modelo_importacao_patrimonios, name="inventario_ti_patrimonios_modelo_importacao"),
     path("portal/modulos/inventario-ti/maquinas/", views.maquinas, name="inventario_ti_maquinas"),
+    path("portal/modulos/inventario-ti/suprimentos/", views.suprimentos, name="inventario_ti_suprimentos"),
     path("portal/modulos/inventario-ti/patrimonios/<int:patrimonio_id>/movimentar/", views.movimentar_patrimonio, name="inventario_ti_patrimonio_movimentar"),
     path("portal/modulos/inventario-ti/patrimonios/<int:patrimonio_id>/", views.detalhe_patrimonio, name="inventario_ti_patrimonio_detalhe"),
     path("portal/modulos/inventario-ti/patrimonios/<int:patrimonio_id>/editar/", views.editar_patrimonio, name="inventario_ti_patrimonio_editar"),

@@ -5,7 +5,6 @@
 {% block content %}
 <div class="page">
   {% include "components/page_header.html" with eyebrow="Inventário TI" icon="🏷️" title="Patrimônio TI" subtitle="Cadastro patrimonial, vínculo com computadores e movimentações." secondary_url_name="inventario_ti_dashboard" secondary_text="Voltar ao inventário" action_url_name="inventario_ti_patrimonio_novo" action_text="Novo patrimônio" %}
-  {% include "inventario_ti/_abas.html" %}
 
   <div class="summary-grid">
     {% include "components/kpi_card.html" with icon="🏷️" title="Total" value=totais.total %}
@@ -80,6 +79,7 @@
 
     <div class="top-actions" style="margin-top: 14px;">
       <a href="{% url 'inventario_ti_patrimonios' %}" class="btn-link">Limpar filtros</a>
+      <a href="{% url 'inventario_ti_maquinas' %}" class="btn-link">Relatório de máquinas</a>
       <a href="{% url 'inventario_ti_patrimonios_importar' %}" class="btn-success">Importar CSV</a>
       <span class="btn-muted">{{ totais.filtrado }} patrimônio(s) encontrado(s)</span>
     </div>

@@ -25,6 +25,7 @@ from .views import (
     movimentar_patrimonio,
     novo_patrimonio,
     patrimonios,
+    suprimentos,
 )
 
 
@@ -609,6 +610,15 @@ class PatrimonioTITests(TestCase):
         self.assertEqual(resposta.status_code, 200)
         self.assertIn("MAQ-HT", conteudo)
         self.assertNotIn("MAQ-OUT", conteudo)
+
+    def test_area_suprimentos_renderiza_para_ti(self):
+        request = self.factory.get("/portal/modulos/inventario-ti/suprimentos/")
+        request.user = self.user
+
+        resposta = suprimentos(request)
+
+        self.assertEqual(resposta.status_code, 200)
+        self.assertIn("Suprimentos", resposta.content.decode())
 
     def test_movimentacao_maquina_altera_setor_e_registra_origem_destino(self):
         origem = Setor.objects.create(nome="Recepção")

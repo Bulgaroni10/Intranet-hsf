@@ -1086,6 +1086,13 @@ def maquinas(request):
 
 
 @login_required
+def suprimentos(request):
+    if not usuario_pode_acessar_inventario_ti(request.user):
+        return render(request, "core/sem_permissao.html", status=403)
+    return render(request, "inventario_ti/suprimentos.html")
+
+
+@login_required
 def movimentar_patrimonio(request, patrimonio_id):
     if not usuario_pode_gerenciar_patrimonio_ti(request.user):
         return render(request, "core/sem_permissao.html", status=403)
