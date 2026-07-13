@@ -77,6 +77,55 @@ def patrimonio_informado(computador):
     return valor_informado(computador.patrimonio)
 
 
+def diagnosticar_pendencias_patrimonio(computadores):
+    pendentes = [pc for pc in computadores if not patrimonio_informado(pc)]
+    chaves = {
+        (pc.unidade_id, str(pc.serial).strip().casefold())
+        for pc in pendentes
+        if valor_informado(pc.serial)
+    }
+    patrimonios_por_serial = {}
+
+    if chaves:
+        unidades = {unidade_id for unidade_id, _serial in chaves if unidade_id}
+        patrimonios = PatrimonioTI.objects.filter(
+            unidade_id__in=unidades,
+            ativo=True,
+        ).select_related("computador")
+        for item in patrimonios:
+            chave = (item.unidade_id, (item.serial or "").strip().casefold())
+            if chave in chaves:
+                patrimonios_por_serial.setdefault(chave, []).append(item)
+
+    for computador in computadores:
+        computador.pendencia_patrimonio = ""
+        computador.pendencia_patrimonio_codigo = ""
+        if patrimonio_informado(computador):
+            continue
+
+        if not valor_informado(computador.serial):
+            computador.pendencia_patrimonio = "Serial não informado pelo equipamento"
+            continue
+
+        chave = (computador.unidade_id, str(computador.serial).strip().casefold())
+        candidatos = patrimonios_por_serial.get(chave, [])
+        if not candidatos:
+            computador.pendencia_patrimonio = "Serial ainda não cadastrado no patrimônio"
+        elif len(candidatos) > 1:
+            computador.pendencia_patrimonio = "Serial duplicado no cadastro patrimonial"
+        elif candidatos[0].tipo not in ("computador", "notebook"):
+            computador.pendencia_patrimonio = "Ativo cadastrado com tipo incompatível"
+            computador.pendencia_patrimonio_codigo = candidatos[0].codigo
+        elif candidatos[0].computador_id and candidatos[0].computador_id != computador.id:
+            computador.pendencia_patrimonio = "Patrimônio já vinculado a outro computador"
+            computador.pendencia_patrimonio_codigo = candidatos[0].codigo
+        else:
+            computador.pendencia_patrimonio = "Aguardando o próximo heartbeat para vincular"
+            computador.pendencia_patrimonio_codigo = candidatos[0].codigo
+
+    return computadores
+
+
 def extrair_percentual_disco(valor):
     if not valor:
         return None
@@ -246,6 +295,7 @@ def filtrar_computadores_inventario(filtros, user=None):
         computadores = computadores.filter(unidade_id=filtros["unidade"])
 
     lista_base = list(computadores)
+    diagnosticar_pendencias_patrimonio(lista_base)
     lista = aplicar_filtros_memoria(
         lista_base,
         filtros["status"],

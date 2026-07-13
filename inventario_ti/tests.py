@@ -60,6 +60,26 @@ class ParqueComputadoresTests(TestCase):
         self.assertIn("PC-ANTIGO", conteudo)
         self.assertNotIn("PC-ATUAL", conteudo)
 
+    def test_dashboard_exibe_motivo_da_pendencia_patrimonial(self):
+        ComputadorInventario.objects.create(
+            hostname="PC-SEM-SERIAL",
+            unidade=self.unidade,
+            serial="-",
+        )
+        ComputadorInventario.objects.create(
+            hostname="PC-NAO-CADASTRADO",
+            unidade=self.unidade,
+            serial="SERIAL-INEXISTENTE",
+        )
+
+        request = self.factory.get("/portal/modulos/inventario-ti/")
+        request.user = self.usuario
+        resposta = dashboard(request)
+        conteudo = resposta.content.decode()
+
+        self.assertIn("Serial não informado pelo equipamento", conteudo)
+        self.assertIn("Serial ainda não cadastrado no patrimônio", conteudo)
+
 
 class _RespostaImpressoraFake:
     def __enter__(self):

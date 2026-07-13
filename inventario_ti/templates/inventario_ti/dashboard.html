@@ -153,7 +153,17 @@
                 <td>{{ pc.unidade.sigla|default:"-" }}</td>
                 <td>{{ pc.usuario }}</td>
                 <td>{{ pc.ip_local|default:"-" }}</td>
-                <td>{% if pc.patrimonio_vinculado %}<a href="{% url 'inventario_ti_patrimonio_detalhe' pc.patrimonio_vinculado.id %}">{{ pc.patrimonio_vinculado.codigo }}</a>{% else %}{{ pc.patrimonio|default:"Sem vínculo" }}{% endif %}</td>
+                <td>
+                  {% if pc.patrimonio_vinculado %}
+                    <a href="{% url 'inventario_ti_patrimonio_detalhe' pc.patrimonio_vinculado.id %}">{{ pc.patrimonio_vinculado.codigo }}</a>
+                  {% elif pc.patrimonio and pc.patrimonio != "-" %}
+                    {{ pc.patrimonio }}
+                  {% else %}
+                    <span class="gsf-badge gsf-badge-warning">Sem vínculo</span>
+                    <br><small>{{ pc.pendencia_patrimonio }}</small>
+                    {% if pc.pendencia_patrimonio_codigo %}<br><small>Ativo: {{ pc.pendencia_patrimonio_codigo }}</small>{% endif %}
+                  {% endif %}
+                </td>
                 <td>{{ pc.sistema }}</td>
                 <td>{{ pc.fabricante }} {{ pc.modelo }}</td>
                 <td>
