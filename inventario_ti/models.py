@@ -238,3 +238,39 @@ class MovimentacaoPatrimonioTI(models.Model):
 
     def __str__(self):
         return f"{self.patrimonio.codigo} - {self.get_tipo_display()}"
+
+
+class ImpressoraMonitorada(models.Model):
+    unidade = models.ForeignKey(Unidade, on_delete=models.SET_NULL, null=True, blank=True)
+    ip = models.GenericIPAddressField(unique=True)
+    modelo_informado = models.CharField(max_length=180, blank=True, default="")
+    modelo_detectado = models.CharField(max_length=180, blank=True, default="")
+    local = models.CharField(max_length=180)
+    ativo = models.BooleanField(default=True)
+    online = models.BooleanField(default=False)
+    status_dispositivo = models.CharField(max_length=255, blank=True, default="")
+    toner_percentual = models.PositiveSmallIntegerField(null=True, blank=True)
+    cilindro_percentual = models.PositiveSmallIntegerField(null=True, blank=True)
+    ultimo_erro = models.TextField(blank=True, default="")
+    ultima_consulta = models.DateTimeField(null=True, blank=True)
+    criado_em = models.DateTimeField(auto_now_add=True)
+    atualizado_em = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["local", "ip"]
+        verbose_name = "Impressora monitorada"
+        verbose_name_plural = "Impressoras monitoradas"
+        indexes = [models.Index(fields=["unidade", "ativo", "online"])]
+
+    def __str__(self):
+        return f"{self.local} - {self.ip}"
+
+    @property
+    def modelo(self):
+        return self.modelo_detectado or self.modelo_informado
+
+    @property
+    def possui_alerta(self):
+        texto = self.status_dispositivo.lower()
+        termos = ("replace", "substit", "low", "baixo", "error", "erro", "jam", "atol")
+        return not self.online or any(termo in texto for termo in termos)

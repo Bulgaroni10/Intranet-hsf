@@ -6,6 +6,7 @@ from .models import (
     HistoricoComputadorInventario,
     MovimentacaoPatrimonioTI,
     PatrimonioTI,
+    ImpressoraMonitorada,
 )
 
 
@@ -193,3 +194,11 @@ class MovimentacaoPatrimonioTIAdmin(admin.ModelAdmin):
         "unidade_destino",
         "criado_em",
     ]
+
+
+@admin.register(ImpressoraMonitorada)
+class ImpressoraMonitoradaAdmin(admin.ModelAdmin):
+    list_display = ["local", "ip", "modelo_detectado", "unidade", "online", "status_dispositivo", "ultima_consulta"]
+    search_fields = ["local", "ip", "modelo_informado", "modelo_detectado"]
+    list_filter = ["unidade", "online", "ativo"]
+    readonly_fields = ["modelo_detectado", "online", "status_dispositivo", "toner_percentual", "cilindro_percentual", "ultimo_erro", "ultima_consulta", "criado_em", "atualizado_em"]

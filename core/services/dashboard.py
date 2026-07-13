@@ -394,6 +394,13 @@ def montar_contexto_portal(user):
         "MV / Sistema Hospitalar",
     )
     pode_ver_painel_tecnico = usuario_eh_ti(user)
+    impressoras_alerta = []
+    if pode_ver_painel_tecnico:
+        from inventario_ti.models import ImpressoraMonitorada
+        queryset = ImpressoraMonitorada.objects.filter(ativo=True).select_related("unidade")
+        if not user.is_superuser:
+            queryset = queryset.filter(unidade=user.unidade)
+        impressoras_alerta = [item for item in queryset.order_by("local") if item.possui_alerta]
 
     resumo_chamados_ti = {
         "total_chamados_ti": 0,
@@ -457,4 +464,5 @@ def montar_contexto_portal(user):
         "timeline_global": timeline_global,
         "notificacoes": notificacoes,
         "total_notificacoes": contar_nao_lidas(user),
+        "impressoras_alerta": impressoras_alerta,
     }

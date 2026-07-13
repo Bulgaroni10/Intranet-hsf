@@ -1,0 +1,83 @@
+import html
+import re
+from urllib.request import Request, urlopen
+
+from django.contrib.auth import get_user_model
+from django.db.models import Q
+from django.utils import timezone
+
+from core.models import NotificacaoUsuario
+from core.services.permissions import PERFIS_TI
+from .models import ImpressoraMonitorada
+
+
+STATUS_RE = re.compile(r'<div id="moni_data">.*?<span[^>]*>(.*?)</span>', re.I | re.S)
+TITLE_RE = re.compile(r"<title[^>]*>(.*?)</title>", re.I | re.S)
+
+
+def _texto_html(valor):
+    return re.sub(r"\s+", " ", html.unescape(re.sub(r"<[^>]+>", "", valor))).strip()
+
+
+def consultar_impressora(impressora, timeout=4):
+    request = Request(f"http://{impressora.ip}/general/status.html", headers={"User-Agent": "GSF-NOC/1.1"})
+    with urlopen(request, timeout=timeout) as resposta:
+        conteudo = resposta.read(256_000).decode("latin-1", errors="replace")
+    titulo = TITLE_RE.search(conteudo)
+    status = STATUS_RE.search(conteudo)
+    return {
+        "modelo_detectado": _texto_html(titulo.group(1)).removeprefix("Brother ") if titulo else "",
+        "status_dispositivo": _texto_html(status.group(1)) if status else "Pronta",
+    }
+
+
+def _usuarios_ti(impressora):
+    usuarios = get_user_model().objects.filter(is_active=True).filter(
+        Q(is_superuser=True) | Q(groups__name__in=PERFIS_TI)
+    ).distinct()
+    if impressora.unidade_id:
+        usuarios = usuarios.filter(unidade=impressora.unidade)
+    return usuarios
+
+
+def _sincronizar_alerta(impressora):
+    origem = "impressora_monitorada"
+    objeto_id = str(impressora.pk)
+    if not impressora.possui_alerta:
+        NotificacaoUsuario.objects.filter(origem=origem, objeto_id=objeto_id, lida=False).update(
+            lida=True, lida_em=timezone.now()
+        )
+        return
+    estado = impressora.status_dispositivo or "Sem comunicação"
+    for usuario in _usuarios_ti(impressora):
+        notificacao, _ = NotificacaoUsuario.objects.get_or_create(
+            usuario=usuario, origem=origem, objeto_id=objeto_id,
+            defaults={"titulo": f"Impressora: {impressora.local}", "descricao": estado,
+                      "tipo": "warning", "icone": "🖨️", "link": "/portal/noc/"},
+        )
+        if notificacao.descricao != estado:
+            notificacao.descricao = estado
+            notificacao.lida = False
+            notificacao.lida_em = None
+            notificacao.save(update_fields=["descricao", "lida", "lida_em"])
+
+
+def atualizar_impressora(impressora):
+    try:
+        dados = consultar_impressora(impressora)
+        impressora.online = True
+        impressora.modelo_detectado = dados["modelo_detectado"] or impressora.modelo_detectado
+        impressora.status_dispositivo = dados["status_dispositivo"]
+        impressora.ultimo_erro = ""
+    except Exception as exc:
+        impressora.online = False
+        impressora.status_dispositivo = "Sem comunicação"
+        impressora.ultimo_erro = str(exc)[:1000]
+    impressora.ultima_consulta = timezone.now()
+    impressora.save(update_fields=["online", "modelo_detectado", "status_dispositivo", "ultimo_erro", "ultima_consulta", "atualizado_em"])
+    _sincronizar_alerta(impressora)
+    return impressora
+
+
+def atualizar_todas_impressoras():
+    return [atualizar_impressora(item) for item in ImpressoraMonitorada.objects.filter(ativo=True).select_related("unidade")]

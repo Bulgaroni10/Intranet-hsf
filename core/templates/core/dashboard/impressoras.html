@@ -1,0 +1,10 @@
+<section class="gsf-workspace-card">
+  <div class="gsf-workspace-card-header">
+    <div><span class="gsf-dashboard-kicker">Monitoramento</span><h2>Alertas de impressoras</h2><p>Equipamentos que precisam da atenção da TI.</p></div>
+    <a href="{% url 'painel_noc' %}" class="gsf-btn gsf-btn-secondary">Abrir NOC</a>
+  </div>
+  <div class="gsf-table-wrap"><table class="gsf-table"><thead><tr><th>Status</th><th>Local</th><th>Modelo</th><th>IP</th><th>Diagnóstico</th></tr></thead><tbody>
+  {% for item in impressoras_alerta %}<tr><td><span class="gsf-badge gsf-badge-danger">{% if item.online %}ALERTA{% else %}OFFLINE{% endif %}</span></td><td><strong>{{ item.local }}</strong></td><td>{{ item.modelo }}</td><td>{{ item.ip }}</td><td>{{ item.status_dispositivo|default:"Sem comunicação" }}</td></tr>
+  {% empty %}<tr><td colspan="5"><div class="gsf-workspace-empty gsf-workspace-empty-table"><strong>Nenhum alerta de impressora</strong><p>A coleta ainda pode estar aguardando a primeira execução.</p></div></td></tr>{% endfor %}
+  </tbody></table></div>
+</section>

@@ -1,4 +1,5 @@
 import json
+from unittest.mock import patch
 
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Group
@@ -7,7 +8,8 @@ from django.test import RequestFactory, TestCase
 
 from usuarios.models import Unidade
 
-from .models import ComputadorInventario, ErroAgenteInventario, MovimentacaoPatrimonioTI, PatrimonioTI
+from .models import ComputadorInventario, ErroAgenteInventario, ImpressoraMonitorada, MovimentacaoPatrimonioTI, PatrimonioTI
+from .services_impressoras import atualizar_impressora
 from .views import (
     agent_error,
     erros_agentes,
@@ -17,6 +19,47 @@ from .views import (
     novo_patrimonio,
     patrimonios,
 )
+
+
+class _RespostaImpressoraFake:
+    def __enter__(self):
+        return self
+
+    def __exit__(self, *args):
+        return False
+
+    def read(self, limite):
+        return (
+            b'<html><head><title>Brother MFC-L6902DW</title></head>'
+            b'<div id="moni_data"><span class="moniWarning">Substituir Cilindro</span></div></html>'
+        )
+
+
+class MonitoramentoImpressoraTests(TestCase):
+    def setUp(self):
+        self.unidade = Unidade.objects.create(nome="Hospital", sigla="IMP")
+        grupo = Group.objects.create(name="TI")
+        self.usuario = get_user_model().objects.create_user("tecnico.ti", unidade=self.unidade)
+        self.usuario.groups.add(grupo)
+        self.impressora = ImpressoraMonitorada.objects.create(
+            unidade=self.unidade, ip="192.0.2.10", modelo_informado="Modelo incorreto", local="Recepcao"
+        )
+
+    @patch("inventario_ti.services_impressoras.urlopen", return_value=_RespostaImpressoraFake())
+    def test_coleta_corrige_modelo_e_cria_alerta_individual(self, _urlopen):
+        atualizar_impressora(self.impressora)
+        self.impressora.refresh_from_db()
+        self.assertTrue(self.impressora.online)
+        self.assertEqual(self.impressora.modelo_detectado, "MFC-L6902DW")
+        self.assertTrue(self.impressora.possui_alerta)
+        self.assertTrue(self.usuario.notificacoes.filter(origem="impressora_monitorada", lida=False).exists())
+
+    @patch("inventario_ti.services_impressoras.urlopen", side_effect=TimeoutError("timeout"))
+    def test_falha_de_coleta_marca_impressora_offline(self, _urlopen):
+        atualizar_impressora(self.impressora)
+        self.impressora.refresh_from_db()
+        self.assertFalse(self.impressora.online)
+        self.assertEqual(self.impressora.status_dispositivo, "Sem comunicação")
 
 
 class HeartbeatHistoricoTests(TestCase):
