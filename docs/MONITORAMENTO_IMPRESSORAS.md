@@ -1,6 +1,6 @@
 # Monitoramento de impressoras no GSF NOC
 
-Este documento explica como cadastrar, testar e manter impressoras no NOC da GSF Hub.
+Este documento explica como cadastrar, testar e manter impressoras Brother, Kyocera e Ricoh no NOC da GSF Hub.
 
 ## Resposta rápida: onde o monitoramento deve rodar?
 
@@ -30,9 +30,9 @@ Para impressoras de outra unidade, o servidor central da intranet precisa ter ro
 - preferencialmente SNMP v2 habilitado na porta UDP 161, comunidade de leitura `public`;
 - unidade e local corretos no cadastro da GSF Hub.
 
-O monitoramento atual foi preparado para impressoras Brother. Ele não precisa da senha administrativa para consultar a página pública de status. Certificados HTTPS autoassinados são aceitos apenas nessa comunicação interna, e o coletor ignora proxies do Windows ao acessar os IPs cadastrados.
+O monitoramento suporta Brother, Kyocera e Ricoh. A coleta Brother também utiliza a página pública de status; Kyocera e Ricoh usam SNMP como fonte principal. Certificados HTTPS autoassinados são aceitos apenas nessa comunicação interna, e o coletor ignora proxies do Windows ao acessar os IPs cadastrados.
 
-O SNMP é opcional para disponibilidade e toner quando a página web já fornece essas informações. Ele é recomendado para obter contadores adicionais, especialmente cilindro/tambor. Alguns modelos não disponibilizam percentual de cilindro nem mesmo via SNMP; nesses casos o NOC ainda identifica mensagens como `Subst. tambor`, `Tambor!` ou `Substituir Cilindro`.
+O SNMP é opcional nas Brother quando a página web já fornece as informações básicas. Para Kyocera e Ricoh, ele deve ser habilitado para garantir detecção, disponibilidade e suprimentos. Alguns modelos não disponibilizam percentual de cilindro nem mesmo via SNMP; nesses casos o campo permanece vazio.
 
 ## Responsabilidade dos servidores
 
@@ -228,6 +228,8 @@ C:\Projetos\venv_intranet\Scripts\python.exe manage.py monitorar_noc
 5. Execute `monitorar_impressoras` manualmente.
 6. Confirme modelo, status, toner e horário no NOC.
 7. A tarefa central já fará as próximas coletas; não crie outra tarefa no servidor de impressão.
+
+Para Vila Formosa, onde a frota é Kyocera e Ricoh, habilite primeiro SNMP v2 somente leitura em cada equipamento e valide UDP 161 a partir do servidor da intranet antes de realizar o cadastro em lote.
 
 Se a unidade não possuir conectividade roteada até o servidor central, a arquitetura atual não conseguirá monitorá-la. Nesse cenário será necessário liberar a comunicação entre unidades ou desenvolver um coletor remoto seguro para enviar os resultados à GSF Hub.
 

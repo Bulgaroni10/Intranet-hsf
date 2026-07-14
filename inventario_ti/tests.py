@@ -144,21 +144,44 @@ class MonitoramentoImpressoraTests(TestCase):
         self.assertFalse(self.impressora.online)
         self.assertEqual(self.impressora.status_dispositivo, "Sem comunicação")
 
+    @patch("inventario_ti.services_impressoras.consultar_suprimentos_snmp", return_value={"toner_percentual": 62, "cilindro_percentual": 70})
     @patch("inventario_ti.services_impressoras.consultar_snmp", return_value="Brother NC-8900h")
     @patch("inventario_ti.services_impressoras._abrir_url_impressora", side_effect=TimeoutError("timeout"))
-    def test_snmp_e_usado_quando_painel_web_nao_responde(self, _urlopen, _snmp):
+    def test_snmp_e_usado_quando_painel_web_nao_responde(self, _urlopen, _snmp, _suprimentos):
         atualizar_impressora(self.impressora)
         self.impressora.refresh_from_db()
         self.assertTrue(self.impressora.online)
         self.assertEqual(self.impressora.status_dispositivo, "Online via SNMP")
+        self.assertEqual(self.impressora.toner_percentual, 62)
+
+    @patch("inventario_ti.services_impressoras.consultar_suprimentos_snmp", return_value={"toner_percentual": 41, "cilindro_percentual": 76})
+    @patch("inventario_ti.services_impressoras.consultar_snmp", return_value="KYOCERA ECOSYS M2040dn")
+    @patch("inventario_ti.services_impressoras._abrir_url_impressora", side_effect=TimeoutError("timeout"))
+    def test_kyocera_e_monitorada_por_snmp(self, _urlopen, _snmp, _suprimentos):
+        atualizar_impressora(self.impressora)
+        self.impressora.refresh_from_db()
+        self.assertTrue(self.impressora.online)
+        self.assertEqual(self.impressora.modelo_detectado, "KYOCERA ECOSYS M2040dn")
+        self.assertEqual(self.impressora.toner_percentual, 41)
+        self.assertEqual(self.impressora.cilindro_percentual, 76)
+
+    @patch("inventario_ti.services_impressoras.consultar_suprimentos_snmp", return_value={"toner_percentual": 35, "cilindro_percentual": None})
+    @patch("inventario_ti.services_impressoras.consultar_snmp", return_value="RICOH IM 430F")
+    @patch("inventario_ti.services_impressoras._abrir_url_impressora", side_effect=TimeoutError("timeout"))
+    def test_ricoh_e_monitorada_por_snmp(self, _urlopen, _snmp, _suprimentos):
+        atualizar_impressora(self.impressora)
+        self.impressora.refresh_from_db()
+        self.assertTrue(self.impressora.online)
+        self.assertEqual(self.impressora.modelo_detectado, "RICOH IM 430F")
+        self.assertEqual(self.impressora.toner_percentual, 35)
 
     @patch("inventario_ti.services_impressoras.consultar_snmp", return_value="HPE OfficeConnect Switch")
     @patch("inventario_ti.services_impressoras._abrir_url_impressora", side_effect=TimeoutError("timeout"))
-    def test_dispositivo_nao_brother_gera_alerta_de_cadastro(self, _urlopen, _snmp):
+    def test_dispositivo_nao_suportado_gera_alerta_de_cadastro(self, _urlopen, _snmp):
         atualizar_impressora(self.impressora)
         self.impressora.refresh_from_db()
         self.assertFalse(self.impressora.online)
-        self.assertIn("não pertence", self.impressora.status_dispositivo)
+        self.assertIn("não identificado", self.impressora.status_dispositivo)
 
 
 class MonitoramentoActiveDirectoryTests(TestCase):

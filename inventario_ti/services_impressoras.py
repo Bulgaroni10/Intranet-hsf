@@ -19,6 +19,7 @@ TONER_HEIGHT_RE = re.compile(r'class="tonerremain"[^>]*height="(\d+)"', re.I)
 SUPPLY_DESCRIPTION_OID = "1.3.6.1.2.1.43.11.1.1.6.1"
 SUPPLY_MAX_OID = "1.3.6.1.2.1.43.11.1.1.8.1"
 SUPPLY_LEVEL_OID = "1.3.6.1.2.1.43.11.1.1.9.1"
+FABRICANTES_SUPORTADOS = ("brother", "kyocera", "ricoh")
 
 
 def _contexto_ssl_impressora():
@@ -162,6 +163,20 @@ def consultar_suprimentos_snmp(ip, timeout=2):
         return {"toner_percentual": None, "cilindro_percentual": None}
 
 
+def _fabricante_snmp(descricao):
+    texto = (descricao or "").casefold()
+    return next((fabricante for fabricante in FABRICANTES_SUPORTADOS if fabricante in texto), "")
+
+
+def _modelo_snmp(descricao):
+    descricao = re.sub(r"\s+", " ", (descricao or "")).strip()
+    if not descricao:
+        return ""
+    # O sysDescr varia por fabricante. Mantê-lo é mais confiável que o driver
+    # instalado no servidor de impressão e ainda permite identificar o modelo.
+    return descricao[:180]
+
+
 def _usuarios_ti(impressora):
     usuarios = get_user_model().objects.filter(is_active=True).filter(
         Q(is_superuser=True) | Q(groups__name__in=PERFIS_TI)
@@ -213,13 +228,20 @@ def atualizar_impressora(impressora):
         impressora.ultimo_erro = ""
     except Exception as exc:
         descricao_snmp = consultar_snmp(impressora.ip)
-        if descricao_snmp.lower().startswith("brother"):
+        fabricante = _fabricante_snmp(descricao_snmp)
+        if fabricante:
+            suprimentos_snmp = consultar_suprimentos_snmp(impressora.ip)
             impressora.online = True
             impressora.status_dispositivo = "Online via SNMP"
+            impressora.modelo_detectado = _modelo_snmp(descricao_snmp) or impressora.modelo_detectado
+            if suprimentos_snmp["toner_percentual"] is not None:
+                impressora.toner_percentual = suprimentos_snmp["toner_percentual"]
+            if suprimentos_snmp["cilindro_percentual"] is not None:
+                impressora.cilindro_percentual = suprimentos_snmp["cilindro_percentual"]
             impressora.ultimo_erro = f"Painel web indisponível: {exc}"[:1000]
         elif descricao_snmp:
             impressora.online = False
-            impressora.status_dispositivo = "IP não pertence a uma impressora Brother"
+            impressora.status_dispositivo = "IP não identificado como impressora suportada"
             impressora.ultimo_erro = descricao_snmp[:1000]
         else:
             impressora.online = False
