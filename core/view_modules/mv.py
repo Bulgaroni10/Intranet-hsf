@@ -192,6 +192,10 @@ def mv_convenios(request):
 
     if status:
         regras = regras.filter(status=status)
+        # O status pertence às regras de atendimento. Ao selecionar um
+        # status, não misture o resultado com o relatório independente de
+        # procedimentos proibidos.
+        proibicoes = proibicoes.none()
 
     if procedimento:
         proibicoes = proibicoes.filter(

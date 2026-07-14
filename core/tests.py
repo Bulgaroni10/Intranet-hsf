@@ -16,6 +16,12 @@ from core.services.search import buscar_global
 from core.services.noc import montar_contexto_noc
 from inventario_ti.models import ComputadorInventario
 from django.utils import timezone
+from convenios.models import (
+    Convenio,
+    PlanoConvenio,
+    ProcedimentoProibidoPlano,
+    RegraAtendimentoConvenio,
+)
 
 
 class ConveniosRoutingTests(TestCase):
@@ -59,6 +65,55 @@ class ConveniosRoutingTests(TestCase):
         resposta = self.client.get(reverse("mv_convenios"))
 
         self.assertEqual(resposta.status_code, 200)
+
+
+class FiltrosRegrasConveniosTests(TestCase):
+    def setUp(self):
+        self.unidade = Unidade.objects.create(nome='Hospital Filtro', sigla='HF')
+        self.user = get_user_model().objects.create_user(
+            username='filtro.mv', password='senha', unidade=self.unidade,
+        )
+        Modulo.objects.create(
+            nome='MV / Sistema Hospitalar', categoria='assistencial',
+            link=reverse('modulo_mv'),
+        )
+        self.convenio = Convenio.objects.create(codigo_mv='10', nome='Convênio Filtro')
+        self.convenio.unidades.add(self.unidade)
+        self.plano = PlanoConvenio.objects.create(
+            convenio=self.convenio, codigo_mv='20', nome='Plano Filtro',
+        )
+        for status, tipo in (
+            ('aceito', 'consulta'),
+            ('nao_aceito', 'exame'),
+            ('consultar_autorizacao', 'terapia'),
+            ('suspenso', 'internacao'),
+        ):
+            RegraAtendimentoConvenio.objects.create(
+                unidade=self.unidade, convenio=self.convenio, plano=self.plano,
+                tipo_atendimento=tipo, status=status,
+            )
+        ProcedimentoProibidoPlano.objects.create(
+            unidade=self.unidade, convenio=self.convenio, plano=self.plano,
+            codigo_procedimento='123', descricao_procedimento='Procedimento proibido',
+        )
+        self.client.force_login(self.user)
+
+    def test_cada_status_retorna_somente_as_regras_correspondentes(self):
+        for status in ('aceito', 'nao_aceito', 'consultar_autorizacao', 'suspenso'):
+            with self.subTest(status=status):
+                resposta = self.client.get(reverse('mv_convenios'), {
+                    'status': status,
+                    'procedimento': '123',
+                })
+                self.assertEqual(
+                    list(resposta.context['regras'].values_list('status', flat=True)),
+                    [status],
+                )
+                self.assertFalse(resposta.context['proibicoes'].exists())
+
+    def test_sem_status_mantem_consulta_de_proibicoes(self):
+        resposta = self.client.get(reverse('mv_convenios'), {'procedimento': '123'})
+        self.assertEqual(resposta.context['proibicoes'].count(), 1)
 
 
 class NotificacoesUsuarioTests(TestCase):
