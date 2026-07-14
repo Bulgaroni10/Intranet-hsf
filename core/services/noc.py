@@ -31,6 +31,10 @@ def montar_contexto_noc(user):
         'ocorrencia': incidentes_por_sistema.get(sistema.id),
     } for sistema in sistemas]
     impressoras = list(impressoras.order_by('-online', 'local'))
+    impressoras_alerta = [item for item in impressoras if item.possui_alerta]
+    servidores = list(servidores)
+    servidores_alerta = [item for item in servidores if item.possui_alerta]
+    suprimentos_baixos = list(suprimentos_baixos.order_by('quantidade', 'nome'))
 
     return {
         'agora': timezone.localtime(), 'computadores': computadores,
@@ -41,10 +45,15 @@ def montar_contexto_noc(user):
         'impressoras': impressoras,
         'total_impressoras': len(impressoras),
         'impressoras_online': sum(1 for item in impressoras if item.online),
-        'alertas_impressoras': sum(1 for item in impressoras if item.possui_alerta),
+        'alertas_impressoras': len(impressoras_alerta),
+        'impressoras_alerta': impressoras_alerta,
         'active_directory': active_directory,
         'servidores': servidores,
         'rede': rede,
-        'suprimentos_baixos': suprimentos_baixos.order_by('quantidade', 'nome'),
-        'total_suprimentos_baixos': suprimentos_baixos.count(),
+        'suprimentos_baixos': suprimentos_baixos,
+        'total_suprimentos_baixos': len(suprimentos_baixos),
+        'total_alertas_ativos': (
+            len(impressoras_alerta) + len(suprimentos_baixos)
+            + len(ocorrencias) + len(servidores_alerta)
+        ),
     }

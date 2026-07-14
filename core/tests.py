@@ -14,7 +14,7 @@ from usuarios.models import Unidade
 from ramais_contatos.models import RamalContato
 from core.services.search import buscar_global
 from core.services.noc import montar_contexto_noc
-from inventario_ti.models import ComputadorInventario
+from inventario_ti.models import ComputadorInventario, ImpressoraMonitorada
 from django.utils import timezone
 from convenios.models import (
     Convenio,
@@ -458,3 +458,24 @@ class PainelNOCTests(TestCase):
         self.assertContains(resposta, 'class="noc-header"')
         self.assertNotContains(resposta, 'class="gsf-sidebar"')
         self.assertNotContains(resposta, 'core/js/home.js')
+
+    def test_alerta_de_impressora_aparece_somente_na_unidade_do_usuario(self):
+        ImpressoraMonitorada.objects.create(
+            unidade=self.unidade_a, ip='192.0.2.10', local='UTI',
+            online=True, toner_percentual=18, status_dispositivo='Pronta',
+        )
+        ImpressoraMonitorada.objects.create(
+            unidade=self.unidade_b, ip='192.0.2.20', local='Outra unidade',
+            online=False, status_dispositivo='Sem comunicação',
+        )
+
+        contexto = montar_contexto_noc(self.ti)
+
+        self.assertEqual([item.local for item in contexto['impressoras_alerta']], ['UTI'])
+        self.assertEqual(contexto['total_alertas_ativos'], 1)
+
+        self.client.force_login(self.ti)
+        resposta = self.client.get(reverse('painel_noc'))
+        self.assertContains(resposta, 'Impressora · UTI')
+        self.assertContains(resposta, 'Toner 18%')
+        self.assertNotContains(resposta, 'Outra unidade')
