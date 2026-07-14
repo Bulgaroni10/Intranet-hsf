@@ -383,10 +383,14 @@
       <a class="btn-link" href="/portal/">Voltar ao portal</a>
 
       {% if pode_gerenciar_mv %}
-        <form method="post" action="{% url 'sincronizar_convenios_mv' %}" onsubmit="return confirm('Sincronizar e substituir os convênios da empresa ativa pelos dados do MV?');">
-          {% csrf_token %}
-          <button class="btn-success" type="submit">↻ Sincronizar MV{% if unidade_ativa %} · {{ unidade_ativa.sigla }}{% endif %}</button>
-        </form>
+        {% if sincronizacao_mv_habilitada %}
+          <form method="post" action="{% url 'sincronizar_convenios_mv' %}" onsubmit="return confirm('Sincronizar e substituir os convênios da empresa ativa pelos dados do MV?');">
+            {% csrf_token %}
+            <button class="btn-success" type="submit">↻ Sincronizar MV{% if unidade_ativa %} · {{ unidade_ativa.sigla }}{% endif %}</button>
+          </form>
+        {% else %}
+          <span class="btn-link" title="Os dados já importados continuam disponíveis para consulta.">Sincronização MV desativada</span>
+        {% endif %}
         <a class="btn-success" href="/portal/modulos/mv/convenios/novo/">+ Convênio</a>
         <a class="btn-success" href="/portal/modulos/mv/planos/novo/">+ Plano</a>
         <a class="btn-success" href="/portal/modulos/mv/especialidades/nova/">+ Especialidade</a>

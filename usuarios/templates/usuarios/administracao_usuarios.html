@@ -340,6 +340,18 @@
       border-color: rgba(249, 115, 22, 0.30);
     }
 
+    .unit-summary {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      min-width: 132px;
+      white-space: nowrap;
+    }
+
+    .unit-summary .badge {
+      margin: 0;
+    }
+
     .row-actions {
       display: flex;
       gap: 7px;
@@ -603,17 +615,18 @@
                     </td>
 
                     <td>
-                      {% if usuario.unidades_permitidas.all %}
-                        {% for unidade in usuario.unidades_permitidas.all %}
-                          <span class="badge {% if usuario.unidade_id == unidade.id %}green{% endif %}" title="{% if usuario.unidade_id == unidade.id %}Empresa principal{% else %}Empresa autorizada{% endif %}">
-                            {{ unidade.sigla }}{% if usuario.unidade_id == unidade.id %} ★{% endif %}
-                          </span>
-                        {% endfor %}
-                      {% elif usuario.unidade %}
-                        <span class="badge green">{{ usuario.unidade.sigla }} ★</span>
-                      {% else %}
-                        <span class="badge orange">Sem unidade</span>
-                      {% endif %}
+                      <div class="unit-summary">
+                        {% if usuario.unidade %}
+                          <span class="badge green" title="Empresa ativa principal">{{ usuario.unidade.sigla }} ★</span>
+                          {% with total=usuario.unidades_permitidas.count %}
+                            {% if total > 1 %}
+                              <span class="badge" title="Outras empresas autorizadas podem ser consultadas no botão Editar.">+{{ total|add:"-1" }} empresa(s)</span>
+                            {% endif %}
+                          {% endwith %}
+                        {% else %}
+                          <span class="badge orange">Sem unidade</span>
+                        {% endif %}
+                      </div>
                     </td>
 
                     <td>

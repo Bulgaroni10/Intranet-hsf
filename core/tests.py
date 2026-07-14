@@ -273,6 +273,7 @@ class NotificacoesUsuarioTests(TestCase):
         self.assertNotIn('Alerta A', titulos)
 
 
+@override_settings(MV_SYNC_ENABLED=True)
 class SincronizacaoMVWebTests(TestCase):
     def setUp(self):
         self.unidade = Unidade.objects.create(
@@ -291,6 +292,14 @@ class SincronizacaoMVWebTests(TestCase):
         argumentos = popen.call_args.args[0]
         self.assertIn('sincronizar_convenios_mv', argumentos)
         self.assertEqual(argumentos[-2:], ['--unidade', 'HSFVF'])
+
+    @override_settings(MV_SYNC_ENABLED=False)
+    @patch('core.view_modules.mv.subprocess.Popen')
+    def test_sincronizacao_desativada_nao_inicia_processo(self, popen):
+        resposta = self.client.post(reverse('sincronizar_convenios_mv'))
+
+        self.assertEqual(resposta.status_code, 302)
+        popen.assert_not_called()
 
 
 class DashboardChamadosPermissoesTests(TestCase):

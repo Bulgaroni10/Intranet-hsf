@@ -5,7 +5,7 @@ from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Group
 from django.core.management import call_command
 from django.core.management.base import CommandError
-from django.test import TestCase
+from django.test import TestCase, override_settings
 
 from convenios.mv_oracle import IntegracaoMVErro
 from convenios.models import SincronizacaoMVExecucao
@@ -13,6 +13,7 @@ from core.models import NotificacaoUsuario
 from usuarios.models import Unidade
 
 
+@override_settings(MV_SYNC_ENABLED=True)
 class SincronizarConveniosMVCommandTests(TestCase):
     def setUp(self):
         self.unidade = Unidade.objects.create(nome='Hospital Teste', sigla='HT', codigo_mv=7)

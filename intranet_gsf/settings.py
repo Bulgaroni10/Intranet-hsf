@@ -29,6 +29,13 @@ SECRET_KEY = os.environ.get(
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.environ.get('GSF_DEBUG', 'true').strip().lower() in {'1', 'true', 'yes', 'on'}
 
+# A carga do MV permanece desligada até a migração do banco local para uma
+# solução adequada a operações longas. Os dados já importados continuam
+# disponíveis para consulta.
+MV_SYNC_ENABLED = os.environ.get('GSF_MV_SYNC_ENABLED', 'false').strip().lower() in {
+    '1', 'true', 'yes', 'on',
+}
+
 ALLOWED_HOSTS = [host.strip() for host in os.environ.get('GSF_ALLOWED_HOSTS', '').split(',') if host.strip()] or [
     "127.0.0.1",
     "localhost",
@@ -105,6 +112,12 @@ DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
         'NAME': BASE_DIR / 'db.sqlite3',
+        # Sincronizações do MV gravam milhares de registros. Aguarda a
+        # transação atual finalizar em vez de falhar imediatamente com
+        # "database is locked".
+        'OPTIONS': {
+            'timeout': 60,
+        },
     }
 }
 

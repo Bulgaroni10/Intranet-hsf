@@ -331,6 +331,7 @@ def mv_convenios(request):
         'total_regras': total_regras_unidade,
         'total_procedimentos': total_procedimentos_unidade,
         'ultima_sincronizacao_mv': ultima_sincronizacao_mv,
+        'sincronizacao_mv_habilitada': settings.MV_SYNC_ENABLED,
     })
 
 
@@ -339,6 +340,13 @@ def mv_convenios(request):
 def sincronizar_convenios_mv(request):
     if not usuario_eh_admin_ti(request.user):
         return render(request, 'core/sem_permissao.html', status=403)
+
+    if not settings.MV_SYNC_ENABLED:
+        messages.warning(
+            request,
+            'A sincronização automática do MV está temporariamente desativada para preservar o desempenho da intranet.',
+        )
+        return redirect('mv_convenios')
 
     unidade = getattr(request.user, 'unidade', None)
     if unidade is None:
@@ -349,12 +357,16 @@ def sincronizar_convenios_mv(request):
         messages.error(request, f'A empresa {unidade.sigla} ainda não possui código configurado no MV.')
         return redirect('mv_convenios')
 
-    if SincronizacaoMVExecucao.objects.filter(
-        unidade=unidade,
+    sincronizacao_ativa = SincronizacaoMVExecucao.objects.filter(
         status='processando',
         iniciado_em__gte=timezone.now() - timedelta(hours=2),
-    ).exists():
-        messages.warning(request, f'Já existe uma sincronização do MV em andamento para {unidade.sigla}.')
+    ).select_related('unidade').first()
+    if sincronizacao_ativa:
+        messages.warning(
+            request,
+            f'Já existe uma sincronização do MV em andamento para {sincronizacao_ativa.unidade.sigla}. '
+            'Aguarde a conclusão antes de iniciar outra empresa.',
+        )
         return redirect('mv_convenios')
 
     try:

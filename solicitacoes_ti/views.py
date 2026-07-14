@@ -98,7 +98,8 @@ def buscar_solicitacoes_filtradas(request):
 
     if pode_gerenciar:
         solicitacoes = SolicitacaoTI.objects.filter(
-            ativo=True
+            ativo=True,
+            unidade=getattr(request.user, 'unidade', None),
         ).select_related(
             'unidade',
             'setor',
@@ -480,7 +481,8 @@ def detalhe_solicitacao_ti(request, solicitacao_id):
                 'responsavel_ti',
             ),
             id=solicitacao_id,
-            ativo=True
+            ativo=True,
+            unidade=getattr(request.user, 'unidade', None),
         )
     else:
         solicitacao = get_object_or_404(
@@ -587,7 +589,8 @@ def atender_solicitacao_ti(request, solicitacao_id):
             'responsavel_ti',
         ),
         id=solicitacao_id,
-        ativo=True
+        ativo=True,
+        unidade=getattr(request.user, 'unidade', None),
     )
 
     solicitacao.atualizar_sla(salvar=True)

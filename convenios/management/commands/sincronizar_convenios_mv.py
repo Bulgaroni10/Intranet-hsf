@@ -1,4 +1,5 @@
 from django.contrib.auth import get_user_model
+from django.conf import settings
 from django.core.management.base import BaseCommand, CommandError
 from django.db.models import Q
 from django.utils import timezone
@@ -28,6 +29,7 @@ def _notificar_falha(unidade, erro):
             origem=ORIGEM_NOTIFICACAO,
             objeto_id=str(unidade.pk),
             defaults={
+                'unidade': unidade,
                 'titulo': f'Falha na sincronização MV · {unidade.sigla}',
                 'descricao': str(erro)[:1000],
                 'tipo': 'danger',
@@ -36,11 +38,12 @@ def _notificar_falha(unidade, erro):
             },
         )
         notificacao.titulo = f'Falha na sincronização MV · {unidade.sigla}'
+        notificacao.unidade = unidade
         notificacao.descricao = str(erro)[:1000]
         notificacao.tipo = 'danger'
         notificacao.lida = False
         notificacao.lida_em = None
-        notificacao.save(update_fields=['titulo', 'descricao', 'tipo', 'lida', 'lida_em'])
+        notificacao.save(update_fields=['unidade', 'titulo', 'descricao', 'tipo', 'lida', 'lida_em'])
 
 
 def _resolver_alerta(unidade):
@@ -58,6 +61,10 @@ class Command(BaseCommand):
         parser.add_argument('--unidade', required=True, help='Sigla da unidade na GSF Hub.')
 
     def handle(self, *args, **options):
+        if not settings.MV_SYNC_ENABLED:
+            raise CommandError(
+                'A sincronização automática do MV está temporariamente desativada.'
+            )
         try:
             unidade = Unidade.objects.get(sigla__iexact=options['unidade'], ativo=True)
         except Unidade.DoesNotExist as exc:
