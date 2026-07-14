@@ -145,6 +145,16 @@ class FiltrosRegrasConveniosTests(TestCase):
         resposta = self.client.get(reverse('mv_convenios'), {'procedimento': '123'})
         self.assertEqual(resposta.context['proibicoes'].count(), 1)
 
+    def test_tela_inicial_nao_lista_regras_sem_consulta(self):
+        resposta = self.client.get(reverse('mv_convenios'))
+        self.assertFalse(resposta.context['consulta_realizada'])
+        self.assertFalse(resposta.context['regras'].exists())
+        self.assertFalse(resposta.context['proibicoes'].exists())
+        self.assertContains(
+            resposta,
+            'Selecione ou informe pelo menos um filtro',
+        )
+
     def test_filtros_individuais_nao_duplicam_resultados(self):
         casos = (
             ({'busca': 'Convênio Filtro'}, 4),

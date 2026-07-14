@@ -163,6 +163,15 @@ def mv_convenios(request):
     especialidade_id = request.GET.get('especialidade', '').strip()
     status = request.GET.get('status', '').strip()
     procedimento = request.GET.get('procedimento', '').strip()
+    consulta_realizada = any((
+        busca,
+        convenio_id,
+        plano_id,
+        tipo_atendimento,
+        especialidade_id,
+        status,
+        procedimento,
+    ))
 
     if busca:
         regras = regras.filter(
@@ -225,6 +234,10 @@ def mv_convenios(request):
     regras = RegraAtendimentoConvenio.objects.filter(
         pk__in=Subquery(ids_regras_unicas),
     ).select_related('unidade', 'convenio', 'plano', 'especialidade')
+
+    if not consulta_realizada:
+        regras = regras.none()
+        proibicoes = proibicoes.none()
 
     regras = regras.order_by(
         'unidade__nome',
@@ -294,6 +307,7 @@ def mv_convenios(request):
         'especialidade_id': especialidade_id,
         'status': status,
         'procedimento': procedimento,
+        'consulta_realizada': consulta_realizada,
         'pode_gerenciar_mv': pode_gerenciar_mv,
         'unidade_ativa': unidade_ativa,
         'chamados_mv': chamados_mv,
