@@ -128,6 +128,15 @@ class MonitoramentoImpressoraTests(TestCase):
         self.assertTrue(self.usuario.notificacoes.filter(origem="impressora_monitorada", lida=False).exists())
         self.assertEqual(_urlopen.call_args.kwargs["context"].verify_mode, 0)
 
+    @patch("inventario_ti.services_impressoras.consultar_suprimentos_snmp", return_value={"toner_percentual": None, "cilindro_percentual": None})
+    @patch("inventario_ti.services_impressoras.urlopen", side_effect=[TimeoutError("HTTP indisponível"), _RespostaImpressoraFake()])
+    def test_coleta_tenta_https_quando_http_nao_responde(self, _urlopen, _snmp):
+        atualizar_impressora(self.impressora)
+        self.impressora.refresh_from_db()
+        self.assertTrue(self.impressora.online)
+        self.assertEqual(_urlopen.call_count, 2)
+        self.assertTrue(_urlopen.call_args.args[0].full_url.startswith("https://"))
+
     @patch("inventario_ti.services_impressoras.consultar_snmp", return_value="")
     @patch("inventario_ti.services_impressoras.urlopen", side_effect=TimeoutError("timeout"))
     def test_falha_de_coleta_marca_impressora_offline(self, _urlopen, _snmp):

@@ -33,11 +33,24 @@ def _texto_html(valor):
 
 
 def consultar_impressora(impressora, timeout=4):
-    request = Request(f"http://{impressora.ip}/general/status.html", headers={"User-Agent": "GSF-NOC/1.1"})
-    # Equipamentos Brother antigos redirecionam para HTTPS com certificado
-    # autoassinado. A consulta fica restrita aos IPs internos cadastrados.
-    with urlopen(request, timeout=timeout, context=_contexto_ssl_impressora()) as resposta:
-        conteudo = resposta.read(256_000).decode("latin-1", errors="replace")
+    ultimo_erro = None
+    conteudo = None
+    # Algumas Brother aceitam somente HTTP, outras somente HTTPS e modelos
+    # antigos usam certificado autoassinado. Tentamos ambos sem depender do
+    # redirecionamento da porta 80.
+    for protocolo in ("http", "https"):
+        request = Request(
+            f"{protocolo}://{impressora.ip}/general/status.html",
+            headers={"User-Agent": "GSF-NOC/1.1"},
+        )
+        try:
+            with urlopen(request, timeout=timeout, context=_contexto_ssl_impressora()) as resposta:
+                conteudo = resposta.read(256_000).decode("latin-1", errors="replace")
+            break
+        except Exception as exc:
+            ultimo_erro = exc
+    if conteudo is None:
+        raise ultimo_erro
     titulo = TITLE_RE.search(conteudo)
     status = STATUS_RE.search(conteudo)
     toner_height = TONER_HEIGHT_RE.search(conteudo)
