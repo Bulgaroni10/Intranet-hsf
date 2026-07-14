@@ -115,15 +115,18 @@ class MonitoramentoImpressoraTests(TestCase):
             unidade=self.unidade, ip="192.0.2.10", modelo_informado="Modelo incorreto", local="Recepcao"
         )
 
+    @patch("inventario_ti.services_impressoras.consultar_suprimentos_snmp", return_value={"toner_percentual": 48, "cilindro_percentual": 18})
     @patch("inventario_ti.services_impressoras.urlopen", return_value=_RespostaImpressoraFake())
-    def test_coleta_corrige_modelo_e_cria_alerta_individual(self, _urlopen):
+    def test_coleta_corrige_modelo_e_cria_alerta_individual(self, _urlopen, _snmp):
         atualizar_impressora(self.impressora)
         self.impressora.refresh_from_db()
         self.assertTrue(self.impressora.online)
         self.assertEqual(self.impressora.modelo_detectado, "MFC-L6902DW")
         self.assertEqual(self.impressora.toner_percentual, 50)
+        self.assertEqual(self.impressora.cilindro_percentual, 18)
         self.assertTrue(self.impressora.possui_alerta)
         self.assertTrue(self.usuario.notificacoes.filter(origem="impressora_monitorada", lida=False).exists())
+        self.assertEqual(_urlopen.call_args.kwargs["context"].verify_mode, 0)
 
     @patch("inventario_ti.services_impressoras.consultar_snmp", return_value="")
     @patch("inventario_ti.services_impressoras.urlopen", side_effect=TimeoutError("timeout"))

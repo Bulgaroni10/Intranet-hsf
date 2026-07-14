@@ -1,6 +1,7 @@
 import asyncio
 import html
 import re
+import ssl
 from urllib.request import Request, urlopen
 
 from django.contrib.auth import get_user_model
@@ -15,6 +16,16 @@ from .models import ImpressoraMonitorada
 STATUS_RE = re.compile(r'<div id="moni_data">.*?<span[^>]*>(.*?)</span>', re.I | re.S)
 TITLE_RE = re.compile(r"<title[^>]*>(.*?)</title>", re.I | re.S)
 TONER_HEIGHT_RE = re.compile(r'class="tonerremain"[^>]*height="(\d+)"', re.I)
+SUPPLY_DESCRIPTION_OID = "1.3.6.1.2.1.43.11.1.1.6.1"
+SUPPLY_MAX_OID = "1.3.6.1.2.1.43.11.1.1.8.1"
+SUPPLY_LEVEL_OID = "1.3.6.1.2.1.43.11.1.1.9.1"
+
+
+def _contexto_ssl_impressora():
+    contexto = ssl.create_default_context()
+    contexto.check_hostname = False
+    contexto.verify_mode = ssl.CERT_NONE
+    return contexto
 
 
 def _texto_html(valor):
@@ -23,7 +34,9 @@ def _texto_html(valor):
 
 def consultar_impressora(impressora, timeout=4):
     request = Request(f"http://{impressora.ip}/general/status.html", headers={"User-Agent": "GSF-NOC/1.1"})
-    with urlopen(request, timeout=timeout) as resposta:
+    # Equipamentos Brother antigos redirecionam para HTTPS com certificado
+    # autoassinado. A consulta fica restrita aos IPs internos cadastrados.
+    with urlopen(request, timeout=timeout, context=_contexto_ssl_impressora()) as resposta:
         conteudo = resposta.read(256_000).decode("latin-1", errors="replace")
     titulo = TITLE_RE.search(conteudo)
     status = STATUS_RE.search(conteudo)
@@ -64,6 +77,68 @@ def consultar_snmp(ip, timeout=2):
         return ""
 
 
+async def _caminhar_oid(engine, auth, target, context, oid):
+    from pysnmp.hlapi.v3arch.asyncio import ObjectIdentity, ObjectType, walk_cmd
+
+    resultado = {}
+    async for erro, status, _, valores in walk_cmd(
+        engine, auth, target, context, ObjectType(ObjectIdentity(oid)),
+        lexicographicMode=False,
+    ):
+        if erro or status:
+            break
+        for nome, valor in valores:
+            oid_atual = nome.prettyPrint()
+            if oid_atual.startswith(f"{oid}."):
+                resultado[oid_atual[len(oid) + 1:]] = valor.prettyPrint().strip()
+    return resultado
+
+
+async def _consultar_suprimentos_snmp_async(ip, timeout=2):
+    from pysnmp.hlapi.v3arch.asyncio import (
+        CommunityData, ContextData, SnmpEngine, UdpTransportTarget,
+    )
+
+    engine = SnmpEngine()
+    try:
+        target = await UdpTransportTarget.create((str(ip), 161), timeout=timeout, retries=0)
+        auth = CommunityData("public", mpModel=1)
+        context = ContextData()
+        descricoes, capacidades, niveis = await asyncio.gather(
+            _caminhar_oid(engine, auth, target, context, SUPPLY_DESCRIPTION_OID),
+            _caminhar_oid(engine, auth, target, context, SUPPLY_MAX_OID),
+            _caminhar_oid(engine, auth, target, context, SUPPLY_LEVEL_OID),
+        )
+        percentuais = {"toner_percentual": [], "cilindro_percentual": []}
+        for indice, descricao in descricoes.items():
+            try:
+                capacidade = int(capacidades.get(indice, ""))
+                nivel = int(niveis.get(indice, ""))
+            except (TypeError, ValueError):
+                continue
+            if capacidade <= 0 or nivel < 0:
+                continue
+            percentual = max(0, min(100, round(nivel / capacidade * 100)))
+            descricao = descricao.casefold()
+            if "toner" in descricao:
+                percentuais["toner_percentual"].append(percentual)
+            elif any(termo in descricao for termo in ("drum", "tambor", "cilindro")):
+                percentuais["cilindro_percentual"].append(percentual)
+        return {
+            chave: min(valores) if valores else None
+            for chave, valores in percentuais.items()
+        }
+    finally:
+        engine.close_dispatcher()
+
+
+def consultar_suprimentos_snmp(ip, timeout=2):
+    try:
+        return asyncio.run(_consultar_suprimentos_snmp_async(ip, timeout))
+    except Exception:
+        return {"toner_percentual": None, "cilindro_percentual": None}
+
+
 def _usuarios_ti(impressora):
     usuarios = get_user_model().objects.filter(is_active=True).filter(
         Q(is_superuser=True) | Q(groups__name__in=PERFIS_TI)
@@ -84,6 +159,8 @@ def _sincronizar_alerta(impressora):
     estado = impressora.status_dispositivo or "Sem comunicação"
     if impressora.toner_percentual is not None and impressora.toner_percentual <= 20:
         estado = f"{estado} · Toner em {impressora.toner_percentual}%"
+    if impressora.cilindro_percentual is not None and impressora.cilindro_percentual <= 20:
+        estado = f"{estado} · Cilindro em {impressora.cilindro_percentual}%"
     for usuario in _usuarios_ti(impressora):
         notificacao, _ = NotificacaoUsuario.objects.get_or_create(
             usuario=usuario, origem=origem, objeto_id=objeto_id,
@@ -100,10 +177,16 @@ def _sincronizar_alerta(impressora):
 def atualizar_impressora(impressora):
     try:
         dados = consultar_impressora(impressora)
+        suprimentos_snmp = consultar_suprimentos_snmp(impressora.ip)
         impressora.online = True
         impressora.modelo_detectado = dados["modelo_detectado"] or impressora.modelo_detectado
         impressora.status_dispositivo = dados["status_dispositivo"]
-        impressora.toner_percentual = dados["toner_percentual"]
+        impressora.toner_percentual = (
+            dados["toner_percentual"]
+            if dados["toner_percentual"] is not None
+            else suprimentos_snmp["toner_percentual"]
+        )
+        impressora.cilindro_percentual = suprimentos_snmp["cilindro_percentual"]
         impressora.ultimo_erro = ""
     except Exception as exc:
         descricao_snmp = consultar_snmp(impressora.ip)
@@ -120,7 +203,7 @@ def atualizar_impressora(impressora):
             impressora.status_dispositivo = "Sem comunicação"
             impressora.ultimo_erro = str(exc)[:1000]
     impressora.ultima_consulta = timezone.now()
-    impressora.save(update_fields=["online", "modelo_detectado", "status_dispositivo", "toner_percentual", "ultimo_erro", "ultima_consulta", "atualizado_em"])
+    impressora.save(update_fields=["online", "modelo_detectado", "status_dispositivo", "toner_percentual", "cilindro_percentual", "ultimo_erro", "ultima_consulta", "atualizado_em"])
     _sincronizar_alerta(impressora)
     return impressora
 
