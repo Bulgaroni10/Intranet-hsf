@@ -1,6 +1,7 @@
 from .common import *
 from django.db.models import Min, Subquery
 from convenios.mv_oracle import IntegracaoMVErro, sincronizar_unidade
+from convenios.models import SincronizacaoMVExecucao
 
 
 @login_required(login_url='/')
@@ -286,6 +287,10 @@ def mv_convenios(request):
         total_planos_unidade = 0
         total_regras_unidade = 0
         total_procedimentos_unidade = 0
+    ultima_sincronizacao_mv = (
+        SincronizacaoMVExecucao.objects.filter(unidade=unidade_ativa).first()
+        if unidade_ativa else None
+    )
 
     return render(request, 'core/mv_convenios.html', {
         'regras': regras,
@@ -319,6 +324,7 @@ def mv_convenios(request):
         'total_especialidades': Especialidade.objects.count(),
         'total_regras': total_regras_unidade,
         'total_procedimentos': total_procedimentos_unidade,
+        'ultima_sincronizacao_mv': ultima_sincronizacao_mv,
     })
 
 
@@ -334,10 +340,24 @@ def sincronizar_convenios_mv(request):
         return redirect('mv_convenios')
 
     try:
+        execucao = SincronizacaoMVExecucao.objects.create(unidade=unidade)
         resultado = sincronizar_unidade(unidade)
     except IntegracaoMVErro as exc:
+        execucao.status = 'erro'
+        execucao.mensagem = str(exc)[:4000]
+        execucao.finalizado_em = timezone.now()
+        execucao.save(update_fields=['status', 'mensagem', 'finalizado_em'])
         messages.error(request, str(exc))
     else:
+        execucao.status = 'sucesso'
+        execucao.convenios = resultado['convenios']
+        execucao.planos = resultado['planos']
+        execucao.regras = resultado['regras']
+        execucao.procedimentos = resultado['procedimentos']
+        execucao.finalizado_em = timezone.now()
+        execucao.save(update_fields=[
+            'status', 'convenios', 'planos', 'regras', 'procedimentos', 'finalizado_em',
+        ])
         messages.success(
             request,
             f'MV sincronizado para {unidade.sigla}: '

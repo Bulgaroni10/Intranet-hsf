@@ -241,6 +241,35 @@ class ProcedimentoProibidoPlano(models.Model):
         return f'{self.convenio.nome} - {self.plano.nome} - {self.codigo_procedimento} - {self.descricao_procedimento}'
 
 
+class SincronizacaoMVExecucao(models.Model):
+    STATUS_CHOICES = [
+        ('processando', 'Processando'),
+        ('sucesso', 'Sucesso'),
+        ('erro', 'Erro'),
+    ]
+
+    unidade = models.ForeignKey(
+        Unidade, on_delete=models.CASCADE, related_name='sincronizacoes_mv',
+    )
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='processando')
+    convenios = models.PositiveIntegerField(default=0)
+    planos = models.PositiveIntegerField(default=0)
+    regras = models.PositiveIntegerField(default=0)
+    procedimentos = models.PositiveIntegerField(default=0)
+    mensagem = models.TextField(blank=True)
+    iniciado_em = models.DateTimeField(auto_now_add=True)
+    finalizado_em = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        ordering = ['-iniciado_em']
+        verbose_name = 'Execução da sincronização MV'
+        verbose_name_plural = 'Execuções da sincronização MV'
+        indexes = [models.Index(fields=['unidade', '-iniciado_em'])]
+
+    def __str__(self):
+        return f'{self.unidade.sigla} · {self.get_status_display()} · {self.iniciado_em:%d/%m/%Y %H:%M}'
+
+
 class ProcedimentoTUSS(models.Model):
     codigo_tuss = models.CharField(max_length=20, unique=True, db_index=True)
     descricao = models.CharField(max_length=300, db_index=True)

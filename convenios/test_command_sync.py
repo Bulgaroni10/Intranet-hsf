@@ -8,6 +8,7 @@ from django.core.management.base import CommandError
 from django.test import TestCase
 
 from convenios.mv_oracle import IntegracaoMVErro
+from convenios.models import SincronizacaoMVExecucao
 from core.models import NotificacaoUsuario
 from usuarios.models import Unidade
 
@@ -33,6 +34,9 @@ class SincronizarConveniosMVCommandTests(TestCase):
         self.assertFalse(alerta.lida)
         self.assertIn('Oracle indisponível', alerta.descricao)
         self.assertFalse(NotificacaoUsuario.objects.filter(usuario=self.outro_tecnico).exists())
+        execucao = SincronizacaoMVExecucao.objects.get(unidade=self.unidade)
+        self.assertEqual(execucao.status, 'erro')
+        self.assertIsNotNone(execucao.finalizado_em)
 
     @patch('convenios.management.commands.sincronizar_convenios_mv.sincronizar_unidade')
     def test_sucesso_resolve_alerta_anterior(self, sincronizar):
@@ -51,6 +55,9 @@ class SincronizarConveniosMVCommandTests(TestCase):
         self.assertTrue(alerta.lida)
         self.assertIsNotNone(alerta.lida_em)
         self.assertIn('22 convênios', saida.getvalue())
+        execucao = SincronizacaoMVExecucao.objects.get(unidade=self.unidade)
+        self.assertEqual(execucao.status, 'sucesso')
+        self.assertEqual(execucao.procedimentos, 2499)
 
     @patch('convenios.management.commands.sincronizar_convenios_mv.sincronizar_unidade')
     def test_ti_com_acesso_adicional_tambem_recebe_alerta(self, sincronizar):

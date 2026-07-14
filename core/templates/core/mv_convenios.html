@@ -728,6 +728,25 @@
           Selecione ou informe pelo menos um filtro e clique em Consultar para visualizar os resultados.
         </div>
       </section>
+      <section class="filter-card">
+        <div class="section-header">
+          <h2>Última sincronização do MV</h2>
+          {% if ultima_sincronizacao_mv %}
+            <p>{{ ultima_sincronizacao_mv.iniciado_em|date:"d/m/Y H:i" }} · {{ ultima_sincronizacao_mv.get_status_display }}</p>
+          {% else %}
+            <p>Nenhuma execução registrada para esta unidade.</p>
+          {% endif %}
+        </div>
+        {% if ultima_sincronizacao_mv %}
+          {% if ultima_sincronizacao_mv.status == 'sucesso' %}
+            <div class="message-item message-success">Dados atualizados: {{ ultima_sincronizacao_mv.convenios }} convênios, {{ ultima_sincronizacao_mv.planos }} planos, {{ ultima_sincronizacao_mv.regras }} regras e {{ ultima_sincronizacao_mv.procedimentos }} procedimentos proibidos.</div>
+          {% elif ultima_sincronizacao_mv.status == 'erro' %}
+            <div class="message-item message-error">Falha: {{ ultima_sincronizacao_mv.mensagem }}</div>
+          {% else %}
+            <div class="message-item">Sincronização em processamento.</div>
+          {% endif %}
+        {% endif %}
+      </section>
     {% endif %}
 
     {% if pode_gerenciar_mv %}

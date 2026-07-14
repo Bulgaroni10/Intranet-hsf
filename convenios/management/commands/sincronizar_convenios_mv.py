@@ -4,6 +4,7 @@ from django.db.models import Q
 from django.utils import timezone
 
 from convenios.mv_oracle import IntegracaoMVErro, sincronizar_unidade
+from convenios.models import SincronizacaoMVExecucao
 from core.models import NotificacaoUsuario
 from core.services.permissions import PERFIS_TI
 from usuarios.models import Unidade
@@ -61,11 +62,25 @@ class Command(BaseCommand):
             unidade = Unidade.objects.get(sigla__iexact=options['unidade'], ativo=True)
         except Unidade.DoesNotExist as exc:
             raise CommandError('Unidade ativa não encontrada.') from exc
+        execucao = SincronizacaoMVExecucao.objects.create(unidade=unidade)
         try:
             resultado = sincronizar_unidade(unidade)
         except IntegracaoMVErro as exc:
+            execucao.status = 'erro'
+            execucao.mensagem = str(exc)[:4000]
+            execucao.finalizado_em = timezone.now()
+            execucao.save(update_fields=['status', 'mensagem', 'finalizado_em'])
             _notificar_falha(unidade, exc)
             raise CommandError(str(exc)) from exc
+        execucao.status = 'sucesso'
+        execucao.convenios = resultado['convenios']
+        execucao.planos = resultado['planos']
+        execucao.regras = resultado['regras']
+        execucao.procedimentos = resultado['procedimentos']
+        execucao.finalizado_em = timezone.now()
+        execucao.save(update_fields=[
+            'status', 'convenios', 'planos', 'regras', 'procedimentos', 'finalizado_em',
+        ])
         _resolver_alerta(unidade)
         self.stdout.write(self.style.SUCCESS(
             f'{unidade.sigla}: {resultado["convenios"]} convênios, '

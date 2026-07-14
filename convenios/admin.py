@@ -9,7 +9,17 @@ from .models import (
     ProcedimentoTUSS,
     ImportacaoMV,
     ItemImportacaoMV,
+    SincronizacaoMVExecucao,
 )
+
+
+@admin.register(SincronizacaoMVExecucao)
+class SincronizacaoMVExecucaoAdmin(admin.ModelAdmin):
+    list_display = ('unidade', 'status', 'convenios', 'planos', 'regras', 'procedimentos', 'iniciado_em', 'finalizado_em')
+    list_filter = ('status', 'unidade', 'iniciado_em')
+    search_fields = ('unidade__nome', 'unidade__sigla', 'mensagem')
+    readonly_fields = ('unidade', 'status', 'convenios', 'planos', 'regras', 'procedimentos', 'mensagem', 'iniciado_em', 'finalizado_em')
+    ordering = ('-iniciado_em',)
 
 
 @admin.register(ProcedimentoTUSS)
