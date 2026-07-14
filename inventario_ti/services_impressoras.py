@@ -2,7 +2,7 @@ import asyncio
 import html
 import re
 import ssl
-from urllib.request import Request, urlopen
+from urllib.request import HTTPSHandler, ProxyHandler, Request, build_opener
 
 from django.contrib.auth import get_user_model
 from django.db.models import Q
@@ -28,6 +28,16 @@ def _contexto_ssl_impressora():
     return contexto
 
 
+def _abrir_url_impressora(request, timeout):
+    # Não herdar HTTP_PROXY/HTTPS_PROXY do Windows ou da conta do serviço.
+    # As impressoras são acessadas diretamente pelos IPs da rede interna.
+    opener = build_opener(
+        ProxyHandler({}),
+        HTTPSHandler(context=_contexto_ssl_impressora()),
+    )
+    return opener.open(request, timeout=timeout)
+
+
 def _texto_html(valor):
     return re.sub(r"\s+", " ", html.unescape(re.sub(r"<[^>]+>", "", valor))).strip()
 
@@ -44,7 +54,7 @@ def consultar_impressora(impressora, timeout=4):
             headers={"User-Agent": "GSF-NOC/1.1"},
         )
         try:
-            with urlopen(request, timeout=timeout, context=_contexto_ssl_impressora()) as resposta:
+            with _abrir_url_impressora(request, timeout) as resposta:
                 conteudo = resposta.read(256_000).decode("latin-1", errors="replace")
             break
         except Exception as exc:

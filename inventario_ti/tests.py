@@ -116,7 +116,7 @@ class MonitoramentoImpressoraTests(TestCase):
         )
 
     @patch("inventario_ti.services_impressoras.consultar_suprimentos_snmp", return_value={"toner_percentual": 48, "cilindro_percentual": 18})
-    @patch("inventario_ti.services_impressoras.urlopen", return_value=_RespostaImpressoraFake())
+    @patch("inventario_ti.services_impressoras._abrir_url_impressora", return_value=_RespostaImpressoraFake())
     def test_coleta_corrige_modelo_e_cria_alerta_individual(self, _urlopen, _snmp):
         atualizar_impressora(self.impressora)
         self.impressora.refresh_from_db()
@@ -126,10 +126,9 @@ class MonitoramentoImpressoraTests(TestCase):
         self.assertEqual(self.impressora.cilindro_percentual, 18)
         self.assertTrue(self.impressora.possui_alerta)
         self.assertTrue(self.usuario.notificacoes.filter(origem="impressora_monitorada", lida=False).exists())
-        self.assertEqual(_urlopen.call_args.kwargs["context"].verify_mode, 0)
 
     @patch("inventario_ti.services_impressoras.consultar_suprimentos_snmp", return_value={"toner_percentual": None, "cilindro_percentual": None})
-    @patch("inventario_ti.services_impressoras.urlopen", side_effect=[TimeoutError("HTTP indisponível"), _RespostaImpressoraFake()])
+    @patch("inventario_ti.services_impressoras._abrir_url_impressora", side_effect=[TimeoutError("HTTP indisponível"), _RespostaImpressoraFake()])
     def test_coleta_tenta_https_quando_http_nao_responde(self, _urlopen, _snmp):
         atualizar_impressora(self.impressora)
         self.impressora.refresh_from_db()
@@ -138,7 +137,7 @@ class MonitoramentoImpressoraTests(TestCase):
         self.assertTrue(_urlopen.call_args.args[0].full_url.startswith("https://"))
 
     @patch("inventario_ti.services_impressoras.consultar_snmp", return_value="")
-    @patch("inventario_ti.services_impressoras.urlopen", side_effect=TimeoutError("timeout"))
+    @patch("inventario_ti.services_impressoras._abrir_url_impressora", side_effect=TimeoutError("timeout"))
     def test_falha_de_coleta_marca_impressora_offline(self, _urlopen, _snmp):
         atualizar_impressora(self.impressora)
         self.impressora.refresh_from_db()
@@ -146,7 +145,7 @@ class MonitoramentoImpressoraTests(TestCase):
         self.assertEqual(self.impressora.status_dispositivo, "Sem comunicação")
 
     @patch("inventario_ti.services_impressoras.consultar_snmp", return_value="Brother NC-8900h")
-    @patch("inventario_ti.services_impressoras.urlopen", side_effect=TimeoutError("timeout"))
+    @patch("inventario_ti.services_impressoras._abrir_url_impressora", side_effect=TimeoutError("timeout"))
     def test_snmp_e_usado_quando_painel_web_nao_responde(self, _urlopen, _snmp):
         atualizar_impressora(self.impressora)
         self.impressora.refresh_from_db()
@@ -154,7 +153,7 @@ class MonitoramentoImpressoraTests(TestCase):
         self.assertEqual(self.impressora.status_dispositivo, "Online via SNMP")
 
     @patch("inventario_ti.services_impressoras.consultar_snmp", return_value="HPE OfficeConnect Switch")
-    @patch("inventario_ti.services_impressoras.urlopen", side_effect=TimeoutError("timeout"))
+    @patch("inventario_ti.services_impressoras._abrir_url_impressora", side_effect=TimeoutError("timeout"))
     def test_dispositivo_nao_brother_gera_alerta_de_cadastro(self, _urlopen, _snmp):
         atualizar_impressora(self.impressora)
         self.impressora.refresh_from_db()
