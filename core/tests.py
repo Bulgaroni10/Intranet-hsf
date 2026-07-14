@@ -18,6 +18,7 @@ from inventario_ti.models import ComputadorInventario
 from django.utils import timezone
 from convenios.models import (
     Convenio,
+    Especialidade,
     PlanoConvenio,
     ProcedimentoProibidoPlano,
     RegraAtendimentoConvenio,
@@ -70,6 +71,7 @@ class ConveniosRoutingTests(TestCase):
 class FiltrosRegrasConveniosTests(TestCase):
     def setUp(self):
         self.unidade = Unidade.objects.create(nome='Hospital Filtro', sigla='HF')
+        self.outra_unidade = Unidade.objects.create(nome='Outro Hospital', sigla='OH')
         self.user = get_user_model().objects.create_user(
             username='filtro.mv', password='senha', unidade=self.unidade,
         )
@@ -82,6 +84,7 @@ class FiltrosRegrasConveniosTests(TestCase):
         self.plano = PlanoConvenio.objects.create(
             convenio=self.convenio, codigo_mv='20', nome='Plano Filtro',
         )
+        self.especialidade = Especialidade.objects.create(nome='Cardiologia')
         for status, tipo in (
             ('aceito', 'consulta'),
             ('nao_aceito', 'exame'),
@@ -91,7 +94,27 @@ class FiltrosRegrasConveniosTests(TestCase):
             RegraAtendimentoConvenio.objects.create(
                 unidade=self.unidade, convenio=self.convenio, plano=self.plano,
                 tipo_atendimento=tipo, status=status,
+                especialidade=self.especialidade if status == 'aceito' else None,
             )
+        # Duplicidade histórica exata: a listagem deve exibir apenas uma vez.
+        RegraAtendimentoConvenio.objects.create(
+            unidade=self.unidade, convenio=self.convenio, plano=self.plano,
+            tipo_atendimento='consulta', status='aceito',
+            especialidade=self.especialidade,
+        )
+        self.outro_convenio = Convenio.objects.create(codigo_mv='30', nome='Outro Convênio')
+        self.outro_convenio.unidades.add(self.unidade, self.outra_unidade)
+        self.outro_plano = PlanoConvenio.objects.create(
+            convenio=self.outro_convenio, codigo_mv='40', nome='Outro Plano',
+        )
+        RegraAtendimentoConvenio.objects.create(
+            unidade=self.unidade, convenio=self.outro_convenio, plano=self.outro_plano,
+            tipo_atendimento='pediatria', status='aceito',
+        )
+        RegraAtendimentoConvenio.objects.create(
+            unidade=self.outra_unidade, convenio=self.outro_convenio, plano=self.outro_plano,
+            tipo_atendimento='consulta', status='aceito',
+        )
         ProcedimentoProibidoPlano.objects.create(
             unidade=self.unidade, convenio=self.convenio, plano=self.plano,
             codigo_procedimento='123', descricao_procedimento='Procedimento proibido',
@@ -105,15 +128,66 @@ class FiltrosRegrasConveniosTests(TestCase):
                     'status': status,
                     'procedimento': '123',
                 })
-                self.assertEqual(
-                    list(resposta.context['regras'].values_list('status', flat=True)),
-                    [status],
-                )
+                regras = list(resposta.context['regras'])
+                self.assertTrue(regras)
+                self.assertTrue(all(regra.status == status for regra in regras))
+                chaves = {
+                    (
+                        regra.unidade_id, regra.convenio_id, regra.plano_id,
+                        regra.tipo_atendimento, regra.especialidade_id, regra.status,
+                    )
+                    for regra in regras
+                }
+                self.assertEqual(len(regras), len(chaves))
                 self.assertFalse(resposta.context['proibicoes'].exists())
 
     def test_sem_status_mantem_consulta_de_proibicoes(self):
         resposta = self.client.get(reverse('mv_convenios'), {'procedimento': '123'})
         self.assertEqual(resposta.context['proibicoes'].count(), 1)
+
+    def test_filtros_individuais_nao_duplicam_resultados(self):
+        casos = (
+            ({'busca': 'Convênio Filtro'}, 4),
+            ({'convenio': str(self.convenio.id)}, 4),
+            ({'plano': str(self.plano.id)}, 4),
+            ({'tipo_atendimento': 'consulta'}, 1),
+            ({'especialidade': str(self.especialidade.id)}, 1),
+            ({'status': 'aceito'}, 2),
+        )
+        for parametros, quantidade in casos:
+            with self.subTest(parametros=parametros):
+                resposta = self.client.get(reverse('mv_convenios'), parametros)
+                regras = list(resposta.context['regras'])
+                chaves = [
+                    (
+                        regra.unidade_id, regra.convenio_id, regra.plano_id,
+                        regra.tipo_atendimento, regra.especialidade_id, regra.status,
+                    )
+                    for regra in regras
+                ]
+                self.assertEqual(len(regras), quantidade)
+                self.assertEqual(len(chaves), len(set(chaves)))
+
+    def test_filtro_de_procedimento_nao_duplica_proibicoes(self):
+        resposta = self.client.get(reverse('mv_convenios'), {'procedimento': '123'})
+        ids = list(resposta.context['proibicoes'].values_list('id', flat=True))
+        self.assertEqual(len(ids), 1)
+        self.assertEqual(len(ids), len(set(ids)))
+
+    def test_todos_os_filtros_juntos_retornam_uma_regra_unica(self):
+        resposta = self.client.get(reverse('mv_convenios'), {
+            'busca': 'Convênio Filtro',
+            'procedimento': '123',
+            'convenio': str(self.convenio.id),
+            'plano': str(self.plano.id),
+            'tipo_atendimento': 'consulta',
+            'especialidade': str(self.especialidade.id),
+            'status': 'aceito',
+        })
+        regras = list(resposta.context['regras'])
+        self.assertEqual(len(regras), 1)
+        self.assertEqual(regras[0].status, 'aceito')
+        self.assertFalse(resposta.context['proibicoes'].exists())
 
 
 class NotificacoesUsuarioTests(TestCase):

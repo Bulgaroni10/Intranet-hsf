@@ -1,4 +1,5 @@
 from .common import *
+from django.db.models import Min, Subquery
 from convenios.mv_oracle import IntegracaoMVErro, sincronizar_unidade
 
 
@@ -205,6 +206,26 @@ def mv_convenios(request):
     else:
         proibicoes = proibicoes.none()
 
+    # Importações e cadastros antigos podem conter a mesma regra mais de uma
+    # vez. Mantemos um único registro por combinação funcional, sem esconder
+    # regras diferentes do mesmo convênio ou plano.
+    ids_regras_unicas = regras.values(
+        'unidade_id',
+        'convenio_id',
+        'plano_id',
+        'tipo_atendimento',
+        'especialidade_id',
+        'status',
+        'exige_autorizacao',
+        'observacao',
+        'ativo',
+    ).annotate(
+        primeiro_id=Min('id'),
+    ).values('primeiro_id')
+    regras = RegraAtendimentoConvenio.objects.filter(
+        pk__in=Subquery(ids_regras_unicas),
+    ).select_related('unidade', 'convenio', 'plano', 'especialidade')
+
     regras = regras.order_by(
         'unidade__nome',
         'convenio__nome',
@@ -213,7 +234,7 @@ def mv_convenios(request):
         'especialidade__nome',
     )
 
-    proibicoes = proibicoes.order_by(
+    proibicoes = proibicoes.distinct().order_by(
         'convenio__nome',
         'plano__nome',
         'descricao_procedimento',
