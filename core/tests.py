@@ -301,6 +301,51 @@ class LoginUnidadeEFavoritosTests(TestCase):
         self.assertEqual(resposta.status_code, 200)
         self.assertEqual(self.client.session['unidade_id'], self.unidade.id)
 
+    def test_login_multiempresa_exige_selecao_e_aplica_empresa_escolhida(self):
+        outra = Unidade.objects.create(nome='Outra Empresa', sigla='OE')
+        self.user.unidades_permitidas.set([self.unidade, outra])
+
+        primeira = self.client.post(
+            reverse('login_intranet'),
+            data=json.dumps({'username': 'login.teste', 'password': 'senha-segura'}),
+            content_type='application/json',
+        )
+
+        self.assertEqual(primeira.status_code, 200)
+        self.assertTrue(primeira.json()['requires_unit_selection'])
+        self.assertEqual({item['sigla'] for item in primeira.json()['unidades']}, {'HT', 'OE'})
+        self.assertNotIn('_auth_user_id', self.client.session)
+
+        segunda = self.client.post(
+            reverse('login_intranet'),
+            data=json.dumps({
+                'username': 'login.teste', 'password': 'senha-segura',
+                'unidade_id': outra.id,
+            }),
+            content_type='application/json',
+        )
+
+        self.assertEqual(segunda.status_code, 200)
+        self.assertEqual(self.client.session['unidade_id'], outra.id)
+        self.assertEqual(segunda.json()['user']['unidade_sigla'], 'OE')
+
+    def test_login_recusa_empresa_nao_autorizada(self):
+        outra = Unidade.objects.create(nome='Outra Empresa', sigla='OE')
+        bloqueada = Unidade.objects.create(nome='Bloqueada', sigla='BL')
+        self.user.unidades_permitidas.set([self.unidade, outra])
+
+        resposta = self.client.post(
+            reverse('login_intranet'),
+            data=json.dumps({
+                'username': 'login.teste', 'password': 'senha-segura',
+                'unidade_id': bloqueada.id,
+            }),
+            content_type='application/json',
+        )
+
+        self.assertEqual(resposta.status_code, 403)
+        self.assertNotIn('_auth_user_id', self.client.session)
+
     def test_favorito_alterna_e_e_individual(self):
         self.client.force_login(self.user)
         url = reverse('alternar_favorito_modulo', args=[self.modulo.id])

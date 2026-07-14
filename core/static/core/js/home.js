@@ -83,7 +83,8 @@ function updateLoginLogo() {
 
   if (!unitSelect || !loginLogo) return;
 
-  const unit = unitSelect.value;
+  const option = unitSelect.options[unitSelect.selectedIndex];
+  const unit = option ? option.dataset.sigla : '';
 
   if (unit && UNIT_LOGOS[unit]) {
     loginLogo.src = UNIT_LOGOS[unit];
@@ -112,12 +113,19 @@ function hideLoginError() {
 async function doLogin() {
   const userInput = document.getElementById('inp-user');
   const passwordInput = document.getElementById('inp-pw');
+  const unitSelect = document.getElementById('sel-unidade');
+  const unitGroup = document.getElementById('unit-selection-group');
 
   const user = userInput ? userInput.value.trim().toLowerCase() : '';
   const pw = passwordInput ? passwordInput.value : '';
+  const unidadeId = unitSelect && !unitGroup.hidden ? unitSelect.value : '';
 
   if (!user || !pw) {
     showLoginError('Preencha usuário e senha.');
+    return;
+  }
+  if (unitGroup && !unitGroup.hidden && !unidadeId) {
+    showLoginError('Selecione a empresa que deseja acessar.');
     return;
   }
 
@@ -132,7 +140,8 @@ async function doLogin() {
       },
       body: JSON.stringify({
         username: user,
-        password: pw
+        password: pw,
+        unidade_id: unidadeId
       })
     });
 
@@ -140,6 +149,22 @@ async function doLogin() {
 
     if (!response.ok || !data.ok) {
       showLoginError(data.message || 'Não foi possível realizar o login.');
+      return;
+    }
+
+    if (data.requires_unit_selection) {
+      unitSelect.innerHTML = '<option value="">Selecione a empresa</option>';
+      data.unidades.forEach(unidade => {
+        const option = document.createElement('option');
+        option.value = unidade.id;
+        option.dataset.sigla = unidade.sigla;
+        option.textContent = `${unidade.sigla} · ${unidade.nome}`;
+        unitSelect.appendChild(option);
+      });
+      unitGroup.hidden = false;
+      document.getElementById('login-subtitle').textContent = 'Credenciais validadas. Escolha a empresa que deseja acessar.';
+      document.getElementById('btn-login').textContent = 'Acessar empresa';
+      unitSelect.focus();
       return;
     }
 

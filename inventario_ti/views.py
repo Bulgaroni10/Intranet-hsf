@@ -3,15 +3,17 @@ from django.contrib import messages
 from django.core.paginator import Paginator
 from django.db import transaction
 from django.db.models import Count, Q
-from django.http import HttpResponse, JsonResponse
+from django.http import FileResponse, HttpResponse, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
 from django.views.decorators.csrf import csrf_exempt
+from django.views.decorators.http import require_GET
 import csv
 from io import BytesIO
 import json
 import re
 import uuid
+from pathlib import Path
 from urllib.parse import urlencode
 from django.urls import reverse
 
@@ -21,7 +23,7 @@ from qrcode.image.svg import SvgPathImage
 from core.services.permissions import usuario_eh_ti
 from usuarios.models import Setor, Unidade
 
-from .models import ComputadorInventario, ErroAgenteInventario, MovimentacaoPatrimonioTI, MovimentacaoSuprimentoTI, PatrimonioTI, SuprimentoTI
+from .models import AnexoMovimentacaoSuprimento, ComputadorInventario, ErroAgenteInventario, MovimentacaoPatrimonioTI, MovimentacaoSuprimentoTI, PatrimonioTI, SuprimentoTI
 from .services import (
     CAMPOS_MONITORADOS,
     computador_estava_offline,
@@ -36,6 +38,19 @@ from .services import (
 from .services_suprimentos import LIMITE_ALERTA_SUPRIMENTO, sincronizar_alerta_suprimento
 
 VERSAO_AGENT_ATUAL = "2.1.0"
+EXTENSOES_ANEXO_SUPRIMENTO = {".pdf", ".doc", ".docx", ".xls", ".xlsx", ".csv", ".txt", ".jpg", ".jpeg", ".png"}
+TAMANHO_MAXIMO_ANEXO_SUPRIMENTO = 10 * 1024 * 1024
+
+
+def _validar_anexos_suprimento(arquivos):
+    erros = []
+    for arquivo in arquivos:
+        extensao = Path(arquivo.name).suffix.lower()
+        if extensao not in EXTENSOES_ANEXO_SUPRIMENTO:
+            erros.append(f"Arquivo não permitido: {Path(arquivo.name).name}.")
+        elif arquivo.size > TAMANHO_MAXIMO_ANEXO_SUPRIMENTO:
+            erros.append(f"O arquivo {Path(arquivo.name).name} excede o limite de 10 MB.")
+    return erros
 
 
 def usuario_pode_acessar_inventario_ti(user):
@@ -1262,12 +1277,17 @@ def movimentar_suprimento(request, suprimento_id):
         return render(request, "core/sem_permissao.html", status=403)
 
     if request.method == "POST":
+        anexos = request.FILES.getlist("anexos")
         tipo = request.POST.get("tipo", "").strip()
         try:
             quantidade = int(request.POST.get("quantidade", "0"))
         except ValueError:
             quantidade = 0
-        setor_destino = Setor.objects.filter(id=request.POST.get("setor_destino", ""), ativo=True).first()
+        setor_destino_id = request.POST.get("setor_destino", "").strip()
+        setor_destino = (
+            Setor.objects.filter(id=setor_destino_id, ativo=True).first()
+            if setor_destino_id else None
+        )
         erros = []
         if tipo not in {valor for valor, _rotulo in MovimentacaoSuprimentoTI.TIPO_CHOICES}:
             erros.append("Tipo de movimentação inválido.")
@@ -1275,6 +1295,7 @@ def movimentar_suprimento(request, suprimento_id):
             erros.append("Informe uma quantidade maior que zero.")
         if tipo == "saida" and not setor_destino:
             erros.append("Informe o setor que recebeu o material.")
+        erros.extend(_validar_anexos_suprimento(anexos))
 
         if not erros:
             with transaction.atomic():
@@ -1292,7 +1313,7 @@ def movimentar_suprimento(request, suprimento_id):
                 if not erros:
                     bloqueado.quantidade = saldo_atual
                     bloqueado.save(update_fields=["quantidade", "atualizado_em"])
-                    MovimentacaoSuprimentoTI.objects.create(
+                    movimentacao = MovimentacaoSuprimentoTI.objects.create(
                         suprimento=bloqueado, tipo=tipo, quantidade=quantidade,
                         saldo_anterior=saldo_anterior, saldo_atual=saldo_atual,
                         setor_destino=setor_destino,
@@ -1301,6 +1322,14 @@ def movimentar_suprimento(request, suprimento_id):
                         observacao=request.POST.get("observacao", "").strip(),
                         usuario=request.user,
                     )
+                    for arquivo in anexos:
+                        AnexoMovimentacaoSuprimento.objects.create(
+                            movimentacao=movimentacao,
+                            arquivo=arquivo,
+                            nome_original=Path(arquivo.name).name,
+                            tipo_mime=arquivo.content_type or "application/octet-stream",
+                            tamanho=arquivo.size,
+                        )
                     sincronizar_alerta_suprimento(bloqueado)
             if not erros:
                 messages.success(request, "Movimentação registrada e saldo atualizado.")
@@ -1321,7 +1350,7 @@ def detalhe_suprimento(request, suprimento_id):
     item = get_object_or_404(SuprimentoTI.objects.select_related("unidade", "setor"), id=suprimento_id, ativo=True)
     if not _suprimento_permitido(request.user, item):
         return render(request, "core/sem_permissao.html", status=403)
-    movimentacoes = item.movimentacoes.select_related("setor_destino", "usuario", "estornada_por")[:100]
+    movimentacoes = item.movimentacoes.select_related("setor_destino", "usuario", "estornada_por").prefetch_related("anexos")[:100]
     ultima_ativa = item.movimentacoes.filter(estornada_em__isnull=True).order_by("-criado_em").first()
     return render(request, "inventario_ti/detalhe_suprimento.html", {
         "item": item,
@@ -1329,6 +1358,23 @@ def detalhe_suprimento(request, suprimento_id):
         "movimentacao_estornavel_id": ultima_ativa.id if ultima_ativa else None,
         "modulo_setorial": item.escopo == "setorial",
     })
+
+
+@login_required
+@require_GET
+def baixar_anexo_movimentacao_suprimento(request, anexo_id):
+    anexo = get_object_or_404(
+        AnexoMovimentacaoSuprimento.objects.select_related(
+            "movimentacao__suprimento__unidade", "movimentacao__suprimento__setor",
+        ),
+        id=anexo_id,
+    )
+    if not _suprimento_permitido(request.user, anexo.movimentacao.suprimento):
+        return render(request, "core/sem_permissao.html", status=403)
+    return FileResponse(
+        anexo.arquivo.open("rb"), as_attachment=True,
+        filename=anexo.nome_original, content_type=anexo.tipo_mime,
+    )
 
 
 @login_required

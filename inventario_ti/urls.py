@@ -23,6 +23,7 @@ urlpatterns = [
     path("portal/estoque-setorial/<int:suprimento_id>/", views.detalhe_suprimento, name="estoque_setorial_detalhe"),
     path("portal/estoque-setorial/<int:suprimento_id>/movimentar/", views.movimentar_suprimento, name="estoque_setorial_movimentar"),
     path("portal/estoque-setorial/<int:suprimento_id>/movimentacoes/<int:movimentacao_id>/estornar/", views.estornar_movimentacao_suprimento, name="estoque_setorial_estornar"),
+    path("portal/suprimentos/anexos/<int:anexo_id>/", views.baixar_anexo_movimentacao_suprimento, name="suprimento_movimentacao_anexo"),
     path("portal/modulos/inventario-ti/patrimonios/<int:patrimonio_id>/movimentar/", views.movimentar_patrimonio, name="inventario_ti_patrimonio_movimentar"),
     path("portal/modulos/inventario-ti/patrimonios/<int:patrimonio_id>/", views.detalhe_patrimonio, name="inventario_ti_patrimonio_detalhe"),
     path("portal/modulos/inventario-ti/patrimonios/<int:patrimonio_id>/editar/", views.editar_patrimonio, name="inventario_ti_patrimonio_editar"),

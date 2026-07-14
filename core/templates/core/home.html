@@ -57,8 +57,8 @@
         >
       </div>
 
-      <p class="sub">
-        Informe suas credenciais. Sua unidade autorizada será selecionada automaticamente.
+      <p class="sub" id="login-subtitle">
+        Informe suas credenciais para acessar a intranet.
       </p>
 
       <div class="form-group">
@@ -71,11 +71,18 @@
         <input id="inp-pw" type="password" placeholder="••••••••">
       </div>
 
+      <div class="form-group" id="unit-selection-group" hidden>
+        <label>Empresa / unidade</label>
+        <select id="sel-unidade">
+          <option value="">Selecione a empresa</option>
+        </select>
+      </div>
+
       <p class="error-msg" id="err-msg">
         ⚠ Preencha todos os campos antes de continuar.
       </p>
 
-      <button class="btn-login" onclick="doLogin()">Entrar</button>
+      <button class="btn-login" id="btn-login" onclick="doLogin()">Entrar</button>
 
       <p class="forgot">
         Esqueceu a senha? <a href="#">Fale com a Tecnologia da Informação</a>

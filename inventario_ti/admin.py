@@ -12,10 +12,12 @@ from .models import (
     MonitoramentoActiveDirectory,
     MonitoramentoServidor,
     MonitoramentoRede,
+    AnexoMovimentacaoSuprimento,
 )
 
 admin.site.register(SuprimentoTI)
 admin.site.register(MovimentacaoSuprimentoTI)
+admin.site.register(AnexoMovimentacaoSuprimento)
 
 
 @admin.register(ComputadorInventario)

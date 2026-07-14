@@ -4,6 +4,7 @@ from django.utils import timezone
 from datetime import timedelta
 
 from usuarios.models import Setor, Unidade
+from core.services.uploads import caminho_upload
 
 
 class ComputadorInventario(models.Model):
@@ -306,6 +307,25 @@ class MovimentacaoSuprimentoTI(models.Model):
 
     def __str__(self):
         return f"{self.suprimento.codigo} - {self.get_tipo_display()} ({self.quantidade})"
+
+
+class AnexoMovimentacaoSuprimento(models.Model):
+    movimentacao = models.ForeignKey(
+        MovimentacaoSuprimentoTI, on_delete=models.CASCADE, related_name="anexos",
+    )
+    arquivo = models.FileField(upload_to=caminho_upload)
+    nome_original = models.CharField(max_length=255)
+    tipo_mime = models.CharField(max_length=150, default="application/octet-stream")
+    tamanho = models.PositiveBigIntegerField(default=0)
+    criado_em = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["criado_em"]
+        verbose_name = "Anexo da movimentação de suprimento"
+        verbose_name_plural = "Anexos das movimentações de suprimentos"
+
+    def __str__(self):
+        return self.nome_original
 
 
 class ImpressoraMonitorada(models.Model):

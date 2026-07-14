@@ -11,7 +11,7 @@ from django.utils import timezone
 
 from usuarios.models import Setor, Unidade
 
-from .models import ComputadorInventario, ErroAgenteInventario, ImpressoraMonitorada, MonitoramentoActiveDirectory, MonitoramentoRede, MonitoramentoServidor, MovimentacaoPatrimonioTI, MovimentacaoSuprimentoTI, PatrimonioTI, SuprimentoTI
+from .models import AnexoMovimentacaoSuprimento, ComputadorInventario, ErroAgenteInventario, ImpressoraMonitorada, MonitoramentoActiveDirectory, MonitoramentoRede, MonitoramentoServidor, MovimentacaoPatrimonioTI, MovimentacaoSuprimentoTI, PatrimonioTI, SuprimentoTI
 from .services_ad import monitorar_active_directory
 from .services_impressoras import atualizar_impressora
 from .views import (
@@ -811,6 +811,65 @@ class EstoqueSetorialTests(TestCase):
         self.assertEqual(movimento.saldo_atual, 3)
         self.assertEqual(movimento.setor_destino, self.setor_b)
         self.assertIn("192.168.0.223", movimento.impressora_destino)
+
+    def test_movimentacao_aceita_multiplos_documentos_e_restringe_download(self):
+        item = SuprimentoTI.objects.create(
+            unidade=self.unidade, setor=self.setor_a, escopo="setorial", codigo="DOC-1",
+            nome="Material documentado", categoria="Material", quantidade=5,
+        )
+        arquivos = [
+            SimpleUploadedFile("nota.pdf", b"%PDF-1.4 teste", content_type="application/pdf"),
+            SimpleUploadedFile("foto.png", b"imagem", content_type="image/png"),
+        ]
+        request = self.factory.post(
+            f"/portal/estoque-setorial/{item.id}/movimentar/",
+            {"tipo": "entrada", "quantidade": "2", "anexos": arquivos},
+        )
+        request.user = self.usuario
+        request.session = {}
+        request._messages = FallbackStorage(request)
+
+        resposta = movimentar_suprimento(request, item.id)
+
+        self.assertEqual(resposta.status_code, 302)
+        anexos = list(AnexoMovimentacaoSuprimento.objects.order_by("nome_original"))
+        self.assertEqual([anexo.nome_original for anexo in anexos], ["foto.png", "nota.pdf"])
+        for anexo in anexos:
+            self.addCleanup(anexo.arquivo.delete, False)
+
+        self.client.force_login(self.usuario)
+        download = self.client.get(reverse("suprimento_movimentacao_anexo", args=[anexos[0].id]))
+        self.assertEqual(download.status_code, 200)
+        self.assertIn("attachment", download["Content-Disposition"])
+        download.close()
+
+        outro_setor = get_user_model().objects.create_user(
+            "outro.setor", unidade=self.unidade, setor=self.setor_b,
+        )
+        self.client.force_login(outro_setor)
+        bloqueado = self.client.get(reverse("suprimento_movimentacao_anexo", args=[anexos[0].id]))
+        self.assertEqual(bloqueado.status_code, 403)
+
+    def test_movimentacao_rejeita_extensao_executavel(self):
+        item = SuprimentoTI.objects.create(
+            unidade=self.unidade, setor=self.setor_a, escopo="setorial", codigo="DOC-2",
+            nome="Material seguro", categoria="Material", quantidade=5,
+        )
+        request = self.factory.post(
+            f"/portal/estoque-setorial/{item.id}/movimentar/",
+            {
+                "tipo": "entrada", "quantidade": "1",
+                "anexos": SimpleUploadedFile("programa.exe", b"MZ", content_type="application/x-msdownload"),
+            },
+        )
+        request.user = self.usuario
+        request.session = {}
+        request._messages = FallbackStorage(request)
+
+        resposta = movimentar_suprimento(request, item.id)
+
+        self.assertEqual(resposta.status_code, 200)
+        self.assertFalse(item.movimentacoes.exists())
 
     def test_saida_acima_do_saldo_e_bloqueada(self):
         item = SuprimentoTI.objects.create(

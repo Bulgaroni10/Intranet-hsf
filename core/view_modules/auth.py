@@ -47,8 +47,37 @@ def login_intranet(request):
             'message': 'Usuário sem unidade vinculada. Procure a Tecnologia da Informação.'
         }, status=403)
 
+    unidades_disponiveis = list(
+        Unidade.objects.filter(
+            Q(id=user.unidade_id) | Q(usuarios_autorizados=user), ativo=True,
+        ).distinct().order_by('nome')
+    )
+    unidade_id = str(data.get('unidade_id', '')).strip()
+    if len(unidades_disponiveis) > 1 and not unidade_id:
+        return JsonResponse({
+            'ok': True,
+            'requires_unit_selection': True,
+            'message': 'Selecione a empresa que deseja acessar.',
+            'unidades': [
+                {'id': unidade.id, 'nome': unidade.nome, 'sigla': unidade.sigla}
+                for unidade in unidades_disponiveis
+            ],
+        })
+
+    if unidade_id:
+        unidade_selecionada = next(
+            (unidade for unidade in unidades_disponiveis if str(unidade.id) == unidade_id), None,
+        )
+        if unidade_selecionada is None:
+            return JsonResponse({
+                'ok': False,
+                'message': 'Você não possui acesso à empresa selecionada.',
+            }, status=403)
+    else:
+        unidade_selecionada = unidades_disponiveis[0]
+
     login(request, user)
-    request.session['unidade_id'] = user.unidade_id
+    request.session['unidade_id'] = unidade_selecionada.id
 
     grupos = list(user.groups.values_list('name', flat=True))
 
@@ -62,8 +91,8 @@ def login_intranet(request):
             'last_name': user.last_name,
             'full_name': user.get_full_name() or user.username,
             'email': user.email,
-            'unidade': user.unidade.nome if user.unidade else '',
-            'unidade_sigla': user.unidade.sigla if user.unidade else '',
+            'unidade': unidade_selecionada.nome,
+            'unidade_sigla': unidade_selecionada.sigla,
             'setor': user.setor.nome if user.setor else '',
             'tipo_prestador': user.tipo_prestador,
             'primeiro_acesso': user.primeiro_acesso,
