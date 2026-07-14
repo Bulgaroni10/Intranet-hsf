@@ -1,4 +1,5 @@
 import json
+from unittest.mock import patch
 
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Group
@@ -248,6 +249,48 @@ class NotificacoesUsuarioTests(TestCase):
             reverse('api_marcar_notificacao_lida', args=[self.notificacao_a.id])
         )
         self.assertEqual(resposta.json()['nao_lidas'], 0)
+
+    def test_notificacoes_operacionais_respeitam_unidade_ativa(self):
+        unidade_a = Unidade.objects.create(nome='Hospital A', sigla='HA')
+        unidade_b = Unidade.objects.create(nome='Hospital B', sigla='HB')
+        self.usuario_a.unidade = unidade_b
+        self.usuario_a.save(update_fields=['unidade'])
+        criar_notificacao_usuario(
+            usuario=self.usuario_a, titulo='Alerta A', origem='noc-a',
+            objeto_id='a', unidade=unidade_a,
+        )
+        criar_notificacao_usuario(
+            usuario=self.usuario_a, titulo='Alerta B', origem='noc-b',
+            objeto_id='b', unidade=unidade_b,
+        )
+
+        self.client.force_login(self.usuario_a)
+        resposta = self.client.get(reverse('api_listar_notificacoes'))
+        titulos = [item['titulo'] for item in resposta.json()['notificacoes']]
+
+        self.assertIn('Mensagem A', titulos)  # Notificação global.
+        self.assertIn('Alerta B', titulos)
+        self.assertNotIn('Alerta A', titulos)
+
+
+class SincronizacaoMVWebTests(TestCase):
+    def setUp(self):
+        self.unidade = Unidade.objects.create(
+            nome='Hospital Vila Formosa', sigla='HSFVF', codigo_mv='1',
+        )
+        self.usuario = get_user_model().objects.create_superuser(
+            'admin.mv', email='admin@example.com', password='senha', unidade=self.unidade,
+        )
+        self.client.force_login(self.usuario)
+
+    @patch('core.view_modules.mv.subprocess.Popen')
+    def test_sincronizacao_web_inicia_comando_em_segundo_plano(self, popen):
+        resposta = self.client.post(reverse('sincronizar_convenios_mv'))
+
+        self.assertEqual(resposta.status_code, 302)
+        argumentos = popen.call_args.args[0]
+        self.assertIn('sincronizar_convenios_mv', argumentos)
+        self.assertEqual(argumentos[-2:], ['--unidade', 'HSFVF'])
 
 
 class DashboardChamadosPermissoesTests(TestCase):

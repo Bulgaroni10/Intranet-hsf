@@ -22,7 +22,7 @@ def sincronizar_alerta_suprimento(item):
         Q(is_superuser=True) | Q(groups__name__in=PERFIS_TI)
     ).distinct()
     if item.unidade_id:
-        usuarios = usuarios.filter(unidade_id=item.unidade_id)
+        usuarios = usuarios.filter(Q(unidade_id=item.unidade_id) | Q(unidades_permitidas=item.unidade)).distinct()
 
     titulo = f"Estoque baixo: {item.nome}"
     descricao = f"Restam {item.quantidade} unidade(s). Limite de alerta: {LIMITE_ALERTA_SUPRIMENTO}."
@@ -37,10 +37,12 @@ def sincronizar_alerta_suprimento(item):
                 "tipo": "warning" if item.quantidade else "danger",
                 "icone": "📦",
                 "link": f"/portal/modulos/inventario-ti/suprimentos/{item.id}/",
+                "unidade": item.unidade,
             },
         )
         campos = []
         for campo, valor in {
+            "unidade": item.unidade,
             "titulo": titulo,
             "descricao": descricao,
             "tipo": "warning" if item.quantidade else "danger",

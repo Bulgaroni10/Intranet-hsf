@@ -15,6 +15,10 @@ class NotificacaoUsuario(models.Model):
         on_delete=models.CASCADE,
         related_name='notificacoes',
     )
+    unidade = models.ForeignKey(
+        'usuarios.Unidade', on_delete=models.CASCADE, null=True, blank=True,
+        related_name='notificacoes_usuarios',
+    )
     titulo = models.CharField(max_length=160)
     descricao = models.TextField(blank=True)
     tipo = models.CharField(max_length=20, choices=TIPO_CHOICES, default='info')

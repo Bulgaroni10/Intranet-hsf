@@ -12,7 +12,7 @@ def contexto_usuario_gsf(request):
 
     return {
         'favoritos_usuario': listar_favoritos(request.user),
-        'notificacoes': listar_notificacoes(request.user),
-        'total_notificacoes': contar_nao_lidas(request.user),
+        'notificacoes': listar_notificacoes(request.user, unidade=request.user.unidade),
+        'total_notificacoes': contar_nao_lidas(request.user, unidade=request.user.unidade),
         'unidades_disponiveis_usuario': unidades_disponiveis,
     }

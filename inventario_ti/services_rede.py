@@ -8,6 +8,7 @@ from django.utils import timezone
 
 from core.models import NotificacaoUsuario
 from core.services.permissions import PERFIS_TI
+from usuarios.models import Unidade
 from .models import MonitoramentoRede
 
 
@@ -54,9 +55,12 @@ async def _switch_snmp(ip):
 
 def _sincronizar_alerta(item):
     origem = "monitoramento_rede"
+    unidade = Unidade.objects.filter(sigla__iexact="HSFOS", ativo=True).first()
     usuarios = get_user_model().objects.filter(is_active=True).filter(
         Q(is_superuser=True) | Q(groups__name__in=PERFIS_TI)
     ).distinct()
+    if unidade:
+        usuarios = usuarios.filter(Q(unidade=unidade) | Q(unidades_permitidas=unidade)).distinct()
     if not item.possui_alerta:
         NotificacaoUsuario.objects.filter(origem=origem, objeto_id=str(item.pk), lida=False).update(lida=True, lida_em=timezone.now())
         return
@@ -65,11 +69,17 @@ def _sincronizar_alerta(item):
     for usuario in usuarios:
         notificacao, _ = NotificacaoUsuario.objects.get_or_create(
             usuario=usuario, origem=origem, objeto_id=str(item.pk),
-            defaults={"titulo": "Alerta de rede", "descricao": descricao, "tipo": "danger", "icone": "🌐", "link": "/portal/noc/"},
+            defaults={"titulo": "Alerta de rede", "descricao": descricao, "unidade": unidade, "tipo": "danger", "icone": "🌐", "link": "/portal/noc/"},
         )
+        campos_atualizados = []
+        if notificacao.unidade_id != getattr(unidade, "id", None):
+            notificacao.unidade = unidade
+            campos_atualizados.append("unidade")
         if notificacao.descricao != descricao:
             notificacao.descricao, notificacao.lida, notificacao.lida_em = descricao, False, None
-            notificacao.save(update_fields=["descricao", "lida", "lida_em"])
+            campos_atualizados.extend(["descricao", "lida", "lida_em"])
+        if campos_atualizados:
+            notificacao.save(update_fields=campos_atualizados)
 
 
 def monitorar_rede():

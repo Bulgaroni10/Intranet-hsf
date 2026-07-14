@@ -429,7 +429,7 @@ def montar_contexto_portal(user):
     if pode_ver_painel_tecnico:
         resumo_inventario_ti = buscar_resumo_inventario_ti()
 
-    notificacoes = listar_notificacoes(user)
+    notificacoes = listar_notificacoes(user, unidade=obter_unidade_usuario(user))
 
     timeline_global = montar_timeline_global(
         computadores=resumo_inventario_ti.get("ultimos_computadores", []),
@@ -463,6 +463,6 @@ def montar_contexto_portal(user):
         **resumo_inventario_ti,
         "timeline_global": timeline_global,
         "notificacoes": notificacoes,
-        "total_notificacoes": contar_nao_lidas(user),
+        "total_notificacoes": contar_nao_lidas(user, unidade=obter_unidade_usuario(user)),
         "impressoras_alerta": impressoras_alerta,
     }

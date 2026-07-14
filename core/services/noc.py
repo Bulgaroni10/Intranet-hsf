@@ -5,6 +5,7 @@ from status_sistemas.models import OcorrenciaSistema, SistemaMonitorado
 
 
 def montar_contexto_noc(user):
+    unidade = getattr(user, 'unidade', None)
     computadores = ComputadorInventario.objects.select_related('unidade').order_by('hostname')
     erros = ErroAgenteInventario.objects.select_related('unidade').order_by('-criado_em')
     ocorrencias = OcorrenciaSistema.objects.filter(ativo=True).select_related('sistema', 'unidade')
@@ -13,12 +14,18 @@ def montar_contexto_noc(user):
     servidores = MonitoramentoServidor.objects.order_by('hostname')
     rede = MonitoramentoRede.objects.first()
     suprimentos_baixos = SuprimentoTI.objects.filter(ativo=True, quantidade__lte=5).select_related('unidade')
-    if not user.is_superuser:
-        computadores = computadores.filter(unidade=user.unidade)
-        erros = erros.filter(unidade=user.unidade)
-        ocorrencias = ocorrencias.filter(unidade=user.unidade) | ocorrencias.filter(unidade__isnull=True)
-        impressoras = impressoras.filter(unidade=user.unidade)
-        suprimentos_baixos = suprimentos_baixos.filter(unidade=user.unidade)
+    computadores = computadores.filter(unidade=unidade)
+    erros = erros.filter(unidade=unidade)
+    ocorrencias = ocorrencias.filter(unidade=unidade) | ocorrencias.filter(unidade__isnull=True)
+    impressoras = impressoras.filter(unidade=unidade)
+    suprimentos_baixos = suprimentos_baixos.filter(unidade=unidade)
+
+    # Estes monitores representam a infraestrutura local de Osasco. Outras
+    # unidades terão seus próprios registros quando os coletores forem ativados.
+    if not unidade or unidade.sigla.upper() != 'HSFOS':
+        active_directory = None
+        servidores = MonitoramentoServidor.objects.none()
+        rede = None
 
     computadores = list(computadores)
     online = [item for item in computadores if item.online]

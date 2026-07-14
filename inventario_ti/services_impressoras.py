@@ -182,7 +182,7 @@ def _usuarios_ti(impressora):
         Q(is_superuser=True) | Q(groups__name__in=PERFIS_TI)
     ).distinct()
     if impressora.unidade_id:
-        usuarios = usuarios.filter(unidade=impressora.unidade)
+        usuarios = usuarios.filter(Q(unidade=impressora.unidade) | Q(unidades_permitidas=impressora.unidade)).distinct()
     return usuarios
 
 
@@ -202,14 +202,20 @@ def _sincronizar_alerta(impressora):
     for usuario in _usuarios_ti(impressora):
         notificacao, _ = NotificacaoUsuario.objects.get_or_create(
             usuario=usuario, origem=origem, objeto_id=objeto_id,
-            defaults={"titulo": f"Impressora: {impressora.local}", "descricao": estado,
+            defaults={"titulo": f"Impressora: {impressora.local}", "descricao": estado, "unidade": impressora.unidade,
                       "tipo": "warning", "icone": "🖨️", "link": "/portal/noc/"},
         )
+        campos_atualizados = []
+        if notificacao.unidade_id != impressora.unidade_id:
+            notificacao.unidade = impressora.unidade
+            campos_atualizados.append("unidade")
         if notificacao.descricao != estado:
             notificacao.descricao = estado
             notificacao.lida = False
             notificacao.lida_em = None
-            notificacao.save(update_fields=["descricao", "lida", "lida_em"])
+            campos_atualizados.extend(["descricao", "lida", "lida_em"])
+        if campos_atualizados:
+            notificacao.save(update_fields=campos_atualizados)
 
 
 def atualizar_impressora(impressora):

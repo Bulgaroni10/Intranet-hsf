@@ -1,6 +1,12 @@
+import os
+import subprocess
+import sys
+from datetime import timedelta
+
+from django.conf import settings
+
 from .common import *
 from django.db.models import Min, Subquery
-from convenios.mv_oracle import IntegracaoMVErro, sincronizar_unidade
 from convenios.models import SincronizacaoMVExecucao
 
 
@@ -339,42 +345,44 @@ def sincronizar_convenios_mv(request):
         messages.error(request, 'Selecione uma empresa antes de sincronizar.')
         return redirect('mv_convenios')
 
+    if not unidade.codigo_mv:
+        messages.error(request, f'A empresa {unidade.sigla} ainda não possui código configurado no MV.')
+        return redirect('mv_convenios')
+
+    if SincronizacaoMVExecucao.objects.filter(
+        unidade=unidade,
+        status='processando',
+        iniciado_em__gte=timezone.now() - timedelta(hours=2),
+    ).exists():
+        messages.warning(request, f'Já existe uma sincronização do MV em andamento para {unidade.sigla}.')
+        return redirect('mv_convenios')
+
     try:
-        execucao = SincronizacaoMVExecucao.objects.create(unidade=unidade)
-        resultado = sincronizar_unidade(unidade)
-    except IntegracaoMVErro as exc:
-        execucao.status = 'erro'
-        execucao.mensagem = str(exc)[:4000]
-        execucao.finalizado_em = timezone.now()
-        execucao.save(update_fields=['status', 'mensagem', 'finalizado_em'])
-        messages.error(request, str(exc))
-    else:
-        execucao.status = 'sucesso'
-        execucao.convenios = resultado['convenios']
-        execucao.planos = resultado['planos']
-        execucao.regras = resultado['regras']
-        execucao.procedimentos = resultado['procedimentos']
-        execucao.finalizado_em = timezone.now()
-        execucao.save(update_fields=[
-            'status', 'convenios', 'planos', 'regras', 'procedimentos', 'finalizado_em',
-        ])
-        messages.success(
-            request,
-            f'MV sincronizado para {unidade.sigla}: '
-            f'{resultado["convenios"]} convênios, {resultado["planos"]} planos e '
-            f'{resultado["regras"]} regras, '
-            f'{resultado["procedimentos"]} procedimentos proibidos.',
+        subprocess.Popen(
+            [sys.executable, str(settings.BASE_DIR / 'manage.py'),
+             'sincronizar_convenios_mv', '--unidade', unidade.sigla],
+            cwd=str(settings.BASE_DIR),
+            env=os.environ.copy(),
+            stdin=subprocess.DEVNULL,
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
+            creationflags=getattr(subprocess, 'CREATE_NO_WINDOW', 0),
+            close_fds=True,
         )
-        RegistroAuditoria.objects.create(
-            modulo='convenios',
-            acao='atualizado',
-            titulo=f'Convênios sincronizados com MV - {unidade.sigla}',
-            descricao=str(resultado),
-            modelo='Convenio',
-            usuario=request.user,
-            unidade=unidade,
-            ip_origem=obter_ip_cliente(request),
-        )
+    except OSError as exc:
+        messages.error(request, f'Não foi possível iniciar a sincronização do MV: {exc}')
+        return redirect('mv_convenios')
+
+    RegistroAuditoria.objects.create(
+        modulo='convenios', acao='atualizado',
+        titulo=f'Sincronização MV solicitada - {unidade.sigla}',
+        descricao='Processamento iniciado em segundo plano.', modelo='Convenio',
+        usuario=request.user, unidade=unidade, ip_origem=obter_ip_cliente(request),
+    )
+    messages.success(
+        request,
+        f'Sincronização do MV iniciada para {unidade.sigla}. Você pode continuar usando a intranet; o resultado aparecerá no histórico.',
+    )
     return redirect('mv_convenios')
 
 @login_required(login_url='/')
