@@ -10,6 +10,8 @@ A GSF Hub consulta o Oracle MV e atualiza convênios, planos, regras de atendime
 - a unidade é identificada pela sigla da GSF Hub e pelo código MV cadastrado nela;
 - a operação é idempotente e não deve duplicar registros;
 - a tarefa ignora uma nova execução quando a anterior ainda estiver ativa.
+- uma falha gera notificação crítica para a TI vinculada à unidade;
+- a próxima execução bem-sucedida encerra automaticamente a notificação de falha.
 
 ## Teste manual
 
