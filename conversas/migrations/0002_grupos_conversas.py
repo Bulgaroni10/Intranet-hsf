@@ -6,30 +6,30 @@ from django.db import migrations, models
 import django.db.models.deletion
 
 
-def coluna_existe(cursor, tabela, coluna):
-    cursor.execute(f"PRAGMA table_info({tabela})")
-    colunas = [linha[1] for linha in cursor.fetchall()]
-    return coluna in colunas
+def coluna_existe(conexao, cursor, tabela, coluna):
+    descricao = conexao.introspection.get_table_description(cursor, tabela)
+    return coluna in {campo.name for campo in descricao}
 
 
 def aplicar_colunas_com_seguranca(apps, schema_editor):
-    cursor = schema_editor.connection.cursor()
+    conexao = schema_editor.connection
+    cursor = conexao.cursor()
 
     tabela = "conversas_conversachat"
 
-    if not coluna_existe(cursor, tabela, "tipo"):
+    if not coluna_existe(conexao, cursor, tabela, "tipo"):
         cursor.execute(
             "ALTER TABLE conversas_conversachat "
             "ADD COLUMN tipo varchar(20) NOT NULL DEFAULT 'individual'"
         )
 
-    if not coluna_existe(cursor, tabela, "nome_grupo"):
+    if not coluna_existe(conexao, cursor, tabela, "nome_grupo"):
         cursor.execute(
             "ALTER TABLE conversas_conversachat "
             "ADD COLUMN nome_grupo varchar(120) NOT NULL DEFAULT ''"
         )
 
-    if not coluna_existe(cursor, tabela, "criado_por_id"):
+    if not coluna_existe(conexao, cursor, tabela, "criado_por_id"):
         cursor.execute(
             "ALTER TABLE conversas_conversachat "
             "ADD COLUMN criado_por_id bigint NULL"

@@ -841,7 +841,9 @@ class EstoqueSetorialTests(TestCase):
         download = self.client.get(reverse("suprimento_movimentacao_anexo", args=[anexos[0].id]))
         self.assertEqual(download.status_code, 200)
         self.assertIn("attachment", download["Content-Disposition"])
-        download.close()
+        for fechar_recurso in download._resource_closers:
+            fechar_recurso()
+        download._resource_closers.clear()
 
         outro_setor = get_user_model().objects.create_user(
             "outro.setor", unidade=self.unidade, setor=self.setor_b,

@@ -114,18 +114,46 @@ WSGI_APPLICATION = 'intranet_gsf.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/6.0/ref/settings/#databases
 
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
-        # Sincronizações do MV gravam milhares de registros. Aguarda a
-        # transação atual finalizar em vez de falhar imediatamente com
-        # "database is locked".
-        'OPTIONS': {
-            'timeout': 60,
-        },
+DB_ENGINE = os.environ.get('GSF_DB_ENGINE', 'sqlite').strip().lower()
+
+if DB_ENGINE in {'postgres', 'postgresql'}:
+    configuracao_postgres = {
+        'NAME': os.environ.get('GSF_DB_NAME', '').strip(),
+        'USER': os.environ.get('GSF_DB_USER', '').strip(),
+        'PASSWORD': os.environ.get('GSF_DB_PASSWORD', ''),
+        'HOST': os.environ.get('GSF_DB_HOST', '127.0.0.1').strip(),
+        'PORT': os.environ.get('GSF_DB_PORT', '5432').strip(),
     }
-}
+    ausentes = [
+        f'GSF_DB_{nome}'
+        for nome in ('NAME', 'USER', 'PASSWORD')
+        if not configuracao_postgres[nome]
+    ]
+    if ausentes:
+        raise ImproperlyConfigured(
+            'Configuração PostgreSQL incompleta: ' + ', '.join(ausentes)
+        )
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.postgresql',
+            **configuracao_postgres,
+            'CONN_MAX_AGE': 60,
+            'CONN_HEALTH_CHECKS': True,
+            'OPTIONS': {'connect_timeout': 10},
+        }
+    }
+elif DB_ENGINE == 'sqlite':
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': BASE_DIR / 'db.sqlite3',
+            'OPTIONS': {'timeout': 60},
+        }
+    }
+else:
+    raise ImproperlyConfigured(
+        'GSF_DB_ENGINE deve ser "sqlite" ou "postgresql".'
+    )
 
 
 # Password validation
