@@ -526,6 +526,25 @@ class ArquivosEstaticosProducaoTests(TestCase):
         self.assertEqual(resposta.status_code, 200)
 
 
+class HealthcheckTests(TestCase):
+    def test_healthcheck_retorna_ok_quando_banco_responde(self):
+        resposta = self.client.get(reverse('healthcheck'))
+
+        self.assertEqual(resposta.status_code, 200)
+        self.assertEqual(resposta.json(), {'status': 'ok', 'database': 'ok'})
+
+    @patch('core.health.connection.cursor', side_effect=RuntimeError('banco indisponível'))
+    def test_healthcheck_retorna_503_sem_expor_erro(self, _cursor):
+        resposta = self.client.get(reverse('healthcheck'))
+
+        self.assertEqual(resposta.status_code, 503)
+        self.assertEqual(
+            resposta.json(),
+            {'status': 'unavailable', 'database': 'error'},
+        )
+        self.assertNotContains(resposta, 'banco indisponível', status_code=503)
+
+
 class PainelNOCTests(TestCase):
     def setUp(self):
         User = get_user_model()

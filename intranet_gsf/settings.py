@@ -13,6 +13,8 @@ https://docs.djangoproject.com/en/6.0/ref/settings/
 import os
 from pathlib import Path
 
+from django.core.exceptions import ImproperlyConfigured
+
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -20,14 +22,18 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/6.0/howto/deployment/checklist/
 
-# SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = os.environ.get(
-    'GSF_SECRET_KEY',
-    'django-insecure-apenas-desenvolvimento-local-trocar-em-producao',
-)
-
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = os.environ.get('GSF_DEBUG', 'true').strip().lower() in {'1', 'true', 'yes', 'on'}
+DEBUG = os.environ.get('GSF_DEBUG', 'false').strip().lower() in {'1', 'true', 'yes', 'on'}
+
+# SECURITY WARNING: keep the secret key used in production secret!
+SECRET_KEY = os.environ.get('GSF_SECRET_KEY', '').strip()
+if not SECRET_KEY:
+    if DEBUG:
+        SECRET_KEY = 'django-insecure-apenas-desenvolvimento-local-trocar-em-producao'
+    else:
+        raise ImproperlyConfigured(
+            'GSF_SECRET_KEY é obrigatória quando GSF_DEBUG não está habilitado.'
+        )
 
 # A carga do MV permanece desligada até a migração do banco local para uma
 # solução adequada a operações longas. Os dados já importados continuam
@@ -177,3 +183,50 @@ TIME_ZONE = 'America/Sao_Paulo'
 
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
+
+
+# Logging de operação
+LOG_DIR = Path(os.environ.get('GSF_LOG_DIR', BASE_DIR / 'logs'))
+LOG_DIR.mkdir(parents=True, exist_ok=True)
+LOG_LEVEL = os.environ.get('GSF_LOG_LEVEL', 'INFO').upper()
+
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'formatters': {
+        'verbose': {
+            'format': '{asctime} {levelname} {name} pid={process:d} {message}',
+            'style': '{',
+        },
+    },
+    'handlers': {
+        'console': {
+            'class': 'logging.StreamHandler',
+            'formatter': 'verbose',
+        },
+        'application_file': {
+            'class': 'logging.handlers.RotatingFileHandler',
+            'filename': LOG_DIR / 'gsf-hub.log',
+            'maxBytes': 10 * 1024 * 1024,
+            'backupCount': 10,
+            'encoding': 'utf-8',
+            'formatter': 'verbose',
+        },
+    },
+    'root': {
+        'handlers': ['console', 'application_file'],
+        'level': LOG_LEVEL,
+    },
+    'loggers': {
+        'django.request': {
+            'handlers': ['console', 'application_file'],
+            'level': 'WARNING',
+            'propagate': False,
+        },
+        'django.db.backends': {
+            'handlers': ['application_file'],
+            'level': 'ERROR',
+            'propagate': False,
+        },
+    },
+}
