@@ -4,6 +4,7 @@ import sys
 from datetime import timedelta
 
 from django.conf import settings
+from usuarios.escopo import aplicar_escopo_unidade
 
 from .common import *
 from django.db.models import Min, Subquery
@@ -160,10 +161,8 @@ def mv_convenios(request):
     busca = request.GET.get('busca', '').strip()
     unidade_ativa = getattr(request.user, 'unidade', None)
     unidade_id = str(unidade_ativa.id) if unidade_ativa else ''
-    if unidade_ativa:
-        proibicoes = proibicoes.filter(unidade=unidade_ativa)
-    else:
-        proibicoes = proibicoes.none()
+    regras = aplicar_escopo_unidade(regras, request.user)
+    proibicoes = aplicar_escopo_unidade(proibicoes, request.user)
     convenio_id = request.GET.get('convenio', '').strip()
     plano_id = request.GET.get('plano', '').strip()
     tipo_atendimento = request.GET.get('tipo_atendimento', '').strip()
@@ -189,9 +188,6 @@ def mv_convenios(request):
             Q(especialidade__nome__icontains=busca) |
             Q(observacao__icontains=busca)
         )
-
-    if unidade_id:
-        regras = regras.filter(unidade_id=unidade_id)
 
     if convenio_id:
         regras = regras.filter(convenio_id=convenio_id)
@@ -276,18 +272,18 @@ def mv_convenios(request):
     total_chamados_mv_atendimento = resumo_chamados_mv['total_chamados_ti_atendimento']
     total_chamados_mv_resolvidos = resumo_chamados_mv['total_chamados_ti_resolvidos']
     if unidade_ativa:
-        total_convenios_unidade = Convenio.objects.filter(
-            unidades=unidade_ativa,
-        ).distinct().count()
-        total_planos_unidade = PlanoConvenio.objects.filter(
-            convenio__unidades=unidade_ativa,
-        ).distinct().count()
-        total_regras_unidade = RegraAtendimentoConvenio.objects.filter(
-            unidade=unidade_ativa,
+        total_convenios_unidade = aplicar_escopo_unidade(
+            Convenio.objects.all(), request.user, campo='unidades',
         ).count()
-        total_procedimentos_unidade = ProcedimentoProibidoPlano.objects.filter(
-            unidade=unidade_ativa,
-        ).distinct().count()
+        total_planos_unidade = aplicar_escopo_unidade(
+            PlanoConvenio.objects.all(), request.user, campo='convenio__unidades',
+        ).count()
+        total_regras_unidade = aplicar_escopo_unidade(
+            RegraAtendimentoConvenio.objects.all(), request.user,
+        ).count()
+        total_procedimentos_unidade = aplicar_escopo_unidade(
+            ProcedimentoProibidoPlano.objects.all(), request.user,
+        ).count()
     else:
         total_convenios_unidade = 0
         total_planos_unidade = 0
@@ -302,8 +298,8 @@ def mv_convenios(request):
         'regras': regras,
         'proibicoes': proibicoes,
         'unidades': Unidade.objects.filter(ativo=True).order_by('nome'),
-        'convenios': Convenio.objects.filter(ativo=True, unidades=unidade_ativa).distinct().order_by('nome') if unidade_ativa else Convenio.objects.none(),
-        'planos': PlanoConvenio.objects.filter(ativo=True, convenio__unidades=unidade_ativa).distinct().select_related('convenio').order_by('convenio__nome', 'nome') if unidade_ativa else PlanoConvenio.objects.none(),
+        'convenios': aplicar_escopo_unidade(Convenio.objects.filter(ativo=True), request.user, campo='unidades').order_by('nome'),
+        'planos': aplicar_escopo_unidade(PlanoConvenio.objects.filter(ativo=True), request.user, campo='convenio__unidades').select_related('convenio').order_by('convenio__nome', 'nome'),
         'especialidades': Especialidade.objects.filter(ativo=True).order_by('nome'),
         'todos_convenios': Convenio.objects.all().order_by('nome'),
         'todos_planos': PlanoConvenio.objects.select_related('convenio').all().order_by('convenio__nome', 'nome'),

@@ -22,6 +22,7 @@ from qrcode.image.svg import SvgPathImage
 
 from core.services.permissions import usuario_eh_ti
 from usuarios.models import Setor, Unidade
+from usuarios.escopo import aplicar_escopo_unidade, obter_unidade_ativa
 
 from .models import AnexoMovimentacaoSuprimento, ComputadorInventario, ErroAgenteInventario, MovimentacaoPatrimonioTI, MovimentacaoSuprimentoTI, PatrimonioTI, SuprimentoTI
 from .services import (
@@ -62,16 +63,7 @@ def usuario_pode_gerenciar_patrimonio_ti(user):
 
 
 def obter_unidade_usuario(user):
-    return getattr(user, "unidade", None)
-
-
-def aplicar_escopo_unidade(queryset, user, campo="unidade"):
-    unidade = obter_unidade_usuario(user)
-
-    if unidade:
-        return queryset.filter(**{campo: unidade})
-
-    return queryset
+    return obter_unidade_ativa(user)
 
 
 def resolver_unidade_payload(dados):

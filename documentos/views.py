@@ -8,6 +8,7 @@ from django.utils import timezone
 from auditoria.models import RegistroAuditoria
 from modulos.models import Modulo
 from usuarios.models import Unidade, Setor
+from usuarios.escopo import aplicar_escopo_unidade
 from .models import DocumentoProtocolo
 
 
@@ -97,11 +98,11 @@ def registrar_auditoria_documento(request, documento, acao, titulo):
 
 
 def buscar_documentos_visiveis(user):
-    documentos = DocumentoProtocolo.objects.filter(
+    documentos = aplicar_escopo_unidade(DocumentoProtocolo.objects.filter(
         ativo=True
     ).exclude(
         status='inativo'
-    )
+    ), user, incluir_globais=True, campos_compartilhados=('unidades_compartilhadas',))
 
     if usuario_eh_admin_ti(user):
         return documentos.select_related(
@@ -118,10 +119,6 @@ def buscar_documentos_visiveis(user):
         )
 
     documentos = documentos.filter(
-        Q(unidade=user.unidade) |
-        Q(unidade__isnull=True) |
-        Q(unidades_compartilhadas=user.unidade)
-    ).filter(
         Q(setor=user.setor) |
         Q(setor__isnull=True)
     )
@@ -146,7 +143,10 @@ def buscar_documentos_visiveis(user):
 
 
 def buscar_documentos_para_gestao(user):
-    documentos = DocumentoProtocolo.objects.all()
+    documentos = aplicar_escopo_unidade(
+        DocumentoProtocolo.objects.all(), user,
+        incluir_globais=True, campos_compartilhados=('unidades_compartilhadas',),
+    )
 
     if usuario_eh_admin_ti(user):
         return documentos.select_related(
@@ -163,11 +163,7 @@ def buscar_documentos_para_gestao(user):
             'titulo'
         )
 
-    return documentos.filter(
-        Q(unidade=user.unidade) |
-        Q(unidade__isnull=True) |
-        Q(unidades_compartilhadas=user.unidade)
-    ).distinct().select_related(
+    return documentos.select_related(
         'unidade',
         'setor',
         'criado_por'
@@ -575,10 +571,10 @@ def editar_documento_protocolo(request, documento_id):
         return render(request, 'core/sem_permissao.html', status=403)
 
     documento = get_object_or_404(
-        DocumentoProtocolo.objects.prefetch_related(
+        aplicar_escopo_unidade(DocumentoProtocolo.objects.prefetch_related(
             'grupos_permitidos',
             'unidades_compartilhadas'
-        ),
+        ), request.user),
         id=documento_id
     )
 
@@ -695,10 +691,10 @@ def inativar_documento_protocolo(request, documento_id):
         return render(request, 'core/sem_permissao.html', status=403)
 
     documento = get_object_or_404(
-        DocumentoProtocolo.objects.prefetch_related(
+        aplicar_escopo_unidade(DocumentoProtocolo.objects.prefetch_related(
             'grupos_permitidos',
             'unidades_compartilhadas'
-        ),
+        ), request.user),
         id=documento_id
     )
 
@@ -726,10 +722,10 @@ def reativar_documento_protocolo(request, documento_id):
         return render(request, 'core/sem_permissao.html', status=403)
 
     documento = get_object_or_404(
-        DocumentoProtocolo.objects.prefetch_related(
+        aplicar_escopo_unidade(DocumentoProtocolo.objects.prefetch_related(
             'grupos_permitidos',
             'unidades_compartilhadas'
-        ),
+        ), request.user),
         id=documento_id
     )
 

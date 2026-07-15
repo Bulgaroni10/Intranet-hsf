@@ -9,6 +9,7 @@ from django.utils import timezone
 
 from auditoria.models import RegistroAuditoria
 from usuarios.models import Unidade, Setor
+from usuarios.escopo import aplicar_escopo_unidade
 
 from .models import (
     CategoriaConhecimento,
@@ -49,7 +50,7 @@ def buscar_documentos_visiveis(request):
     unidade_usuario = getattr(user, 'unidade', None)
     setor_usuario = getattr(user, 'setor', None)
 
-    documentos = DocumentoConhecimento.objects.select_related(
+    documentos = aplicar_escopo_unidade(DocumentoConhecimento.objects.select_related(
         'categoria',
         'unidade',
         'setor',
@@ -58,14 +59,11 @@ def buscar_documentos_visiveis(request):
         'atualizado_por',
     ).prefetch_related(
         'grupos_permitidos'
-    )
+    ), user, incluir_globais=True)
 
     if not usuario_eh_admin_ti(user):
         documentos = documentos.filter(
             ativo=True
-        ).filter(
-            Q(unidade=unidade_usuario) |
-            Q(unidade__isnull=True)
         ).filter(
             Q(setor=setor_usuario) |
             Q(setor__isnull=True)
@@ -779,7 +777,10 @@ def editar_documento_conhecimento(request, documento_id):
     if not usuario_eh_admin_ti(request.user):
         return render(request, 'core/sem_permissao.html', status=403)
 
-    documento = get_object_or_404(DocumentoConhecimento, id=documento_id)
+    documento = get_object_or_404(
+        aplicar_escopo_unidade(DocumentoConhecimento.objects.all(), request.user),
+        id=documento_id,
+    )
     categorias, unidades, setores, responsaveis = carregar_dados_form_documento()
     form_data = documento_para_form_data(documento)
 
@@ -881,7 +882,10 @@ def inativar_documento_conhecimento(request, documento_id):
     if not usuario_eh_admin_ti(request.user):
         return render(request, 'core/sem_permissao.html', status=403)
 
-    documento = get_object_or_404(DocumentoConhecimento, id=documento_id)
+    documento = get_object_or_404(
+        aplicar_escopo_unidade(DocumentoConhecimento.objects.all(), request.user),
+        id=documento_id,
+    )
     documento.ativo = False
     documento.atualizado_por = request.user
     documento.save()
@@ -904,7 +908,10 @@ def reativar_documento_conhecimento(request, documento_id):
     if not usuario_eh_admin_ti(request.user):
         return render(request, 'core/sem_permissao.html', status=403)
 
-    documento = get_object_or_404(DocumentoConhecimento, id=documento_id)
+    documento = get_object_or_404(
+        aplicar_escopo_unidade(DocumentoConhecimento.objects.all(), request.user),
+        id=documento_id,
+    )
     documento.ativo = True
     documento.atualizado_por = request.user
     documento.save()
