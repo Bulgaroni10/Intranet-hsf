@@ -1,19 +1,15 @@
 {% extends "base/base.html" %}
 {% block title %}Nova solicitação de VPN{% endblock %}
+{% block extra_css %}{% include "gestao_acessos/estilos.html" %}{% endblock %}
 {% block content %}
-<div class="page">
-  {% include "components/page_header.html" with eyebrow="Acesso remoto" icon="🌐" title="Nova solicitação" subtitle="Informe quem acessará, o destino e o período necessário." %}
-  <form method="post" enctype="multipart/form-data">{% csrf_token %}
-    {% if form.non_field_errors %}<section class="panel">{{ form.non_field_errors }}</section>{% endif %}
-    <section class="panel"><h2>Identificação</h2><div class="form-grid">
-      {% include "gestao_acessos/campo.html" with campo=form.nome %}{% include "gestao_acessos/campo.html" with campo=form.cpf %}{% include "gestao_acessos/campo.html" with campo=form.email %}{% include "gestao_acessos/campo.html" with campo=form.telefone %}{% include "gestao_acessos/campo.html" with campo=form.vinculo %}{% include "gestao_acessos/campo.html" with campo=form.empresa_terceira %}{% include "gestao_acessos/campo.html" with campo=form.setor %}
-    </div></section>
-    <section class="panel"><h2>Acesso solicitado</h2><div class="form-grid">
-      {% include "gestao_acessos/campo.html" with campo=form.tipo_acesso %}{% include "gestao_acessos/campo.html" with campo=form.equipamento %}{% include "gestao_acessos/campo.html" with campo=form.sistema_destino %}{% include "gestao_acessos/campo.html" with campo=form.inicio_validade %}{% include "gestao_acessos/campo.html" with campo=form.fim_validade %}
-      <div class="field field-full">{{ form.finalidade.label_tag }}{{ form.finalidade }}{{ form.finalidade.errors }}</div>
-      <div class="field field-full"><label>Anexos</label><input type="file" name="anexos" multiple><small>PDF, Office, CSV, TXT ou imagem. Até 10 MB por arquivo.</small></div>
-    </div></section>
-    <div class="form-actions"><a class="btn btn-secondary" href="{% url 'acesso_remoto_lista' %}">Cancelar</a><button class="btn btn-primary" type="submit">Registrar solicitação</button></div>
+<div class="page access-page">
+  {% include "components/page_header.html" with eyebrow="Acesso remoto" icon="🌐" title="Nova solicitação" subtitle="Informe quem acessará, o destino e o período necessário." secondary_url_name="acesso_remoto_lista" secondary_text="Voltar" %}
+  <form method="post" enctype="multipart/form-data" class="access-form">{% csrf_token %}
+    {% if form.non_field_errors %}<div class="access-error">{{ form.non_field_errors }}</div>{% endif %}
+    <section class="access-card"><div class="access-card-title"><span>1</span><div><h2>Identificação</h2><p>Dados da pessoa que utilizará o acesso remoto.</p></div></div><div class="access-grid">{% include "gestao_acessos/campo.html" with campo=form.nome %}{% include "gestao_acessos/campo.html" with campo=form.cpf %}{% include "gestao_acessos/campo.html" with campo=form.email %}{% include "gestao_acessos/campo.html" with campo=form.telefone %}{% include "gestao_acessos/campo.html" with campo=form.vinculo %}{% include "gestao_acessos/campo.html" with campo=form.empresa_terceira %}{% include "gestao_acessos/campo.html" with campo=form.setor %}</div></section>
+    <section class="access-card"><div class="access-card-title"><span>2</span><div><h2>Acesso solicitado</h2><p>Informe equipamento, destino e validade da autorização.</p></div></div><div class="access-grid">{% include "gestao_acessos/campo.html" with campo=form.tipo_acesso %}{% include "gestao_acessos/campo.html" with campo=form.equipamento %}<div class="access-wide">{% include "gestao_acessos/campo.html" with campo=form.sistema_destino %}</div>{% include "gestao_acessos/campo.html" with campo=form.inicio_validade %}{% include "gestao_acessos/campo.html" with campo=form.fim_validade %}<div class="access-wide">{% include "gestao_acessos/campo.html" with campo=form.finalidade %}</div></div></section>
+    <section class="access-card"><div class="access-card-title"><span>3</span><div><h2>Documentação</h2><p>Anexe autorização, termo ou outra evidência necessária.</p></div></div><div class="access-upload"><label for="anexos">Selecionar documentos</label><input id="anexos" type="file" name="anexos" multiple accept=".pdf,.doc,.docx,.xls,.xlsx,.csv,.txt,.jpg,.jpeg,.png"><small>PDF, Office, CSV, texto ou imagem; até 10 MB por arquivo.</small></div></section>
+    <div class="access-actions"><a class="btn-link" href="{% url 'acesso_remoto_lista' %}">Cancelar</a><button class="btn-submit" type="submit">Registrar solicitação</button></div>
   </form>
 </div>
 {% endblock %}

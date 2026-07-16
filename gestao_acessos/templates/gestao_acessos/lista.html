@@ -1,24 +1,21 @@
 {% extends "base/base.html" %}
 {% block title %}Gestão de Acessos{% endblock %}
+{% block extra_css %}{% include "gestao_acessos/estilos.html" %}{% endblock %}
 {% block content %}
-<div class="page">
+<div class="page access-page">
   {% include "components/page_header.html" with eyebrow="Segurança" icon="🔐" title="Gestão de Acessos" subtitle="Solicitações de criação, alteração e revogação de acessos da unidade." action_url_name="gestao_acessos_nova" action_text="Nova solicitação" %}
   <section class="kpi-grid">
     {% include "components/kpi_card.html" with icon="⏳" title="Pendentes" value=total_pendentes color="warning" %}
     {% include "components/kpi_card.html" with icon="⚙️" title="Em execução" value=total_execucao color="info" %}
     {% include "components/kpi_card.html" with icon="✅" title="Concluídas" value=total_concluidas color="success" %}
   </section>
-  <section class="panel">
-    <form method="get" class="form-grid">
-      <div class="field"><label>Buscar</label><input name="busca" value="{{ busca }}" placeholder="Profissional, CPF, conselho ou sistema"></div>
-      <div class="field"><label>Status</label><select name="status"><option value="">Todos</option>{% for valor, rotulo in status_choices %}<option value="{{ valor }}" {% if status_atual == valor %}selected{% endif %}>{{ rotulo }}</option>{% endfor %}</select></div>
-      <div class="field field-actions"><button class="btn btn-primary">Filtrar</button></div>
-    </form>
+  <section class="access-card">
+    <div class="access-card-title"><span>⌕</span><div><h2>Filtros</h2><p>Localize pelo profissional, documento, conselho ou sistema.</p></div></div>
+    <form method="get" class="access-grid"><div class="form-group"><label>Buscar</label><input name="busca" value="{{ busca }}" placeholder="Profissional, CPF, conselho ou sistema"></div><div class="form-group"><label>Status</label><select name="status"><option value="">Todos</option>{% for valor, rotulo in status_choices %}<option value="{{ valor }}" {% if status_atual == valor %}selected{% endif %}>{{ rotulo }}</option>{% endfor %}</select></div><div class="access-wide access-actions"><a class="btn-link" href="{% url 'gestao_acessos_lista' %}">Limpar</a><button class="btn-submit">Filtrar</button></div></form>
   </section>
-  <section class="panel table-wrap">
-    <table><thead><tr><th>#</th><th>Colaborador</th><th>Tipo</th><th>Setor</th><th>Status</th><th>Responsável</th><th>Ação</th></tr></thead>
-      <tbody>{% for item in solicitacoes %}<tr><td>#{{ item.id }}</td><td><strong>{{ item.colaborador_nome }}</strong><br><small>{{ item.criado_em|date:"d/m/Y H:i" }}</small></td><td>{{ item.get_tipo_display }}</td><td>{{ item.setor.nome }}</td><td>{{ item.get_status_display }}</td><td>{% if item.responsavel %}{{ item.responsavel.get_full_name|default:item.responsavel.username }}{% else %}—{% endif %}</td><td><a class="btn btn-secondary" href="{% url 'gestao_acessos_detalhe' item.id %}">Abrir</a></td></tr>{% empty %}<tr><td colspan="7" class="empty-state">Nenhuma solicitação encontrada.</td></tr>{% endfor %}</tbody>
-    </table>
+  <section class="access-card table-wrap">
+    <div class="access-card-title"><span>📋</span><div><h2>Solicitações</h2><p>Acompanhe os pedidos registrados na unidade selecionada.</p></div></div>
+    <table><thead><tr><th>Protocolo</th><th>Colaborador</th><th>Tipo</th><th>Setor</th><th>Status</th><th>Responsável</th><th></th></tr></thead><tbody>{% for item in solicitacoes %}<tr><td><strong>#{{ item.id }}</strong></td><td><strong>{{ item.colaborador_nome }}</strong><br><small>{{ item.criado_em|date:"d/m/Y H:i" }}</small></td><td>{{ item.get_tipo_display }}</td><td>{{ item.setor.nome }}</td><td><span class="gsf-badge">{{ item.get_status_display }}</span></td><td>{% if item.responsavel %}{{ item.responsavel.get_full_name|default:item.responsavel.username }}{% else %}—{% endif %}</td><td><a class="btn-link" href="{% url 'gestao_acessos_detalhe' item.id %}">Abrir →</a></td></tr>{% empty %}<tr><td colspan="7"><div class="access-empty">Nenhuma solicitação encontrada.</div></td></tr>{% endfor %}</tbody></table>
   </section>
 </div>
 {% endblock %}

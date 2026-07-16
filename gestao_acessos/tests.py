@@ -58,8 +58,8 @@ class GestaoAcessosTests(TestCase):
         outra = self.criar(self.unidade_b, self.usuario_b)
         self.client.force_login(self.ti_a)
         resposta = self.client.get(reverse('gestao_acessos_lista'))
-        self.assertContains(resposta, f'#{propria.pk}')
-        self.assertNotContains(resposta, f'#{outra.pk}')
+        self.assertContains(resposta, reverse('gestao_acessos_detalhe', args=[propria.pk]))
+        self.assertNotContains(resposta, reverse('gestao_acessos_detalhe', args=[outra.pk]))
         resposta = self.client.post(reverse('gestao_acessos_atender', args=[propria.pk]), {
             'status': 'em_execucao', 'observacao_ti': 'Em atendimento',
         })

@@ -2,7 +2,7 @@ from django.contrib.auth.models import Group
 from django.test import TestCase
 from django.urls import reverse
 from usuarios.models import Unidade, Usuario
-from .models import ExameLaboratorial
+from .models import DocumentoExame, ExameLaboratorial
 
 class LaboratorioTests(TestCase):
     def setUp(self):
@@ -25,3 +25,17 @@ class LaboratorioTests(TestCase):
         self.assertEqual(self.client.get(reverse('laboratorio_detalhe',args=[e.pk])).status_code,404)
     def test_usuario_sem_grupo_recebe_403(self):
         self.client.force_login(self.comum); self.assertEqual(self.client.get(reverse('laboratorio_lista')).status_code,403)
+
+    def test_documento_de_outra_unidade_nao_pode_ser_baixado(self):
+        exame = self.criar()
+        documento = DocumentoExame.objects.create(
+            exame=exame,
+            arquivo='laboratorio/teste/ficha.pdf',
+            nome_original='ficha.pdf',
+            tipo_mime='application/pdf',
+            tamanho=10,
+            enviado_por=self.lab,
+        )
+        self.client.force_login(self.outro)
+        resposta = self.client.get(reverse('laboratorio_documento', args=[documento.pk]))
+        self.assertEqual(resposta.status_code, 403)

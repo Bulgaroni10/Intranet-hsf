@@ -3,7 +3,7 @@ from django.contrib.auth.models import Group
 from django.test import TestCase
 from django.urls import reverse
 from usuarios.models import Unidade, Usuario
-from .models import RegistroFinanceiro
+from .models import AnexoFinanceiro, RegistroFinanceiro
 from .forms import RegistroFinanceiroForm
 
 class FinanceiroTests(TestCase):
@@ -41,3 +41,17 @@ class FinanceiroTests(TestCase):
         self.assertIn(usuario_gerente, responsaveis)
         self.assertNotIn(self.f2, responsaveis)
         self.assertNotIn(self.comum, responsaveis)
+
+    def test_anexo_de_outra_unidade_nao_pode_ser_baixado(self):
+        item = self.criar()
+        anexo = AnexoFinanceiro.objects.create(
+            registro=item,
+            arquivo='financeiro_faturamento/teste/documento.pdf',
+            nome_original='documento.pdf',
+            tipo_mime='application/pdf',
+            tamanho=10,
+            enviado_por=self.f1,
+        )
+        self.client.force_login(self.f2)
+        resposta = self.client.get(reverse('financeiro_anexo', args=[anexo.pk]))
+        self.assertEqual(resposta.status_code, 403)

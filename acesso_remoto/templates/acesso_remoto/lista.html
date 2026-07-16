@@ -1,21 +1,11 @@
 {% extends "base/base.html" %}
 {% block title %}Acesso Remoto / VPN{% endblock %}
+{% block extra_css %}{% include "gestao_acessos/estilos.html" %}{% endblock %}
 {% block content %}
-<div class="page">
+<div class="page access-page">
   {% include "components/page_header.html" with eyebrow="Segurança" icon="🌐" title="Acesso Remoto / VPN" subtitle="Solicitações temporárias de conexão remota da unidade." action_url_name="acesso_remoto_nova" action_text="Nova solicitação" %}
-  <section class="kpi-grid">
-    {% include "components/kpi_card.html" with icon="⏳" title="Pendentes" value=total_pendentes color="warning" %}
-    {% include "components/kpi_card.html" with icon="🟢" title="Ativas" value=total_ativas color="success" %}
-    {% include "components/kpi_card.html" with icon="✅" title="Encerradas" value=total_encerradas color="info" %}
-  </section>
-  <section class="panel"><form method="get" class="form-grid">
-    <div class="field"><label>Buscar</label><input name="busca" value="{{ busca }}" placeholder="Nome, CPF, empresa ou sistema"></div>
-    <div class="field"><label>Status</label><select name="status"><option value="">Todos</option>{% for valor, rotulo in status_choices %}<option value="{{ valor }}" {% if status_atual == valor %}selected{% endif %}>{{ rotulo }}</option>{% endfor %}</select></div>
-    <div class="field field-actions"><button class="btn btn-primary">Filtrar</button></div>
-  </form></section>
-  <section class="panel table-wrap"><table><thead><tr><th>#</th><th>Solicitado para</th><th>Acesso</th><th>Validade</th><th>Setor</th><th>Status</th><th></th></tr></thead><tbody>
-    {% for item in solicitacoes %}<tr><td>#{{ item.id }}</td><td><strong>{{ item.nome }}</strong><br><small>{{ item.get_vinculo_display }}</small></td><td>{{ item.get_tipo_acesso_display }}<br><small>{{ item.sistema_destino }}</small></td><td>{{ item.inicio_validade|date:"d/m/Y H:i" }}<br>{{ item.fim_validade|date:"d/m/Y H:i" }}</td><td>{{ item.setor.nome }}</td><td>{{ item.get_status_display }}</td><td><a class="btn btn-secondary" href="{% url 'acesso_remoto_detalhe' item.id %}">Abrir</a></td></tr>
-    {% empty %}<tr><td colspan="7" class="empty-state">Nenhuma solicitação encontrada.</td></tr>{% endfor %}
-  </tbody></table></section>
+  <section class="kpi-grid">{% include "components/kpi_card.html" with icon="⏳" title="Pendentes" value=total_pendentes color="warning" %}{% include "components/kpi_card.html" with icon="🟢" title="Ativas" value=total_ativas color="success" %}{% include "components/kpi_card.html" with icon="✅" title="Encerradas" value=total_encerradas color="info" %}</section>
+  <section class="access-card"><div class="access-card-title"><span>⌕</span><div><h2>Filtros</h2><p>Pesquise pelo solicitante, documento, empresa ou sistema.</p></div></div><form method="get" class="access-grid"><div class="form-group"><label>Buscar</label><input name="busca" value="{{ busca }}" placeholder="Nome, CPF, empresa ou sistema"></div><div class="form-group"><label>Status</label><select name="status"><option value="">Todos</option>{% for valor, rotulo in status_choices %}<option value="{{ valor }}" {% if status_atual == valor %}selected{% endif %}>{{ rotulo }}</option>{% endfor %}</select></div><div class="access-wide access-actions"><a class="btn-link" href="{% url 'acesso_remoto_lista' %}">Limpar</a><button class="btn-submit">Filtrar</button></div></form></section>
+  <section class="access-card table-wrap"><div class="access-card-title"><span>🌐</span><div><h2>Solicitações</h2><p>Acessos temporários e seus períodos de validade.</p></div></div><table><thead><tr><th>Protocolo</th><th>Solicitado para</th><th>Acesso</th><th>Validade</th><th>Setor</th><th>Status</th><th></th></tr></thead><tbody>{% for item in solicitacoes %}<tr><td><strong>#{{ item.id }}</strong></td><td><strong>{{ item.nome }}</strong><br><small>{{ item.get_vinculo_display }}</small></td><td>{{ item.get_tipo_acesso_display }}<br><small>{{ item.sistema_destino }}</small></td><td>{{ item.inicio_validade|date:"d/m/Y H:i" }}<br><small>até {{ item.fim_validade|date:"d/m/Y H:i" }}</small></td><td>{{ item.setor.nome }}</td><td><span class="gsf-badge">{{ item.get_status_display }}</span></td><td><a class="btn-link" href="{% url 'acesso_remoto_detalhe' item.id %}">Abrir →</a></td></tr>{% empty %}<tr><td colspan="7"><div class="access-empty">Nenhuma solicitação encontrada.</div></td></tr>{% endfor %}</tbody></table></section>
 </div>
 {% endblock %}
