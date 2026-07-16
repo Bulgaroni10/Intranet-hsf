@@ -10,7 +10,6 @@ from status_sistemas.models import OcorrenciaSistema
 
 from core.services.events import montar_timeline_global
 from core.services.favorites import listar_favoritos
-from core.services.notifications import contar_nao_lidas, listar_notificacoes
 from core.services.permissions import (
     usuario_eh_admin_ti,
     usuario_eh_gestao,
@@ -429,8 +428,6 @@ def montar_contexto_portal(user):
     if pode_ver_painel_tecnico:
         resumo_inventario_ti = buscar_resumo_inventario_ti()
 
-    notificacoes = listar_notificacoes(user, unidade=obter_unidade_usuario(user))
-
     timeline_global = montar_timeline_global(
         computadores=resumo_inventario_ti.get("ultimos_computadores", []),
         chamados_ti=resumo_chamados_ti.get("ultimos_chamados_ti", []),
@@ -462,7 +459,5 @@ def montar_contexto_portal(user):
         **resumo_chamados_ti,
         **resumo_inventario_ti,
         "timeline_global": timeline_global,
-        "notificacoes": notificacoes,
-        "total_notificacoes": contar_nao_lidas(user, unidade=obter_unidade_usuario(user)),
         "impressoras_alerta": impressoras_alerta,
     }

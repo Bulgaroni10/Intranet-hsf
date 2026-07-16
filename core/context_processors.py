@@ -6,9 +6,13 @@ from usuarios.models import Unidade
 def contexto_usuario_gsf(request):
     if not request.user.is_authenticated:
         return {}
-    unidades_disponiveis = request.user.unidades_permitidas.filter(ativo=True).order_by('nome')
-    if not unidades_disponiveis.exists() and request.user.unidade_id:
-        unidades_disponiveis = Unidade.objects.filter(id=request.user.unidade_id, ativo=True)
+    unidades_disponiveis = list(
+        request.user.unidades_permitidas.filter(ativo=True).order_by('nome')
+    )
+    if not unidades_disponiveis and request.user.unidade_id:
+        unidades_disponiveis = list(
+            Unidade.objects.filter(id=request.user.unidade_id, ativo=True)
+        )
 
     return {
         'favoritos_usuario': listar_favoritos(request.user),
