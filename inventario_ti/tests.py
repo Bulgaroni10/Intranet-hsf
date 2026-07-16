@@ -184,6 +184,54 @@ class MonitoramentoImpressoraTests(TestCase):
         self.assertIn("não identificado", self.impressora.status_dispositivo)
 
 
+class CadastroImpressoraMonitoradaTests(TestCase):
+    def setUp(self):
+        self.unidade = Unidade.objects.create(nome="Hospital", sigla="CADIMP")
+        self.setor = Setor.objects.create(nome="Recepção")
+        grupo = Group.objects.create(name="TI Suporte")
+        self.usuario = get_user_model().objects.create_user(
+            "cadastro.impressora", password="123", unidade=self.unidade, setor=self.setor,
+        )
+        self.usuario.groups.add(grupo)
+        self.client.force_login(self.usuario)
+
+    @patch("inventario_ti.views.atualizar_impressora")
+    def test_cadastra_e_dispara_coleta(self, coleta):
+        resposta = self.client.post(reverse("inventario_ti_impressora_nova"), {
+            "ip": "192.0.2.50", "modelo_informado": "Brother HL-L6202DW",
+            "setor": self.setor.pk, "local": "Recepção", "ativo": "on",
+        })
+        self.assertEqual(resposta.status_code, 302)
+        item = ImpressoraMonitorada.objects.get(ip="192.0.2.50")
+        self.assertEqual(item.unidade, self.unidade)
+        self.assertEqual(item.setor, self.setor)
+        coleta.assert_called_once()
+
+    @patch("inventario_ti.views.atualizar_impressora")
+    def test_troca_ip_no_mesmo_cadastro(self, coleta):
+        item = ImpressoraMonitorada.objects.create(
+            unidade=self.unidade, setor=self.setor, ip="192.0.2.51", local="Recepção",
+            modelo_detectado="Modelo antigo", online=True, toner_percentual=50,
+        )
+        resposta = self.client.post(reverse("inventario_ti_impressora_editar", args=[item.pk]), {
+            "ip": "192.0.2.52", "modelo_informado": "Brother HL-L6202DW",
+            "setor": self.setor.pk, "local": "Recepção", "ativo": "on",
+        })
+        self.assertEqual(resposta.status_code, 302)
+        item.refresh_from_db()
+        self.assertEqual(str(item.ip), "192.0.2.52")
+        self.assertEqual(item.modelo_detectado, "")
+        self.assertIsNone(item.toner_percentual)
+        coleta.assert_called_once()
+
+    def test_usuario_sem_perfil_ti_recebe_403(self):
+        comum = get_user_model().objects.create_user(
+            "usuario.comum", password="123", unidade=self.unidade,
+        )
+        self.client.force_login(comum)
+        self.assertEqual(self.client.get(reverse("inventario_ti_impressoras")).status_code, 403)
+
+
 class MonitoramentoActiveDirectoryTests(TestCase):
     def setUp(self):
         grupo = Group.objects.create(name="TI")

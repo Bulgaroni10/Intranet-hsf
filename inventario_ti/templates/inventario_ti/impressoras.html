@@ -1,0 +1,21 @@
+{% extends "base/base.html" %}
+{% block title %}Impressoras monitoradas{% endblock %}
+{% block extra_css %}{% include "gestao_acessos/estilos.html" %}{% endblock %}
+{% block content %}
+<div class="page access-page">
+  {% include "components/page_header.html" with eyebrow="Inventário TI" icon="🖨️" title="Impressoras monitoradas" subtitle="Cadastre os equipamentos que alimentam o NOC da unidade." action_url_name="inventario_ti_impressora_nova" action_text="Nova impressora" secondary_url_name="inventario_ti_dashboard" secondary_text="Voltar" %}
+  <section class="kpi-grid">
+    {% include "components/kpi_card.html" with icon="🖨️" title="Cadastradas" value=total color="info" %}
+    {% include "components/kpi_card.html" with icon="🟢" title="Online" value=online color="success" %}
+    {% include "components/kpi_card.html" with icon="🔴" title="Offline" value=offline color="danger" %}
+  </section>
+  <section class="access-card">
+    <form method="get" class="access-grid"><div class="form-group"><label>Pesquisar</label><input name="busca" value="{{ busca }}" placeholder="IP, setor, local ou modelo"></div><div class="access-actions"><a class="btn-link" href="{% url 'inventario_ti_impressoras' %}">Limpar</a><button class="btn-submit">Pesquisar</button></div></form>
+  </section>
+  <section class="access-card table-wrap">
+    <table><thead><tr><th>Status</th><th>IP</th><th>Setor / local</th><th>Modelo</th><th>Suprimentos</th><th>Última coleta</th><th></th></tr></thead><tbody>
+    {% for item in impressoras %}<tr><td>{% if not item.ativo %}<span class="gsf-badge">Inativa</span>{% elif item.online %}<span class="gsf-badge gsf-badge-success">Online</span>{% else %}<span class="gsf-badge gsf-badge-danger">Offline</span>{% endif %}</td><td><strong>{{ item.ip }}</strong></td><td>{{ item.local }}{% if item.setor %}<br><small>{{ item.setor.nome }}</small>{% endif %}</td><td>{{ item.modelo|default:"Não detectado" }}<br><small>{{ item.status_dispositivo|default:"Aguardando coleta" }}</small></td><td>Toner: {{ item.toner_percentual|default_if_none:"—" }}%<br>Cilindro: {{ item.cilindro_percentual|default_if_none:"—" }}%</td><td>{{ item.ultima_consulta|date:"d/m/Y H:i"|default:"Nunca" }}</td><td><a class="btn-link" href="{% url 'inventario_ti_impressora_editar' item.id %}">Editar</a></td></tr>{% empty %}<tr><td colspan="7"><div class="access-empty">Nenhuma impressora cadastrada.</div></td></tr>{% endfor %}
+    </tbody></table>
+  </section>
+</div>
+{% endblock %}

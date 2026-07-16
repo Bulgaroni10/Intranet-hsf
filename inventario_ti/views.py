@@ -24,7 +24,9 @@ from core.services.permissions import usuario_eh_ti
 from usuarios.models import Setor, Unidade
 from usuarios.escopo import aplicar_escopo_unidade, obter_unidade_ativa
 
-from .models import AnexoMovimentacaoSuprimento, ComputadorInventario, ErroAgenteInventario, MovimentacaoPatrimonioTI, MovimentacaoSuprimentoTI, PatrimonioTI, SuprimentoTI
+from .models import AnexoMovimentacaoSuprimento, ComputadorInventario, ErroAgenteInventario, ImpressoraMonitorada, MovimentacaoPatrimonioTI, MovimentacaoSuprimentoTI, PatrimonioTI, SuprimentoTI
+from .forms import ImpressoraMonitoradaForm
+from .services_impressoras import atualizar_impressora
 from .services import (
     CAMPOS_MONITORADOS,
     computador_estava_offline,
@@ -60,6 +62,69 @@ def usuario_pode_acessar_inventario_ti(user):
 
 def usuario_pode_gerenciar_patrimonio_ti(user):
     return usuario_eh_ti(user)
+
+
+@login_required(login_url="/")
+def impressoras_monitoradas(request):
+    if not usuario_pode_acessar_inventario_ti(request.user):
+        return render(request, "core/sem_permissao.html", status=403)
+    itens = aplicar_escopo_unidade(
+        ImpressoraMonitorada.objects.select_related("unidade", "setor"), request.user,
+    )
+    busca = request.GET.get("busca", "").strip()
+    if busca:
+        itens = itens.filter(
+            Q(ip__icontains=busca) | Q(local__icontains=busca) |
+            Q(modelo_informado__icontains=busca) | Q(modelo_detectado__icontains=busca)
+        )
+    return render(request, "inventario_ti/impressoras.html", {
+        "impressoras": itens, "busca": busca,
+        "total": itens.count(), "online": itens.filter(ativo=True, online=True).count(),
+        "offline": itens.filter(ativo=True, online=False).count(),
+    })
+
+
+@login_required(login_url="/")
+def editar_impressora(request, impressora_id=None):
+    if not usuario_pode_acessar_inventario_ti(request.user):
+        return render(request, "core/sem_permissao.html", status=403)
+    unidade = obter_unidade_ativa(request.user)
+    if unidade is None:
+        messages.error(request, "Selecione uma unidade antes de continuar.")
+        return redirect("inventario_ti_impressoras")
+    impressora = None
+    if impressora_id:
+        impressora = get_object_or_404(
+            aplicar_escopo_unidade(ImpressoraMonitorada.objects.all(), request.user),
+            pk=impressora_id,
+        )
+    ip_anterior = impressora.ip if impressora else None
+    form = ImpressoraMonitoradaForm(request.POST or None, instance=impressora)
+    if request.method == "POST" and form.is_valid():
+        item = form.save(commit=False)
+        item.unidade = unidade
+        if item.setor and not item.local.strip():
+            item.local = item.setor.nome
+        if ip_anterior and str(item.ip) != str(ip_anterior):
+            item.online = False
+            item.modelo_detectado = ""
+            item.status_dispositivo = "Aguardando coleta no novo IP"
+            item.toner_percentual = None
+            item.cilindro_percentual = None
+            item.ultimo_erro = ""
+        item.save()
+        if item.ativo:
+            atualizar_impressora(item)
+            if item.online:
+                messages.success(request, f"Impressora salva e localizada em {item.ip}.")
+            else:
+                messages.warning(request, f"Cadastro salvo, mas {item.ip} não respondeu à coleta.")
+        else:
+            messages.success(request, "Impressora desativada e removida do NOC.")
+        return redirect("inventario_ti_impressoras")
+    return render(request, "inventario_ti/formulario_impressora.html", {
+        "form": form, "impressora": impressora,
+    })
 
 
 def obter_unidade_usuario(user):

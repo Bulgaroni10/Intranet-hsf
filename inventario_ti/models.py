@@ -330,6 +330,7 @@ class AnexoMovimentacaoSuprimento(models.Model):
 
 class ImpressoraMonitorada(models.Model):
     unidade = models.ForeignKey(Unidade, on_delete=models.SET_NULL, null=True, blank=True)
+    setor = models.ForeignKey(Setor, on_delete=models.SET_NULL, null=True, blank=True, related_name="impressoras_monitoradas")
     ip = models.GenericIPAddressField(unique=True)
     modelo_informado = models.CharField(max_length=180, blank=True, default="")
     modelo_detectado = models.CharField(max_length=180, blank=True, default="")
