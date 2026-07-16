@@ -50,6 +50,7 @@ def _sincronizar_alerta(item):
             notificacao.lida_em = None
             campos_atualizados.extend(["descricao", "lida", "lida_em"])
         if campos_atualizados:
+            campos_atualizados.append("atualizado_em")
             notificacao.save(update_fields=campos_atualizados)
 
 

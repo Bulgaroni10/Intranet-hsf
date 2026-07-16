@@ -55,7 +55,9 @@
             <div>
               <strong>{{ notificacao.titulo }}</strong>
               <small>{{ notificacao.descricao }}</small>
-              <time>{{ notificacao.criado_em|timesince }} atrás</time>
+              <time title="Criada em {{ notificacao.criado_em|date:'d/m/Y H:i' }}">
+                Atualizada em {{ notificacao.atualizado_em|date:"d/m/Y H:i" }}
+              </time>
             </div>
           </a>
         {% empty %}

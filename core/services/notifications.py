@@ -32,9 +32,28 @@ def criar_notificacao_usuario(
             objeto_id=str(objeto_id or ''),
         )
         criada = False
-    if unidade is not None and notificacao.unidade_id != unidade.id:
-        notificacao.unidade = unidade
-        notificacao.save(update_fields=['unidade'])
+    if not criada:
+        valores = {
+            'titulo': titulo,
+            'descricao': descricao,
+            'tipo': tipo,
+            'icone': icone,
+            'link': link,
+        }
+        if unidade is not None:
+            valores['unidade'] = unidade
+        campos = []
+        for campo, valor in valores.items():
+            atual = notificacao.unidade_id if campo == 'unidade' else getattr(notificacao, campo)
+            esperado = valor.id if campo == 'unidade' else valor
+            if atual != esperado:
+                setattr(notificacao, campo, valor)
+                campos.append(campo)
+        if campos:
+            notificacao.lida = False
+            notificacao.lida_em = None
+            campos.extend(['lida', 'lida_em', 'atualizado_em'])
+            notificacao.save(update_fields=campos)
     return notificacao, criada
 
 

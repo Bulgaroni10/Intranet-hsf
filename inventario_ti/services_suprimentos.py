@@ -53,4 +53,5 @@ def sincronizar_alerta_suprimento(item):
                 setattr(notificacao, campo, valor)
                 campos.append(campo)
         if campos:
+            campos.append("atualizado_em")
             notificacao.save(update_fields=campos)

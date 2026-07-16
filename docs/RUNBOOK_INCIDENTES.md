@@ -12,6 +12,21 @@ Get-Content C:\Projetos\intranet_gsf\logs\gsf-hub.log -Tail 100
 
 O endpoint deve responder HTTP 200 com `{"status":"ok","database":"ok"}`.
 
+### Quando o endereço público responde 200 e o loopback falha
+
+Se `http://intranet.osascohsf.hosp/health/` responde 200, a intranet está funcionando de ponta a ponta naquele momento. Uma falha anterior em `127.0.0.1:8000` normalmente ocorreu durante a inicialização ou reinicialização do serviço. Confirme:
+
+```powershell
+Get-Service IntranetGSF
+Get-NetTCPConnection -LocalPort 8000 -State Listen -ErrorAction SilentlyContinue
+Test-NetConnection 127.0.0.1 -Port 8000
+Start-Sleep -Seconds 3
+Invoke-WebRequest http://127.0.0.1:8000/health/ -UseBasicParsing -TimeoutSec 15 |
+    Select-Object StatusCode, Content
+```
+
+Execute um comando por vez. Não cole outro `Invoke-WebRequest` depois de `Select-Object StatusCode, Content`, pois o PowerShell tentará interpretá-lo como argumento do `Select-Object`. Se aparecer o prompt `>>` sem intenção, pressione `Ctrl+C` e refaça o comando.
+
 ## Erro 502 no IIS
 
 1. Confirme se `IntranetGSF` está em execução.

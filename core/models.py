@@ -26,12 +26,13 @@ class NotificacaoUsuario(models.Model):
     link = models.CharField(max_length=500, blank=True)
     lida = models.BooleanField(default=False)
     criado_em = models.DateTimeField(auto_now_add=True)
+    atualizado_em = models.DateTimeField(auto_now=True)
     lida_em = models.DateTimeField(null=True, blank=True)
     origem = models.CharField(max_length=80)
     objeto_id = models.CharField(max_length=80, blank=True)
 
     class Meta:
-        ordering = ['-criado_em']
+        ordering = ['-atualizado_em', '-criado_em']
         constraints = [
             models.UniqueConstraint(
                 fields=['usuario', 'origem', 'objeto_id'],

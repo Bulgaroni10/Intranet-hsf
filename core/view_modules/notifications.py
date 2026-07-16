@@ -23,6 +23,7 @@ def _serializar(notificacao):
         'link': notificacao.link,
         'lida': notificacao.lida,
         'criado_em': notificacao.criado_em.isoformat(),
+        'atualizado_em': notificacao.atualizado_em.isoformat(),
     }
 
 
