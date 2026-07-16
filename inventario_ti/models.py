@@ -255,6 +255,7 @@ class SuprimentoTI(models.Model):
     fabricante = models.CharField(max_length=120, blank=True, default="")
     modelo_compativel = models.CharField(max_length=180, blank=True, default="")
     quantidade = models.PositiveIntegerField(default=0)
+    valor_unitario = models.DecimalField(max_digits=12, decimal_places=2, null=True, blank=True)
     estoque_minimo = models.PositiveIntegerField(default=0)
     ativo = models.BooleanField(default=True)
     criado_em = models.DateTimeField(auto_now_add=True)
@@ -288,6 +289,12 @@ class MovimentacaoSuprimentoTI(models.Model):
     saldo_atual = models.PositiveIntegerField()
     setor_destino = models.ForeignKey(Setor, on_delete=models.SET_NULL, null=True, blank=True, related_name="consumos_suprimentos_ti")
     impressora_destino = models.CharField(max_length=180, blank=True, default="")
+    impressora_monitorada = models.ForeignKey(
+        "ImpressoraMonitorada", on_delete=models.SET_NULL, null=True, blank=True,
+        related_name="consumos_suprimentos",
+    )
+    valor_unitario = models.DecimalField(max_digits=12, decimal_places=2, null=True, blank=True)
+    valor_total = models.DecimalField(max_digits=14, decimal_places=2, null=True, blank=True)
     responsavel = models.CharField(max_length=180, blank=True, default="")
     observacao = models.TextField(blank=True, default="")
     usuario = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True)

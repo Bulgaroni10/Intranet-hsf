@@ -3,6 +3,7 @@ from django.contrib import messages
 from django.core.paginator import Paginator
 from django.db import transaction
 from django.db.models import Count, Q
+from decimal import Decimal, InvalidOperation
 from django.http import FileResponse, HttpResponse, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
@@ -13,6 +14,7 @@ from io import BytesIO
 import json
 import re
 import uuid
+from datetime import datetime
 from pathlib import Path
 from urllib.parse import urlencode
 from django.urls import reverse
@@ -82,6 +84,81 @@ def impressoras_monitoradas(request):
         "total": itens.count(), "online": itens.filter(ativo=True, online=True).count(),
         "offline": itens.filter(ativo=True, online=False).count(),
     })
+
+
+def _movimentacoes_relatorio(request):
+    unidade = obter_unidade_ativa(request.user)
+    qs = MovimentacaoSuprimentoTI.objects.filter(
+        suprimento__unidade=unidade, suprimento__escopo="ti", tipo="saida",
+        estornada_em__isnull=True,
+    ).select_related("suprimento", "setor_destino", "impressora_monitorada", "usuario")
+    inicio = request.GET.get("inicio", "").strip()
+    fim = request.GET.get("fim", "").strip()
+    setor = request.GET.get("setor", "").strip()
+    impressora = request.GET.get("impressora", "").strip()
+    if inicio:
+        qs = qs.filter(criado_em__date__gte=inicio)
+    if fim:
+        qs = qs.filter(criado_em__date__lte=fim)
+    if setor:
+        qs = qs.filter(setor_destino_id=setor)
+    if impressora:
+        qs = qs.filter(impressora_monitorada_id=impressora)
+    return qs, {"inicio": inicio, "fim": fim, "setor": setor, "impressora": impressora}
+
+
+@login_required(login_url="/")
+def relatorio_consumo_impressoras(request):
+    if not usuario_pode_acessar_inventario_ti(request.user):
+        return render(request, "core/sem_permissao.html", status=403)
+    movimentos, filtros = _movimentacoes_relatorio(request)
+    linhas = list(movimentos.order_by("-criado_em")[:1000])
+    resumo = {}
+    total_quantidade = 0
+    total_valor = Decimal("0")
+    movimentos_sem_custo = 0
+    for movimento in linhas:
+        setor_nome = movimento.setor_destino.nome if movimento.setor_destino else "Sem setor"
+        chave = movimento.setor_destino_id or 0
+        grupo = resumo.setdefault(chave, {"setor": setor_nome, "quantidade": 0, "valor": Decimal("0"), "movimentos": 0})
+        grupo["quantidade"] += movimento.quantidade
+        grupo["movimentos"] += 1
+        total_quantidade += movimento.quantidade
+        if movimento.valor_total is not None:
+            grupo["valor"] += movimento.valor_total
+            total_valor += movimento.valor_total
+        else:
+            movimentos_sem_custo += 1
+    return render(request, "inventario_ti/relatorio_consumo_impressoras.html", {
+        "movimentos": linhas, "resumo_setores": sorted(resumo.values(), key=lambda x: x["setor"]),
+        "total_quantidade": total_quantidade, "total_valor": total_valor,
+        "movimentos_sem_custo": movimentos_sem_custo, "filtros": filtros,
+        "setores": Setor.objects.filter(ativo=True).order_by("nome"),
+        "impressoras": ImpressoraMonitorada.objects.filter(unidade=obter_unidade_ativa(request.user), ativo=True).order_by("local"),
+    })
+
+
+@login_required(login_url="/")
+def exportar_relatorio_consumo_impressoras(request):
+    if not usuario_pode_acessar_inventario_ti(request.user):
+        return render(request, "core/sem_permissao.html", status=403)
+    movimentos, _ = _movimentacoes_relatorio(request)
+    resposta = HttpResponse(content_type="text/csv; charset=utf-8")
+    resposta["Content-Disposition"] = 'attachment; filename="consumo-impressoras.csv"'
+    resposta.write("\ufeff")
+    escritor = csv.writer(resposta, delimiter=";")
+    escritor.writerow(["Data", "Setor", "Impressora", "IP", "Suprimento", "Categoria", "Quantidade", "Custo unitário", "Custo total", "Responsável"])
+    for item in movimentos.order_by("-criado_em"):
+        escritor.writerow([
+            timezone.localtime(item.criado_em).strftime("%d/%m/%Y %H:%M"),
+            item.setor_destino.nome if item.setor_destino else "",
+            item.impressora_monitorada.local if item.impressora_monitorada else item.impressora_destino,
+            item.impressora_monitorada.ip if item.impressora_monitorada else "",
+            item.suprimento.nome, item.suprimento.categoria, item.quantidade,
+            item.valor_unitario if item.valor_unitario is not None else "",
+            item.valor_total if item.valor_total is not None else "", item.responsavel,
+        ])
+    return resposta
 
 
 @login_required(login_url="/")
@@ -1264,6 +1341,14 @@ def _cadastrar_suprimento(request, escopo):
             quantidade = 0
         if quantidade <= 0:
             erros.append("Informe uma quantidade maior que zero.")
+        valor_texto = request.POST.get("valor_unitario", "").strip()
+        if "," in valor_texto:
+            valor_texto = valor_texto.replace(".", "").replace(",", ".")
+        try:
+            valor_unitario = Decimal(valor_texto) if valor_texto else None
+        except InvalidOperation:
+            valor_unitario = None
+            erros.append("Informe um custo unitário válido.")
 
         if not erros:
             with transaction.atomic():
@@ -1279,7 +1364,9 @@ def _cadastrar_suprimento(request, escopo):
                     foi_somado = True
                     saldo_anterior = existente.quantidade
                     existente.quantidade += quantidade
-                    existente.save(update_fields=["quantidade", "atualizado_em"])
+                    if valor_unitario is not None:
+                        existente.valor_unitario = valor_unitario
+                    existente.save(update_fields=["quantidade", "valor_unitario", "atualizado_em"])
                     item = existente
                 else:
                     foi_somado = False
@@ -1292,12 +1379,15 @@ def _cadastrar_suprimento(request, escopo):
                         nome=nome,
                         categoria=categoria,
                         quantidade=quantidade,
+                        valor_unitario=valor_unitario,
                         estoque_minimo=1,
                     )
                 MovimentacaoSuprimentoTI.objects.create(
                     suprimento=item, tipo="entrada", quantidade=quantidade,
                     saldo_anterior=saldo_anterior, saldo_atual=item.quantidade, usuario=request.user,
                     observacao="Entrada registrada pelo cadastro de suprimento.",
+                    valor_unitario=valor_unitario,
+                    valor_total=(valor_unitario * quantidade) if valor_unitario is not None else None,
                 )
                 sincronizar_alerta_suprimento(item)
             if foi_somado:
@@ -1341,6 +1431,10 @@ def movimentar_suprimento(request, suprimento_id):
         except ValueError:
             quantidade = 0
         setor_destino_id = request.POST.get("setor_destino", "").strip()
+        impressora_id = request.POST.get("impressora_monitorada", "").strip()
+        impressora = ImpressoraMonitorada.objects.filter(
+            id=impressora_id, unidade=item.unidade, ativo=True,
+        ).first() if impressora_id else None
         setor_destino = (
             Setor.objects.filter(id=setor_destino_id, ativo=True).first()
             if setor_destino_id else None
@@ -1351,7 +1445,9 @@ def movimentar_suprimento(request, suprimento_id):
         if quantidade <= 0:
             erros.append("Informe uma quantidade maior que zero.")
         if tipo == "saida" and not setor_destino:
-            erros.append("Informe o setor que recebeu o material.")
+            setor_destino = impressora.setor if impressora else None
+            if not setor_destino:
+                erros.append("Informe o setor que recebeu o material.")
         erros.extend(_validar_anexos_suprimento(anexos))
 
         if not erros:
@@ -1374,7 +1470,10 @@ def movimentar_suprimento(request, suprimento_id):
                         suprimento=bloqueado, tipo=tipo, quantidade=quantidade,
                         saldo_anterior=saldo_anterior, saldo_atual=saldo_atual,
                         setor_destino=setor_destino,
-                        impressora_destino=request.POST.get("impressora_destino", "").strip(),
+                        impressora_monitorada=impressora,
+                        impressora_destino=(f"{impressora.ip} - {impressora.local}" if impressora else request.POST.get("impressora_destino", "").strip()),
+                        valor_unitario=bloqueado.valor_unitario,
+                        valor_total=(bloqueado.valor_unitario * quantidade) if bloqueado.valor_unitario is not None and tipo == "saida" else None,
                         responsavel=request.POST.get("responsavel", "").strip(),
                         observacao=request.POST.get("observacao", "").strip(),
                         usuario=request.user,
@@ -1398,6 +1497,7 @@ def movimentar_suprimento(request, suprimento_id):
         "item": item,
         "tipos": MovimentacaoSuprimentoTI.TIPO_CHOICES,
         "setores": Setor.objects.filter(ativo=True).order_by("nome"),
+        "impressoras": ImpressoraMonitorada.objects.filter(unidade=item.unidade, ativo=True).order_by("local"),
         "modulo_setorial": item.escopo == "setorial",
     })
 

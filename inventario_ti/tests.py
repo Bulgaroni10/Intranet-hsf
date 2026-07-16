@@ -231,6 +231,29 @@ class CadastroImpressoraMonitoradaTests(TestCase):
         self.client.force_login(comum)
         self.assertEqual(self.client.get(reverse("inventario_ti_impressoras")).status_code, 403)
 
+    def test_saida_vincula_impressora_e_alimenta_relatorio(self):
+        impressora = ImpressoraMonitorada.objects.create(
+            unidade=self.unidade, setor=self.setor, ip="192.0.2.60", local="Recepção",
+        )
+        suprimento = SuprimentoTI.objects.create(
+            unidade=self.unidade, escopo="ti", codigo="TON-1", nome="Toner",
+            categoria="Toner", quantidade=10, valor_unitario="100.00",
+        )
+        resposta = self.client.post(reverse("inventario_ti_suprimento_movimentar", args=[suprimento.pk]), {
+            "tipo": "saida", "quantidade": "2", "setor_destino": self.setor.pk,
+            "impressora_monitorada": impressora.pk, "responsavel": "TI",
+        })
+        self.assertEqual(resposta.status_code, 302)
+        movimento = suprimento.movimentacoes.get()
+        self.assertEqual(movimento.impressora_monitorada, impressora)
+        self.assertEqual(movimento.valor_total, 200)
+        relatorio = self.client.get(reverse("inventario_ti_relatorio_consumo_impressoras"))
+        self.assertEqual(relatorio.status_code, 200)
+        self.assertContains(relatorio, "R$ 200,00")
+        csv_resposta = self.client.get(reverse("inventario_ti_relatorio_consumo_impressoras_csv"))
+        self.assertEqual(csv_resposta.status_code, 200)
+        self.assertIn("text/csv", csv_resposta["Content-Type"])
+
 
 class MonitoramentoActiveDirectoryTests(TestCase):
     def setUp(self):

@@ -4,6 +4,7 @@
 {% block content %}
 <div class="page access-page">
   {% include "components/page_header.html" with eyebrow="Inventário TI" icon="🖨️" title="Impressoras monitoradas" subtitle="Cadastre os equipamentos que alimentam o NOC da unidade." action_url_name="inventario_ti_impressora_nova" action_text="Nova impressora" secondary_url_name="inventario_ti_dashboard" secondary_text="Voltar" %}
+  <div class="access-actions"><a class="btn-submit" href="{% url 'inventario_ti_relatorio_consumo_impressoras' %}">Relatório de consumo por setor</a></div>
   <section class="kpi-grid">
     {% include "components/kpi_card.html" with icon="🖨️" title="Cadastradas" value=total color="info" %}
     {% include "components/kpi_card.html" with icon="🟢" title="Online" value=online color="success" %}
