@@ -78,6 +78,7 @@ INSTALLED_APPS = [
     'base_conhecimento',
     'inventario_ti',
     'gestao_acessos',
+    'acesso_remoto',
 ]
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',

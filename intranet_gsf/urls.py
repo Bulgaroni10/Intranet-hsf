@@ -13,6 +13,7 @@ urlpatterns = [
     path('', include('solicitacoes.urls')),
     path('', include('inventario_ti.urls')),
     path('', include('gestao_acessos.urls')),
+    path('', include('acesso_remoto.urls')),
 ]
 
 if settings.DEBUG:

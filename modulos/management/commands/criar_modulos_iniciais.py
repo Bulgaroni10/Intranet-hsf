@@ -189,6 +189,7 @@ class Command(BaseCommand):
                 'ordem': 50,
                 'palavras': 'vpn acesso remoto openvpn contingência',
                 'grupos': ['TI Administrador', 'TI Suporte', 'Gerência', 'Diretoria'],
+                'link': '/portal/acesso-remoto/',
             },
             {
                 'nome': 'Inventário de Ativos',

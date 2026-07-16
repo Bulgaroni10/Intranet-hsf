@@ -1,0 +1,17 @@
+{% extends "base/base.html" %}
+{% block title %}Solicitação VPN #{{ solicitacao.id }}{% endblock %}
+{% block content %}
+<div class="page">
+  {% include "components/page_header.html" with eyebrow="Acesso remoto" icon="🌐" title=solicitacao.nome subtitle="Detalhes, validade e atendimento da solicitação." %}
+  <div class="detail-layout">
+    <main>
+      <section class="panel"><h2>Solicitação #{{ solicitacao.id }}</h2><div class="details-grid">
+        <div><small>Status</small><strong>{{ solicitacao.get_status_display }}</strong></div><div><small>Unidade / setor</small><strong>{{ solicitacao.unidade.sigla }} · {{ solicitacao.setor.nome }}</strong></div><div><small>Vínculo</small><strong>{{ solicitacao.get_vinculo_display }}</strong></div><div><small>CPF</small><strong>{{ solicitacao.cpf }}</strong></div><div><small>E-mail</small><strong>{{ solicitacao.email }}</strong></div><div><small>Telefone</small><strong>{{ solicitacao.telefone|default:"—" }}</strong></div><div><small>Tipo</small><strong>{{ solicitacao.get_tipo_acesso_display }}</strong></div><div><small>Equipamento</small><strong>{{ solicitacao.equipamento }}</strong></div><div><small>Início</small><strong>{{ solicitacao.inicio_validade|date:"d/m/Y H:i" }}</strong></div><div><small>Término</small><strong>{{ solicitacao.fim_validade|date:"d/m/Y H:i" }}</strong></div>
+      </div><hr><p><strong>Destino:</strong> {{ solicitacao.sistema_destino }}</p><p><strong>Finalidade:</strong> {{ solicitacao.finalidade }}</p></section>
+      <section class="panel"><h2>Anexos</h2>{% for anexo in solicitacao.anexos.all %}<p><a href="{% url 'acesso_remoto_anexo' anexo.id %}">📎 {{ anexo.nome_original }}</a> <small>{{ anexo.criado_em|date:"d/m/Y H:i" }}</small></p>{% empty %}<p>Nenhum anexo.</p>{% endfor %}</section>
+      <section class="panel"><h2>Histórico</h2>{% for evento in solicitacao.historico.all %}<p><strong>{{ evento.status_novo }}</strong> · {{ evento.criado_em|date:"d/m/Y H:i" }}<br><small>{% if evento.usuario %}{{ evento.usuario.get_full_name|default:evento.usuario.username }}{% endif %} {{ evento.observacao }}</small></p>{% endfor %}</section>
+    </main>
+    <aside>{% if pode_gerenciar %}<section class="panel"><h2>Atendimento da TI</h2><form method="post" enctype="multipart/form-data" action="{% url 'acesso_remoto_atender' solicitacao.id %}">{% csrf_token %}<div class="field">{{ form.status.label_tag }}{{ form.status }}</div><div class="field">{{ form.observacao_ti.label_tag }}{{ form.observacao_ti }}</div><div class="field"><label>Anexar documento</label><input type="file" name="anexos" multiple></div><button class="btn btn-primary" type="submit">Atualizar atendimento</button></form></section>{% endif %}</aside>
+  </div>
+</div>
+{% endblock %}
