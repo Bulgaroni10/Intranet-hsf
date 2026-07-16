@@ -1,4 +1,41 @@
-{% extends "base/base.html" %}{% block title %}Nova solicitação de RH{% endblock %}{% block content %}
-<div class="page">{% include "components/page_header.html" with eyebrow="Recursos Humanos" icon="👥" title="Nova solicitação" subtitle="O conteúdo será visível somente para você e o RH da unidade." %}
-<form method="post" enctype="multipart/form-data">{% csrf_token %}<section class="panel"><div class="form-grid">{% include "gestao_acessos/campo.html" with campo=form.tipo %}{% include "gestao_acessos/campo.html" with campo=form.assunto %}{% include "gestao_acessos/campo.html" with campo=form.setor %}{% include "gestao_acessos/campo.html" with campo=form.telefone %}<div class="field field-full">{{ form.descricao.label_tag }}{{ form.descricao }}{{ form.descricao.errors }}</div><div class="field field-full"><label>Anexos</label><input type="file" name="anexos" multiple><small>PDF, Office, CSV, TXT ou imagem. Até 10 MB por arquivo.</small></div>{% if form.non_field_errors %}<div class="field field-full">{{ form.non_field_errors }}</div>{% endif %}</div></section><div class="form-actions"><a class="btn btn-secondary" href="{% url 'rh_lista' %}">Cancelar</a><button class="btn btn-primary">Registrar solicitação</button></div></form></div>
+{% extends "base/base.html" %}
+{% block title %}Nova solicitação de RH{% endblock %}
+{% block extra_css %}{% include "gestao_acessos/estilos.html" %}{% endblock %}
+{% block content %}
+<div class="page access-page">
+  {% include "components/page_header.html" with eyebrow="Recursos Humanos" icon="👥" title="Nova solicitação" subtitle="Abra um atendimento confidencial para o RH da sua unidade." secondary_url_name="rh_lista" secondary_text="Voltar" %}
+
+  <form method="post" enctype="multipart/form-data" class="access-form">
+    {% csrf_token %}
+    {% if form.non_field_errors %}<div class="access-error">{{ form.non_field_errors }}</div>{% endif %}
+
+    <section class="access-card">
+      <div class="access-card-title"><span>1</span><div><h2>Identificação do atendimento</h2><p>Escolha o assunto e confirme o setor e o contato.</p></div></div>
+      <div class="access-grid">
+        {% include "gestao_acessos/campo.html" with campo=form.tipo %}
+        {% include "gestao_acessos/campo.html" with campo=form.assunto %}
+        {% include "gestao_acessos/campo.html" with campo=form.setor %}
+        {% include "gestao_acessos/campo.html" with campo=form.telefone %}
+      </div>
+    </section>
+
+    <section class="access-card">
+      <div class="access-card-title"><span>2</span><div><h2>Detalhes da solicitação</h2><p>Descreva o que precisa e inclua as informações necessárias para análise.</p></div></div>
+      <div class="access-grid">
+        <div class="access-wide">{% include "gestao_acessos/campo.html" with campo=form.descricao %}</div>
+      </div>
+    </section>
+
+    <section class="access-card">
+      <div class="access-card-title"><span>3</span><div><h2>Documentos</h2><p>Anexe fichas e comprovantes relacionados ao atendimento.</p></div></div>
+      <div class="access-upload">
+        <label for="anexos">Selecionar documentos</label>
+        <input id="anexos" type="file" name="anexos" multiple accept=".pdf,.doc,.docx,.xls,.xlsx,.csv,.txt,.jpg,.jpeg,.png">
+        <small>Você pode selecionar vários arquivos. Limite de 10 MB por arquivo.</small>
+      </div>
+    </section>
+
+    <div class="access-actions"><a href="{% url 'rh_lista' %}" class="btn-link">Cancelar</a><button class="btn-submit" type="submit">Enviar ao RH</button></div>
+  </form>
+</div>
 {% endblock %}

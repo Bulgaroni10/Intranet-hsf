@@ -1,3 +1,57 @@
-{% extends "base/base.html" %}{% block title %}RH #{{ solicitacao.id }}{% endblock %}{% block content %}
-<div class="page">{% include "components/page_header.html" with eyebrow="Recursos Humanos" icon="👥" title=solicitacao.assunto subtitle="Atendimento confidencial da sua unidade." %}<div class="detail-layout"><main><section class="panel"><h2>Solicitação #{{ solicitacao.id }}</h2><div class="details-grid"><div><small>Status</small><strong>{{ solicitacao.get_status_display }}</strong></div><div><small>Tipo</small><strong>{{ solicitacao.get_tipo_display }}</strong></div><div><small>Solicitante</small><strong>{{ solicitacao.solicitante.get_full_name|default:solicitacao.solicitante.username }}</strong></div><div><small>Unidade / setor</small><strong>{{ solicitacao.unidade.sigla }} · {{ solicitacao.setor.nome }}</strong></div></div><hr><p>{{ solicitacao.descricao }}</p>{% if solicitacao.resposta_rh %}<h3>Resposta do RH</h3><p>{{ solicitacao.resposta_rh }}</p>{% endif %}</section><section class="panel"><h2>Anexos</h2>{% for anexo in solicitacao.anexos.all %}<p><a href="{% url 'rh_anexo' anexo.id %}">📎 {{ anexo.nome_original }}</a></p>{% empty %}<p>Nenhum anexo.</p>{% endfor %}</section><section class="panel"><h2>Histórico</h2>{% for evento in solicitacao.historico.all %}<p><strong>{{ evento.status_novo }}</strong> · {{ evento.criado_em|date:"d/m/Y H:i" }}<br><small>{{ evento.observacao }}</small></p>{% endfor %}</section></main><aside>{% if pode_atender %}<section class="panel"><h2>Atendimento do RH</h2><form method="post" enctype="multipart/form-data" action="{% url 'rh_atender' solicitacao.id %}">{% csrf_token %}<div class="field">{{ form.status.label_tag }}{{ form.status }}</div><div class="field">{{ form.resposta_rh.label_tag }}{{ form.resposta_rh }}</div><div class="field"><label>Anexar documento</label><input type="file" name="anexos" multiple></div><button class="btn btn-primary">Atualizar atendimento</button></form></section>{% endif %}</aside></div></div>
+{% extends "base/base.html" %}
+{% block title %}RH #{{ solicitacao.id }}{% endblock %}
+{% block extra_css %}{% include "gestao_acessos/estilos.html" %}{% endblock %}
+{% block content %}
+<div class="page access-page">
+  {% include "components/page_header.html" with eyebrow="Recursos Humanos" icon="👥" title=solicitacao.assunto subtitle="Acompanhamento confidencial da solicitação." secondary_url_name="rh_lista" secondary_text="Voltar" %}
+
+  <div class="access-detail-head">
+    <div><small>PROTOCOLO</small><strong>#{{ solicitacao.id }}</strong></div>
+    <div><small>STATUS</small><strong>{{ solicitacao.get_status_display }}</strong></div>
+    <div><small>ABERTO EM</small><strong>{{ solicitacao.criado_em|date:"d/m/Y H:i" }}</strong></div>
+    <div><small>RESPONSÁVEL</small><strong>{% if solicitacao.responsavel %}{{ solicitacao.responsavel.get_full_name|default:solicitacao.responsavel.username }}{% else %}Aguardando RH{% endif %}</strong></div>
+  </div>
+
+  <div class="access-columns">
+    <div>
+      <section class="access-card">
+        <div class="access-card-title"><span>📋</span><div><h2>Dados da solicitação</h2><p>Identificação do solicitante e classificação do atendimento.</p></div></div>
+        <dl class="access-data">
+          <div><dt>Solicitante</dt><dd>{{ solicitacao.solicitante.get_full_name|default:solicitacao.solicitante.username }}</dd></div>
+          <div><dt>Tipo</dt><dd>{{ solicitacao.get_tipo_display }}</dd></div>
+          <div><dt>Unidade</dt><dd>{{ solicitacao.unidade.nome }}</dd></div>
+          <div><dt>Setor</dt><dd>{{ solicitacao.setor.nome }}</dd></div>
+          <div><dt>Telefone</dt><dd>{{ solicitacao.telefone|default:"Não informado" }}</dd></div>
+          <div><dt>Última atualização</dt><dd>{{ solicitacao.atualizado_em|date:"d/m/Y H:i" }}</dd></div>
+        </dl>
+      </section>
+
+      <section class="access-card">
+        <div class="access-card-title"><span>💬</span><div><h2>Descrição</h2><p>Informações registradas pelo solicitante.</p></div></div>
+        <div class="access-text"><p>{{ solicitacao.descricao|linebreaksbr }}</p>{% if solicitacao.resposta_rh %}<h3>Resposta do RH</h3><p>{{ solicitacao.resposta_rh|linebreaksbr }}</p>{% endif %}</div>
+      </section>
+
+      <section class="access-card">
+        <div class="access-card-title"><span>📎</span><div><h2>Documentos</h2><p>Arquivos enviados durante o atendimento.</p></div></div>
+        <div class="access-files">{% for anexo in solicitacao.anexos.all %}<a href="{% url 'rh_anexo' anexo.id %}"><span>📄</span><div><strong>{{ anexo.nome_original }}</strong><small>{{ anexo.tamanho|filesizeformat }} · {{ anexo.criado_em|date:"d/m/Y H:i" }}</small></div><b>Baixar</b></a>{% empty %}<div class="access-empty">Nenhum documento anexado.</div>{% endfor %}</div>
+      </section>
+    </div>
+
+    <div>
+      {% if pode_atender %}<section class="access-card access-sticky">
+        <div class="access-card-title"><span>⚙️</span><div><h2>Atendimento do RH</h2><p>Atualize o andamento e registre a resposta.</p></div></div>
+        <form method="post" enctype="multipart/form-data" action="{% url 'rh_atender' solicitacao.id %}">{% csrf_token %}
+          {% for campo in form %}{% include "gestao_acessos/campo.html" with campo=campo %}{% endfor %}
+          <div class="form-group"><label>Adicionar documento</label><input type="file" name="anexos" multiple accept=".pdf,.doc,.docx,.xls,.xlsx,.csv,.txt,.jpg,.jpeg,.png"><small>É possível anexar mais de um arquivo.</small></div>
+          <button class="btn-submit access-full-button" type="submit">Salvar atendimento</button>
+        </form>
+      </section>{% endif %}
+
+      <section class="access-card">
+        <div class="access-card-title"><span>🕘</span><div><h2>Histórico</h2><p>Rastreabilidade das atualizações.</p></div></div>
+        <div class="access-timeline">{% for evento in solicitacao.historico.all %}<div><i></i><p><strong>{{ evento.status_novo|title }}</strong><small>{{ evento.criado_em|date:"d/m/Y H:i" }} · {% if evento.usuario %}{{ evento.usuario.get_full_name|default:evento.usuario.username }}{% else %}Sistema{% endif %}</small>{% if evento.observacao %}<span>{{ evento.observacao }}</span>{% endif %}</p></div>{% empty %}<div class="access-empty">Sem eventos registrados.</div>{% endfor %}</div>
+      </section>
+    </div>
+  </div>
+</div>
 {% endblock %}
