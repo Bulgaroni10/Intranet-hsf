@@ -48,6 +48,7 @@ class Command(BaseCommand):
                 'ordem': 40,
                 'palavras': 'laboratório exames matrix coleta resultado',
                 'grupos': ['TI Administrador', 'Laboratório', 'Recepção', 'Médico', 'Enfermagem'],
+                'link': '/portal/laboratorio/',
             },
             {
                 'nome': 'Farmácia',
