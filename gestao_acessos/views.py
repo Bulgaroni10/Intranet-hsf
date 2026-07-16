@@ -100,6 +100,7 @@ def lista(request):
             Q(cpf__icontains=busca) |
             Q(numero_conselho__icontains=busca) |
             Q(especialidade__icontains=busca) |
+            Q(cargo__icontains=busca) |
             Q(sistemas__icontains=busca)
         )
     if status:

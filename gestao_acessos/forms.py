@@ -12,6 +12,7 @@ class SolicitacaoAcessoForm(forms.ModelForm):
         fields = [
             'tipo', 'prioridade', 'colaborador_nome', 'cpf', 'tipo_conselho',
             'numero_conselho', 'uf_conselho', 'especialidade', 'setor',
+            'cargo',
             'sistemas', 'justificativa',
             'data_necessaria',
         ]
@@ -36,7 +37,7 @@ class SolicitacaoAcessoForm(forms.ModelForm):
 
     def clean_uf_conselho(self):
         uf = self.cleaned_data.get('uf_conselho', '').strip().upper()
-        if len(uf) != 2:
+        if uf and len(uf) != 2:
             raise ValidationError('Informe a UF com duas letras.')
         return uf
 

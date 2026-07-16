@@ -18,5 +18,5 @@ class AnexoInline(admin.TabularInline):
 class SolicitacaoAcessoAdmin(admin.ModelAdmin):
     list_display = ('id', 'colaborador_nome', 'unidade', 'tipo', 'status', 'criado_em')
     list_filter = ('unidade', 'tipo', 'status')
-    search_fields = ('colaborador_nome', 'cpf', 'numero_conselho', 'especialidade', 'sistemas')
+    search_fields = ('colaborador_nome', 'cpf', 'numero_conselho', 'especialidade', 'cargo', 'sistemas')
     inlines = [HistoricoInline, AnexoInline]

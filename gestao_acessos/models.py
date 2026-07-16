@@ -47,11 +47,12 @@ class SolicitacaoAcesso(models.Model):
             ('CRM', 'CRM'), ('COREN', 'COREN'), ('CREFITO', 'CREFITO'),
             ('CRP', 'CRP'), ('CRN', 'CRN'), ('CREFONO', 'CREFONO'),
             ('OUTRO', 'Outro'),
-        ],
+        ], blank=True,
     )
-    numero_conselho = models.CharField(max_length=60)
-    uf_conselho = models.CharField(max_length=2)
-    especialidade = models.CharField(max_length=150)
+    numero_conselho = models.CharField(max_length=60, blank=True)
+    uf_conselho = models.CharField(max_length=2, blank=True)
+    especialidade = models.CharField(max_length=150, blank=True)
+    cargo = models.CharField(max_length=150, blank=True)
     sistemas = models.TextField(help_text='Informe um sistema ou acesso por linha.')
     justificativa = models.TextField()
     data_necessaria = models.DateField(null=True, blank=True)

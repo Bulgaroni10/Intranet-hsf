@@ -19,8 +19,9 @@
         <dl class="access-data">
           <div><dt>Nome completo</dt><dd>{{ solicitacao.colaborador_nome }}</dd></div>
           <div><dt>CPF</dt><dd>{{ solicitacao.cpf }}</dd></div>
-          <div><dt>Conselho</dt><dd>{{ solicitacao.tipo_conselho }} {{ solicitacao.numero_conselho }} / {{ solicitacao.uf_conselho }}</dd></div>
-          <div><dt>Especialidade</dt><dd>{{ solicitacao.especialidade }}</dd></div>
+          <div><dt>Conselho</dt><dd>{% if solicitacao.numero_conselho %}{{ solicitacao.tipo_conselho }} {{ solicitacao.numero_conselho }}{% if solicitacao.uf_conselho %} / {{ solicitacao.uf_conselho }}{% endif %}{% else %}Não se aplica{% endif %}</dd></div>
+          <div><dt>Especialidade</dt><dd>{{ solicitacao.especialidade|default:"Não se aplica" }}</dd></div>
+          <div><dt>Cargo</dt><dd>{{ solicitacao.cargo|default:"Não informado" }}</dd></div>
           <div><dt>Unidade</dt><dd>{{ solicitacao.unidade.nome }}</dd></div>
           <div><dt>Setor</dt><dd>{{ solicitacao.setor.nome }}</dd></div>
         </dl>

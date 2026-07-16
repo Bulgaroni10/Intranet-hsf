@@ -77,6 +77,20 @@ class GestaoAcessosTests(TestCase):
         solicitacao.refresh_from_db()
         self.assertEqual(solicitacao.status, 'pendente')
 
+    def test_recepcao_pode_solicitar_sem_conselho_ou_especialidade(self):
+        self.client.force_login(self.usuario_a)
+        resposta = self.client.post(reverse('gestao_acessos_nova'), {
+            'tipo': 'admissao', 'prioridade': 'normal',
+            'colaborador_nome': 'Ana Recepção', 'cpf': '12345678909',
+            'cargo': 'Recepcionista', 'setor': self.setor.pk,
+            'sistemas': 'MV', 'justificativa': 'Nova recepcionista',
+        })
+        self.assertEqual(resposta.status_code, 302)
+        solicitacao = SolicitacaoAcesso.objects.get()
+        self.assertEqual(solicitacao.cargo, 'Recepcionista')
+        self.assertEqual(solicitacao.numero_conselho, '')
+        self.assertEqual(solicitacao.especialidade, '')
+
     def test_abertura_aceita_multiplos_anexos(self):
         self.client.force_login(self.usuario_a)
         resposta = self.client.post(reverse('gestao_acessos_nova'), {
