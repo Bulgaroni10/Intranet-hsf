@@ -79,6 +79,7 @@ INSTALLED_APPS = [
     'inventario_ti',
     'gestao_acessos',
     'acesso_remoto',
+    'recursos_humanos',
 ]
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',

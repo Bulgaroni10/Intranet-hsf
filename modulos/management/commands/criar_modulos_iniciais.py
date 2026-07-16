@@ -98,6 +98,7 @@ class Command(BaseCommand):
                 'ordem': 10,
                 'palavras': 'rh recursos humanos salário vt va vr benefícios dúvidas',
                 'grupos': [],
+                'link': '/portal/recursos-humanos/',
             },
             {
                 'nome': 'Financeiro / Faturamento',
