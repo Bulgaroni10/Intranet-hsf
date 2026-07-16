@@ -109,6 +109,7 @@ class Command(BaseCommand):
                 'ordem': 20,
                 'palavras': 'financeiro faturamento contas manuais mv',
                 'grupos': ['TI Administrador', 'Financeiro', 'Faturamento', 'Gerência', 'Diretoria'],
+                'link': '/portal/financeiro-faturamento/',
             },
             {
                 'nome': 'Suprimentos / Compras',

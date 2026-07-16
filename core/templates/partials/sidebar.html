@@ -6,6 +6,7 @@
 {% usuario_pode_acessar_administracao_tag request.user as pode_ver_admin %}
 {% pode_acessar_modulo_nome request.user "MV / Sistema Hospitalar" as pode_ver_mv %}
 {% pode_acessar_modulo_nome request.user "Código TUSS" as pode_ver_tuss %}
+{% pode_acessar_modulo_nome request.user "Financeiro / Faturamento" as pode_ver_financeiro %}
 
 <aside class="gsf-sidebar">
 
@@ -84,6 +85,10 @@
     <a href="{% url 'rh_lista' %}" class="gsf-sidebar-link">
       <span>👥</span><strong>Recursos Humanos</strong>
     </a>
+
+    {% if pode_ver_financeiro %}<a href="{% url 'financeiro_lista' %}" class="gsf-sidebar-link">
+      <span>💰</span><strong>Financeiro / Faturamento</strong>
+    </a>{% endif %}
 
     <a href="/portal/modulos/avisos/" class="gsf-sidebar-link">
       <span>📢</span>

@@ -80,6 +80,7 @@ INSTALLED_APPS = [
     'gestao_acessos',
     'acesso_remoto',
     'recursos_humanos',
+    'financeiro_faturamento',
 ]
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',

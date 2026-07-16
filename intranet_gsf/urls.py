@@ -15,6 +15,7 @@ urlpatterns = [
     path('', include('gestao_acessos.urls')),
     path('', include('acesso_remoto.urls')),
     path('', include('recursos_humanos.urls')),
+    path('', include('financeiro_faturamento.urls')),
 ]
 
 if settings.DEBUG:
