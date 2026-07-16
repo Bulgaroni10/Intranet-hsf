@@ -2,6 +2,7 @@ import asyncio
 import html
 import re
 import ssl
+from datetime import timedelta
 from urllib.request import HTTPSHandler, ProxyHandler, Request, build_opener
 
 from django.contrib.auth import get_user_model
@@ -10,7 +11,7 @@ from django.utils import timezone
 
 from core.models import NotificacaoUsuario
 from core.services.permissions import PERFIS_TI
-from .models import ImpressoraMonitorada
+from .models import ImpressoraMonitorada, LeituraImpressora
 
 
 STATUS_RE = re.compile(r'<div id="moni_data">.*?<span[^>]*>(.*?)</span>', re.I | re.S)
@@ -218,6 +219,37 @@ def _sincronizar_alerta(impressora):
             notificacao.save(update_fields=campos_atualizados)
 
 
+def _registrar_leitura(impressora):
+    """Mantém histórico esparso: mudanças reais e uma referência a cada 24 horas."""
+    ultima = impressora.leituras.order_by("-coletado_em").first()
+    estado_atual = (
+        impressora.online,
+        impressora.status_dispositivo,
+        impressora.toner_percentual,
+        impressora.cilindro_percentual,
+    )
+    estado_anterior = None
+    if ultima:
+        estado_anterior = (
+            ultima.online,
+            ultima.status_dispositivo,
+            ultima.toner_percentual,
+            ultima.cilindro_percentual,
+        )
+    referencia_vencida = not ultima or ultima.coletado_em <= timezone.now() - timedelta(hours=24)
+    if estado_atual == estado_anterior and not referencia_vencida:
+        return ultima
+    return LeituraImpressora.objects.create(
+        impressora=impressora,
+        online=impressora.online,
+        status_dispositivo=impressora.status_dispositivo,
+        toner_percentual=impressora.toner_percentual,
+        cilindro_percentual=impressora.cilindro_percentual,
+        erro=impressora.ultimo_erro,
+        coletado_em=impressora.ultima_consulta or timezone.now(),
+    )
+
+
 def atualizar_impressora(impressora):
     try:
         dados = consultar_impressora(impressora)
@@ -257,6 +289,7 @@ def atualizar_impressora(impressora):
             impressora.ultimo_erro = str(exc)[:1000]
     impressora.ultima_consulta = timezone.now()
     impressora.save(update_fields=["online", "modelo_detectado", "status_dispositivo", "toner_percentual", "cilindro_percentual", "ultimo_erro", "ultima_consulta", "atualizado_em"])
+    _registrar_leitura(impressora)
     _sincronizar_alerta(impressora)
     return impressora
 

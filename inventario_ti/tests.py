@@ -11,7 +11,7 @@ from django.utils import timezone
 
 from usuarios.models import Setor, Unidade
 
-from .models import AnexoMovimentacaoSuprimento, ComputadorInventario, ErroAgenteInventario, ImpressoraMonitorada, MonitoramentoActiveDirectory, MonitoramentoRede, MonitoramentoServidor, MovimentacaoPatrimonioTI, MovimentacaoSuprimentoTI, PatrimonioTI, SuprimentoTI
+from .models import AnexoMovimentacaoSuprimento, ComputadorInventario, ErroAgenteInventario, ImpressoraMonitorada, LeituraImpressora, MonitoramentoActiveDirectory, MonitoramentoRede, MonitoramentoServidor, MovimentacaoPatrimonioTI, MovimentacaoSuprimentoTI, PatrimonioTI, SuprimentoTI
 from .services_ad import monitorar_active_directory
 from .services_impressoras import atualizar_impressora
 from .views import (
@@ -126,6 +126,27 @@ class MonitoramentoImpressoraTests(TestCase):
         self.assertEqual(self.impressora.cilindro_percentual, 18)
         self.assertTrue(self.impressora.possui_alerta)
         self.assertTrue(self.usuario.notificacoes.filter(origem="impressora_monitorada", lida=False).exists())
+        leitura = LeituraImpressora.objects.get(impressora=self.impressora)
+        self.assertEqual(leitura.toner_percentual, 48)
+        self.assertEqual(leitura.cilindro_percentual, 18)
+
+    @patch("inventario_ti.services_impressoras.consultar_suprimentos_snmp", return_value={"toner_percentual": 48, "cilindro_percentual": 18})
+    @patch("inventario_ti.services_impressoras._abrir_url_impressora", return_value=_RespostaImpressoraFake())
+    def test_leitura_igual_nao_duplica_historico(self, _urlopen, _snmp):
+        atualizar_impressora(self.impressora)
+        atualizar_impressora(self.impressora)
+        self.assertEqual(LeituraImpressora.objects.filter(impressora=self.impressora).count(), 1)
+
+    @patch("inventario_ti.services_impressoras.consultar_suprimentos_snmp", side_effect=[
+        {"toner_percentual": 48, "cilindro_percentual": 18},
+        {"toner_percentual": 41, "cilindro_percentual": 18},
+    ])
+    @patch("inventario_ti.services_impressoras._abrir_url_impressora", return_value=_RespostaImpressoraFake())
+    def test_mudanca_de_toner_cria_nova_leitura(self, _urlopen, _snmp):
+        atualizar_impressora(self.impressora)
+        atualizar_impressora(self.impressora)
+        self.assertEqual(LeituraImpressora.objects.filter(impressora=self.impressora).count(), 2)
+        self.assertEqual(self.impressora.leituras.first().toner_percentual, 41)
 
     @patch("inventario_ti.services_impressoras.consultar_suprimentos_snmp", return_value={"toner_percentual": None, "cilindro_percentual": None})
     @patch("inventario_ti.services_impressoras._abrir_url_impressora", side_effect=[TimeoutError("HTTP indisponível"), _RespostaImpressoraFake()])
@@ -230,6 +251,23 @@ class CadastroImpressoraMonitoradaTests(TestCase):
         )
         self.client.force_login(comum)
         self.assertEqual(self.client.get(reverse("inventario_ti_impressoras")).status_code, 403)
+
+    def test_historico_respeita_unidade_ativa(self):
+        propria = ImpressoraMonitorada.objects.create(
+            unidade=self.unidade, ip="192.0.2.70", local="Recepção",
+        )
+        outra_unidade = Unidade.objects.create(nome="Outro Hospital", sigla="OUTIMP")
+        outra = ImpressoraMonitorada.objects.create(
+            unidade=outra_unidade, ip="192.0.2.71", local="Farmácia",
+        )
+        self.assertEqual(
+            self.client.get(reverse("inventario_ti_impressora_historico", args=[propria.pk])).status_code,
+            200,
+        )
+        self.assertEqual(
+            self.client.get(reverse("inventario_ti_impressora_historico", args=[outra.pk])).status_code,
+            404,
+        )
 
     def test_saida_vincula_impressora_e_alimenta_relatorio(self):
         impressora = ImpressoraMonitorada.objects.create(

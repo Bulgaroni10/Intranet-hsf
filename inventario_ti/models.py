@@ -374,6 +374,27 @@ class ImpressoraMonitorada(models.Model):
         return not self.online or toner_baixo or cilindro_baixo or any(termo in texto for termo in termos)
 
 
+class LeituraImpressora(models.Model):
+    impressora = models.ForeignKey(
+        ImpressoraMonitorada, on_delete=models.CASCADE, related_name="leituras",
+    )
+    online = models.BooleanField(default=False)
+    status_dispositivo = models.CharField(max_length=255, blank=True, default="")
+    toner_percentual = models.PositiveSmallIntegerField(null=True, blank=True)
+    cilindro_percentual = models.PositiveSmallIntegerField(null=True, blank=True)
+    erro = models.TextField(blank=True, default="")
+    coletado_em = models.DateTimeField(default=timezone.now)
+
+    class Meta:
+        ordering = ["-coletado_em"]
+        verbose_name = "Leitura de impressora"
+        verbose_name_plural = "Leituras de impressoras"
+        indexes = [models.Index(fields=["impressora", "-coletado_em"])]
+
+    def __str__(self):
+        return f"{self.impressora} - {self.coletado_em:%d/%m/%Y %H:%M}"
+
+
 class MonitoramentoActiveDirectory(models.Model):
     controlador = models.CharField(max_length=255, unique=True)
     ip = models.GenericIPAddressField(null=True, blank=True)

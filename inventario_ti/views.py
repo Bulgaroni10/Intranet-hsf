@@ -26,7 +26,7 @@ from core.services.permissions import usuario_eh_ti
 from usuarios.models import Setor, Unidade
 from usuarios.escopo import aplicar_escopo_unidade, obter_unidade_ativa
 
-from .models import AnexoMovimentacaoSuprimento, ComputadorInventario, ErroAgenteInventario, ImpressoraMonitorada, MovimentacaoPatrimonioTI, MovimentacaoSuprimentoTI, PatrimonioTI, SuprimentoTI
+from .models import AnexoMovimentacaoSuprimento, ComputadorInventario, ErroAgenteInventario, ImpressoraMonitorada, LeituraImpressora, MovimentacaoPatrimonioTI, MovimentacaoSuprimentoTI, PatrimonioTI, SuprimentoTI
 from .forms import ImpressoraMonitoradaForm
 from .services_impressoras import atualizar_impressora
 from .services import (
@@ -83,6 +83,24 @@ def impressoras_monitoradas(request):
         "impressoras": itens, "busca": busca,
         "total": itens.count(), "online": itens.filter(ativo=True, online=True).count(),
         "offline": itens.filter(ativo=True, online=False).count(),
+    })
+
+
+@login_required(login_url="/")
+def historico_impressora(request, impressora_id):
+    if not usuario_pode_acessar_inventario_ti(request.user):
+        return render(request, "core/sem_permissao.html", status=403)
+    impressora = get_object_or_404(
+        aplicar_escopo_unidade(
+            ImpressoraMonitorada.objects.select_related("unidade", "setor"), request.user,
+        ),
+        pk=impressora_id,
+    )
+    leituras = LeituraImpressora.objects.filter(impressora=impressora)[:200]
+    return render(request, "inventario_ti/historico_impressora.html", {
+        "impressora": impressora,
+        "leituras": leituras,
+        "total_leituras": impressora.leituras.count(),
     })
 
 

@@ -9,6 +9,7 @@ from .models import (
     SuprimentoTI,
     MovimentacaoSuprimentoTI,
     ImpressoraMonitorada,
+    LeituraImpressora,
     MonitoramentoActiveDirectory,
     MonitoramentoServidor,
     MonitoramentoRede,
@@ -212,6 +213,14 @@ class ImpressoraMonitoradaAdmin(admin.ModelAdmin):
     search_fields = ["local", "ip", "modelo_informado", "modelo_detectado"]
     list_filter = ["unidade", "online", "ativo"]
     readonly_fields = ["modelo_detectado", "online", "status_dispositivo", "toner_percentual", "cilindro_percentual", "ultimo_erro", "ultima_consulta", "criado_em", "atualizado_em"]
+
+
+@admin.register(LeituraImpressora)
+class LeituraImpressoraAdmin(admin.ModelAdmin):
+    list_display = ["impressora", "online", "status_dispositivo", "toner_percentual", "cilindro_percentual", "coletado_em"]
+    list_filter = ["online", "coletado_em"]
+    search_fields = ["impressora__local", "impressora__ip", "status_dispositivo"]
+    readonly_fields = ["impressora", "online", "status_dispositivo", "toner_percentual", "cilindro_percentual", "erro", "coletado_em"]
 
 
 @admin.register(MonitoramentoActiveDirectory)
