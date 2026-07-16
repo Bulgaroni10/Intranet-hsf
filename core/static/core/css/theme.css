@@ -1005,3 +1005,293 @@ body.gsf-legacy-with-sidebar.gsf-sidebar-collapsed .chat-page {
     text-align: center;
   }
 }
+
+/* =========================================================
+   DENSIDADE E LEGIBILIDADE GLOBAIS
+   Mantem formularios confortaveis e usa melhor telas largas.
+========================================================= */
+
+:root {
+  --gsf-content-max: 1680px;
+  --gsf-content-gutter: clamp(22px, 2.25vw, 42px);
+  --gsf-section-gap: clamp(24px, 2vw, 34px);
+}
+
+html {
+  font-size: 16px;
+}
+
+body {
+  font-size: 1rem;
+  line-height: 1.5;
+}
+
+.gsf-content {
+  padding: var(--gsf-content-gutter) !important;
+}
+
+.page,
+.gsf-content > .container,
+.gsf-dashboard-workspace {
+  width: 100% !important;
+  max-width: var(--gsf-content-max) !important;
+  margin-inline: auto !important;
+}
+
+.page {
+  padding: 6px 0 56px !important;
+}
+
+/* Telas legadas de listagem tambem acompanham a nova largura util. */
+.admin-page,
+.admin-users-page,
+.chat-page,
+.portal-shell,
+.portal-content,
+.main-content {
+  width: min(var(--gsf-content-max), calc(100% - 48px)) !important;
+  max-width: var(--gsf-content-max) !important;
+  margin-inline: auto !important;
+}
+
+.gsf-page-header {
+  padding: clamp(26px, 2vw, 34px) !important;
+  margin-bottom: var(--gsf-section-gap) !important;
+  gap: 24px !important;
+}
+
+.gsf-page-title-line {
+  gap: 20px !important;
+}
+
+.gsf-page-title-line h1,
+.section-header h1 {
+  font-size: clamp(1.85rem, 2vw, 2.35rem) !important;
+  line-height: 1.2;
+}
+
+.gsf-page-title-line p,
+.section-header p,
+.gsf-table-header p {
+  font-size: 0.95rem;
+}
+
+.hero-main,
+.hero-side,
+.summary-card,
+.solicitacao-card,
+.empty-card,
+.notification-card,
+.detail-card,
+.form-card,
+.card,
+.notice,
+.gsf-card,
+.gsf-workspace-card {
+  padding: clamp(24px, 1.75vw, 30px) !important;
+}
+
+.summary-grid,
+.gsf-kpi-grid {
+  gap: 20px !important;
+  margin-bottom: var(--gsf-section-gap) !important;
+}
+
+.gsf-kpi-card {
+  min-height: 118px;
+  padding: 24px !important;
+  gap: 20px !important;
+}
+
+.gsf-kpi-title {
+  font-size: 0.85rem !important;
+}
+
+.gsf-kpi-value {
+  font-size: 2.2rem !important;
+  line-height: 1.1;
+}
+
+.form-card + br,
+.gsf-table-card + br {
+  line-height: var(--gsf-section-gap);
+}
+
+.form-grid {
+  gap: 20px !important;
+  row-gap: 22px !important;
+}
+
+.form-group {
+  margin-bottom: 0 !important;
+}
+
+label,
+.form-group label {
+  margin-bottom: 9px !important;
+  font-size: 0.78rem !important;
+  letter-spacing: 0.035em;
+}
+
+input,
+select,
+textarea {
+  min-height: 48px;
+  padding: 12px 14px !important;
+  font-size: 0.95rem;
+}
+
+.btn-submit,
+.btn-success,
+.btn-link,
+.btn-warning,
+.btn-danger,
+.btn-muted,
+.gsf-button,
+.gsf-btn {
+  min-height: 46px;
+  padding: 11px 16px !important;
+  font-size: 0.86rem !important;
+  line-height: 1.25;
+}
+
+.top-actions,
+.gsf-table-actions,
+.item-actions,
+.form-actions {
+  gap: 12px !important;
+}
+
+.gsf-table-card {
+  border-radius: 20px !important;
+}
+
+.gsf-table-header {
+  padding: 26px 28px !important;
+  gap: 22px !important;
+}
+
+.gsf-table-header h2 {
+  font-size: 1.35rem !important;
+}
+
+.gsf-table-wrap > .gsf-table,
+.table-wrap > table {
+  min-width: max(100%, 1080px);
+}
+
+/* Dez ou mais colunas precisam de largura real, em vez de palavras empilhadas. */
+.gsf-table:has(th:nth-child(10)) {
+  min-width: max(100%, 1480px);
+}
+
+.gsf-table th,
+.gsf-table td,
+table:not(.noc-grid table) th,
+table:not(.noc-grid table) td {
+  padding: 17px 18px !important;
+  line-height: 1.45;
+  overflow-wrap: normal !important;
+  word-break: normal !important;
+}
+
+.gsf-table th,
+table:not(.noc-grid table) th {
+  font-size: 0.78rem !important;
+  letter-spacing: 0.055em;
+}
+
+.gsf-table td,
+table:not(.noc-grid table) td {
+  font-size: 0.9rem;
+}
+
+.gsf-badge {
+  min-height: 32px;
+  padding: 7px 11px !important;
+  white-space: nowrap !important;
+}
+
+.gsf-table td small {
+  display: inline-block;
+  margin-top: 5px;
+  font-size: 0.78rem;
+  line-height: 1.4;
+}
+
+.gsf-table td:last-child,
+.gsf-table th:last-child,
+.gsf-table td .btn-link,
+.gsf-table td .btn-success,
+.gsf-table td .btn-warning,
+.gsf-table td .btn-danger {
+  white-space: nowrap !important;
+}
+
+.gsf-sidebar-link {
+  min-height: 46px;
+  padding-block: 10px;
+}
+
+.gsf-sidebar-link strong,
+.gsf-sidebar-sublink {
+  font-size: 0.875rem;
+}
+
+.gsf-topbar {
+  min-height: 78px;
+  padding: 17px var(--gsf-content-gutter);
+}
+
+@media (max-width: 980px) {
+  .gsf-content {
+    padding: 20px !important;
+  }
+
+  .page {
+    padding: 2px 0 42px !important;
+  }
+
+  .admin-page,
+  .admin-users-page,
+  .chat-page,
+  .portal-shell,
+  .portal-content,
+  .main-content {
+    width: calc(100% - 28px) !important;
+  }
+}
+
+@media (max-width: 640px) {
+  :root {
+    --gsf-content-gutter: 14px;
+  }
+
+  .gsf-content {
+    padding: 14px !important;
+  }
+
+  .gsf-page-header,
+  .hero-main,
+  .hero-side,
+  .summary-card,
+  .solicitacao-card,
+  .detail-card,
+  .form-card,
+  .card,
+  .gsf-card,
+  .gsf-workspace-card {
+    padding: 20px !important;
+  }
+
+  .gsf-table-header {
+    padding: 22px 20px !important;
+  }
+
+  .gsf-table th,
+  .gsf-table td,
+  table:not(.noc-grid table) th,
+  table:not(.noc-grid table) td {
+    padding: 14px !important;
+  }
+}
