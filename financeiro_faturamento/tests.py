@@ -4,6 +4,7 @@ from django.test import TestCase
 from django.urls import reverse
 from usuarios.models import Unidade, Usuario
 from .models import RegistroFinanceiro
+from .forms import RegistroFinanceiroForm
 
 class FinanceiroTests(TestCase):
     def setUp(self):
@@ -27,3 +28,16 @@ class FinanceiroTests(TestCase):
         self.client.force_login(self.f1)
         resposta = self.client.post(reverse('financeiro_novo'), {'area':'financeiro','tipo':'fechamento','titulo':'Fechamento','competencia':'2026-07','prioridade':'normal','status':'pendente','descricao':'Teste'})
         self.assertEqual(resposta.status_code, 302); self.assertEqual(RegistroFinanceiro.objects.count(), 1)
+
+    def test_responsaveis_somente_grupos_autorizados_da_unidade(self):
+        gerente = Group.objects.create(name='Gerência')
+        usuario_gerente = Usuario.objects.create_user(
+            username='gerente', password='123', unidade=self.u1,
+        )
+        usuario_gerente.groups.add(gerente)
+        form = RegistroFinanceiroForm(unidade=self.u1)
+        responsaveis = form.fields['responsavel'].queryset
+        self.assertIn(self.f1, responsaveis)
+        self.assertIn(usuario_gerente, responsaveis)
+        self.assertNotIn(self.f2, responsaveis)
+        self.assertNotIn(self.comum, responsaveis)
