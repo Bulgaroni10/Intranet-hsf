@@ -167,7 +167,8 @@ class Command(BaseCommand):
                 'tag': '',
                 'ordem': 30,
                 'palavras': 'gestão acessos usuários permissões grupos senha reset',
-                'grupos': ['TI Administrador', 'TI Suporte'],
+                'grupos': [],
+                'link': '/portal/gestao-acessos/',
             },
             {
                 'nome': 'Segurança da Informação',
@@ -212,7 +213,7 @@ class Command(BaseCommand):
                     'ordem': item['ordem'],
                     'palavras_chave': item['palavras'],
                     'ativo': True,
-                    'link': '#',
+                    'link': item.get('link', '#'),
                 }
             )
 
@@ -223,6 +224,7 @@ class Command(BaseCommand):
                 modulo.tag = item['tag']
                 modulo.ordem = item['ordem']
                 modulo.palavras_chave = item['palavras']
+                modulo.link = item.get('link', modulo.link)
                 modulo.ativo = True
                 modulo.save()
 
