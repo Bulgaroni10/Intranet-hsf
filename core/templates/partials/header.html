@@ -50,11 +50,12 @@
         </div>
 
         {% for notificacao in notificacoes %}
-          <a class="gsf-notification-item" data-notification-id="{{ notificacao.id }}" href="{{ notificacao.link|default:'#' }}">
-            <span>{{ notificacao.icone }}</span>
+          <a class="gsf-notification-item{% if not notificacao.lida %} is-unread{% endif %} type-{{ notificacao.tipo }}" data-notification-id="{{ notificacao.id }}" href="{{ notificacao.link|default:'#' }}">
+            <span class="gsf-notification-icon">{{ notificacao.icone }}</span>
             <div>
               <strong>{{ notificacao.titulo }}</strong>
               <small>{{ notificacao.descricao }}</small>
+              <time>{{ notificacao.criado_em|timesince }} atrás</time>
             </div>
           </a>
         {% empty %}
@@ -69,21 +70,6 @@
       <a class="gsf-icon-action" href="/portal/administracao/" title="Administração">
         ⚙️
       </a>
-    {% endif %}
-
-    {% if unidades_disponiveis_usuario|length > 1 %}
-      <form class="gsf-company-switcher" method="post" action="{% url 'selecionar_unidade_ativa' %}">
-        {% csrf_token %}
-        <input type="hidden" name="next" value="{{ request.get_full_path }}">
-        <label for="gsf-company-select">Empresa</label>
-        <select id="gsf-company-select" name="unidade_id" onchange="this.form.submit()">
-          {% for unidade in unidades_disponiveis_usuario %}
-            <option value="{{ unidade.id }}" {% if request.user.unidade_id == unidade.id %}selected{% endif %}>
-              {{ unidade.sigla }}
-            </option>
-          {% endfor %}
-        </select>
-      </form>
     {% endif %}
 
     <div class="gsf-user-chip">

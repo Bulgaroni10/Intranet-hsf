@@ -122,7 +122,7 @@ class MonitoramentoImpressoraTests(TestCase):
         self.impressora.refresh_from_db()
         self.assertTrue(self.impressora.online)
         self.assertEqual(self.impressora.modelo_detectado, "MFC-L6902DW")
-        self.assertEqual(self.impressora.toner_percentual, 50)
+        self.assertEqual(self.impressora.toner_percentual, 48)
         self.assertEqual(self.impressora.cilindro_percentual, 18)
         self.assertTrue(self.impressora.possui_alerta)
         self.assertTrue(self.usuario.notificacoes.filter(origem="impressora_monitorada", lida=False).exists())

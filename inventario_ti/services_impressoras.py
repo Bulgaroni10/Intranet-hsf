@@ -225,10 +225,12 @@ def atualizar_impressora(impressora):
         impressora.online = True
         impressora.modelo_detectado = dados["modelo_detectado"] or impressora.modelo_detectado
         impressora.status_dispositivo = dados["status_dispositivo"]
+        # O painel web da Brother representa o nível em poucos degraus.
+        # O Printer-MIB fornece a leitura mais precisa quando está disponível.
         impressora.toner_percentual = (
-            dados["toner_percentual"]
-            if dados["toner_percentual"] is not None
-            else suprimentos_snmp["toner_percentual"]
+            suprimentos_snmp["toner_percentual"]
+            if suprimentos_snmp["toner_percentual"] is not None
+            else dados["toner_percentual"]
         )
         impressora.cilindro_percentual = suprimentos_snmp["cilindro_percentual"]
         impressora.ultimo_erro = ""

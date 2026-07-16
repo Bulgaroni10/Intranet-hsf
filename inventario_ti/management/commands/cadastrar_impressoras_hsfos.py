@@ -8,7 +8,7 @@ IMPRESSORAS = [
     ("192.168.0.204", "MFC-L6902DW", "RECEPÇÃO"),
     ("192.168.0.145", "HL-L6202DW", "ENDOSCOPIA"),
     ("192.168.0.14", "MFC-L6902DW", "FARMÁCIA"),
-    ("192.168.0.201", "HL-L6202DW", "CONSULTÓRIO 1"),
+    ("192.168.0.94", "HL-L6202DW", "CONSULTÓRIO 1"),
     ("192.168.0.207", "DCP-L5500D", "CENTRO CIRÚRGICO"),
     ("192.168.0.223", "DCP-L5652DN", "FATURAMENTO"),
     ("192.168.0.55", "HL-L6202DW", "CONSULTÓRIO 2"),
@@ -38,6 +38,10 @@ class Command(BaseCommand):
         ImpressoraMonitorada.objects.filter(ip="192.168.0.53").update(
             ativo=False,
             status_dispositivo="Desativada: IP pertence a um switch HPE",
+        )
+        ImpressoraMonitorada.objects.filter(ip="192.168.0.201").update(
+            ativo=False,
+            status_dispositivo="Desativada: IP corrigido para 192.168.0.94",
         )
         for ip, modelo, local in IMPRESSORAS:
             _, criada = ImpressoraMonitorada.objects.update_or_create(
