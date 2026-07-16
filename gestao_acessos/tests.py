@@ -1,9 +1,10 @@
 from django.contrib.auth.models import Group
 from django.test import TestCase
+from django.core.files.uploadedfile import SimpleUploadedFile
 from django.urls import reverse
 
 from usuarios.models import Setor, Unidade, Usuario
-from .models import HistoricoSolicitacaoAcesso, SolicitacaoAcesso
+from .models import AnexoSolicitacaoAcesso, HistoricoSolicitacaoAcesso, SolicitacaoAcesso
 
 
 class GestaoAcessosTests(TestCase):
@@ -72,3 +73,40 @@ class GestaoAcessosTests(TestCase):
         })
         solicitacao.refresh_from_db()
         self.assertEqual(solicitacao.status, 'pendente')
+
+    def test_abertura_aceita_multiplos_anexos(self):
+        self.client.force_login(self.usuario_a)
+        resposta = self.client.post(reverse('gestao_acessos_nova'), {
+            'tipo': 'admissao', 'prioridade': 'normal',
+            'colaborador_nome': 'Maria Silva', 'setor': self.setor.pk,
+            'sistemas': 'MV', 'justificativa': 'Nova colaboradora',
+            'anexos': [
+                SimpleUploadedFile('termo.pdf', b'%PDF-1.4', content_type='application/pdf'),
+                SimpleUploadedFile('lista.csv', b'sistema,perfil', content_type='text/csv'),
+            ],
+        })
+        self.assertEqual(resposta.status_code, 302)
+        self.assertEqual(AnexoSolicitacaoAcesso.objects.count(), 2)
+        for anexo in AnexoSolicitacaoAcesso.objects.all():
+            self.addCleanup(anexo.arquivo.delete, False)
+
+    def test_anexo_bloqueia_executavel_e_download_de_outra_unidade(self):
+        self.client.force_login(self.usuario_a)
+        resposta = self.client.post(reverse('gestao_acessos_nova'), {
+            'tipo': 'admissao', 'prioridade': 'normal',
+            'colaborador_nome': 'Maria Silva', 'setor': self.setor.pk,
+            'sistemas': 'MV', 'justificativa': 'Teste',
+            'anexos': SimpleUploadedFile('programa.exe', b'MZ'),
+        })
+        self.assertEqual(resposta.status_code, 200)
+        self.assertEqual(SolicitacaoAcesso.objects.count(), 0)
+
+        solicitacao = self.criar(self.unidade_b, self.usuario_b)
+        anexo = AnexoSolicitacaoAcesso.objects.create(
+            solicitacao=solicitacao,
+            arquivo=SimpleUploadedFile('documento.pdf', b'%PDF-1.4'),
+            nome_original='documento.pdf', enviado_por=self.usuario_b,
+        )
+        self.addCleanup(anexo.arquivo.delete, False)
+        resposta = self.client.get(reverse('gestao_acessos_anexo', args=[anexo.pk]))
+        self.assertEqual(resposta.status_code, 403)

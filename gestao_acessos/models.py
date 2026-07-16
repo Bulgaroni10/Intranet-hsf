@@ -1,5 +1,7 @@
 from django.conf import settings
 from django.db import models
+from pathlib import Path
+from uuid import uuid4
 
 from usuarios.models import Setor, Unidade
 
@@ -69,3 +71,26 @@ class HistoricoSolicitacaoAcesso(models.Model):
 
     class Meta:
         ordering = ['-criado_em']
+
+
+def caminho_anexo_acesso(instance, filename):
+    extensao = Path(filename).suffix.lower()
+    return f'gestao_acessos/{instance.solicitacao_id}/{uuid4().hex}{extensao}'
+
+
+class AnexoSolicitacaoAcesso(models.Model):
+    solicitacao = models.ForeignKey(
+        SolicitacaoAcesso, on_delete=models.CASCADE, related_name='anexos',
+    )
+    arquivo = models.FileField(upload_to=caminho_anexo_acesso)
+    nome_original = models.CharField(max_length=255)
+    tipo_mime = models.CharField(max_length=150, default='application/octet-stream')
+    tamanho = models.PositiveBigIntegerField(default=0)
+    enviado_por = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True)
+    criado_em = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['criado_em']
+
+    def __str__(self):
+        return self.nome_original

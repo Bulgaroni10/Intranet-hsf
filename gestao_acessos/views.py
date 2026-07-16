@@ -2,6 +2,7 @@ from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth import get_user_model
 from django.db.models import Q
+from django.http import FileResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
 
@@ -9,10 +10,35 @@ from auditoria.models import RegistroAuditoria
 from core.models import NotificacaoUsuario
 from usuarios.escopo import aplicar_escopo_unidade, obter_unidade_ativa
 from .forms import AtendimentoAcessoForm, SolicitacaoAcessoForm
-from .models import HistoricoSolicitacaoAcesso, SolicitacaoAcesso
+from pathlib import Path
+
+from .models import AnexoSolicitacaoAcesso, HistoricoSolicitacaoAcesso, SolicitacaoAcesso
 
 
 GRUPOS_TI = ('TI Administrador', 'TI Suporte')
+EXTENSOES_ANEXO = {'.pdf', '.doc', '.docx', '.xls', '.xlsx', '.csv', '.txt', '.jpg', '.jpeg', '.png'}
+TAMANHO_MAXIMO_ANEXO = 10 * 1024 * 1024
+
+
+def validar_anexos(arquivos):
+    erros = []
+    for arquivo in arquivos:
+        nome = Path(arquivo.name).name
+        if Path(nome).suffix.lower() not in EXTENSOES_ANEXO:
+            erros.append(f'Arquivo não permitido: {nome}.')
+        elif arquivo.size > TAMANHO_MAXIMO_ANEXO:
+            erros.append(f'O arquivo {nome} excede o limite de 10 MB.')
+    return erros
+
+
+def salvar_anexos(solicitacao, arquivos, usuario):
+    for arquivo in arquivos:
+        AnexoSolicitacaoAcesso.objects.create(
+            solicitacao=solicitacao, arquivo=arquivo,
+            nome_original=Path(arquivo.name).name,
+            tipo_mime=arquivo.content_type or 'application/octet-stream',
+            tamanho=arquivo.size, enviado_por=usuario,
+        )
 
 
 def pode_gerenciar(user):
@@ -95,11 +121,15 @@ def nova(request):
         messages.error(request, 'Selecione uma unidade antes de continuar.')
         return redirect('gestao_acessos_lista')
     form = SolicitacaoAcessoForm(request.POST or None, unidade=unidade)
+    anexos = request.FILES.getlist('anexos') if request.method == 'POST' else []
+    for erro in validar_anexos(anexos):
+        form.add_error(None, erro)
     if request.method == 'POST' and form.is_valid():
         solicitacao = form.save(commit=False)
         solicitacao.unidade = unidade
         solicitacao.solicitante = request.user
         solicitacao.save()
+        salvar_anexos(solicitacao, anexos, request.user)
         registrar_evento(solicitacao, request.user, '', 'pendente', 'Solicitação aberta.')
         notificar_ti(solicitacao)
         messages.success(request, f'Solicitação #{solicitacao.pk} criada com sucesso.')
@@ -130,16 +160,34 @@ def atender(request, solicitacao_id):
         return redirect('gestao_acessos_detalhe', solicitacao_id=solicitacao.pk)
     anterior = solicitacao.status
     form = AtendimentoAcessoForm(request.POST, instance=solicitacao)
-    if form.is_valid():
+    anexos = request.FILES.getlist('anexos')
+    erros_anexos = validar_anexos(anexos)
+    if form.is_valid() and not erros_anexos:
         solicitacao = form.save(commit=False)
         solicitacao.responsavel = request.user
         solicitacao.concluido_em = timezone.now() if solicitacao.status == 'concluida' else None
         solicitacao.save()
+        salvar_anexos(solicitacao, anexos, request.user)
         registrar_evento(
             solicitacao, request.user, anterior, solicitacao.status,
             solicitacao.observacao_ti,
         )
         messages.success(request, 'Atendimento atualizado com sucesso.')
     else:
-        messages.error(request, 'Revise os dados informados.')
+        messages.error(request, ' '.join(erros_anexos) or 'Revise os dados informados.')
     return redirect('gestao_acessos_detalhe', solicitacao_id=solicitacao.pk)
+
+
+@login_required(login_url='/')
+def baixar_anexo(request, anexo_id):
+    anexo = get_object_or_404(
+        AnexoSolicitacaoAcesso.objects.select_related('solicitacao'), pk=anexo_id,
+    )
+    if not queryset_visivel(request.user).filter(pk=anexo.solicitacao_id).exists():
+        return render(request, 'core/sem_permissao.html', status=403)
+    resposta = FileResponse(
+        anexo.arquivo.open('rb'), as_attachment=True, filename=anexo.nome_original,
+        content_type=anexo.tipo_mime,
+    )
+    resposta['X-Content-Type-Options'] = 'nosniff'
+    return resposta
