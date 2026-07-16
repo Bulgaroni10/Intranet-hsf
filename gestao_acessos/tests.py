@@ -36,6 +36,9 @@ class GestaoAcessosTests(TestCase):
         resposta = self.client.post(reverse('gestao_acessos_nova'), {
             'tipo': 'admissao', 'prioridade': 'normal',
             'colaborador_nome': 'Maria Silva', 'setor': self.setor.pk,
+            'cpf': '12345678909', 'tipo_conselho': 'COREN',
+            'numero_conselho': '123456', 'uf_conselho': 'SP',
+            'especialidade': 'Enfermagem',
             'sistemas': 'MV\nE-mail', 'justificativa': 'Nova colaboradora',
         })
         self.assertEqual(resposta.status_code, 302)
@@ -79,6 +82,9 @@ class GestaoAcessosTests(TestCase):
         resposta = self.client.post(reverse('gestao_acessos_nova'), {
             'tipo': 'admissao', 'prioridade': 'normal',
             'colaborador_nome': 'Maria Silva', 'setor': self.setor.pk,
+            'cpf': '12345678909', 'tipo_conselho': 'COREN',
+            'numero_conselho': '123456', 'uf_conselho': 'SP',
+            'especialidade': 'Enfermagem',
             'sistemas': 'MV', 'justificativa': 'Nova colaboradora',
             'anexos': [
                 SimpleUploadedFile('termo.pdf', b'%PDF-1.4', content_type='application/pdf'),
@@ -95,6 +101,9 @@ class GestaoAcessosTests(TestCase):
         resposta = self.client.post(reverse('gestao_acessos_nova'), {
             'tipo': 'admissao', 'prioridade': 'normal',
             'colaborador_nome': 'Maria Silva', 'setor': self.setor.pk,
+            'cpf': '12345678909', 'tipo_conselho': 'COREN',
+            'numero_conselho': '123456', 'uf_conselho': 'SP',
+            'especialidade': 'Enfermagem',
             'sistemas': 'MV', 'justificativa': 'Teste',
             'anexos': SimpleUploadedFile('programa.exe', b'MZ'),
         })

@@ -1,8 +1,53 @@
 {% extends "base/base.html" %}
 {% block title %}Solicitação #{{ solicitacao.id }}{% endblock %}
-{% block content %}<div class="page">
-{% include "components/page_header.html" with eyebrow="Gestão de Acessos" icon="🔐" title=solicitacao.colaborador_nome subtitle="Detalhes e histórico da solicitação." secondary_url_name="gestao_acessos_lista" secondary_text="Voltar" %}
-<div class="content-grid"><section class="panel"><h3>Solicitação #{{ solicitacao.id }}</h3><dl class="detail-grid"><div><dt>Status</dt><dd>{{ solicitacao.get_status_display }}</dd></div><div><dt>Tipo</dt><dd>{{ solicitacao.get_tipo_display }}</dd></div><div><dt>Unidade</dt><dd>{{ solicitacao.unidade.sigla }}</dd></div><div><dt>Setor</dt><dd>{{ solicitacao.setor.nome }}</dd></div><div><dt>Matrícula</dt><dd>{{ solicitacao.colaborador_matricula|default:"—" }}</dd></div><div><dt>Cargo</dt><dd>{{ solicitacao.colaborador_cargo|default:"—" }}</dd></div></dl><h4>Sistemas e acessos</h4><p style="white-space:pre-line">{{ solicitacao.sistemas }}</p><h4>Justificativa</h4><p>{{ solicitacao.justificativa }}</p><h4>Anexos</h4>{% for anexo in solicitacao.anexos.all %}<p><a href="{% url 'gestao_acessos_anexo' anexo.id %}">📎 {{ anexo.nome_original }}</a> <small>({{ anexo.tamanho|filesizeformat }})</small></p>{% empty %}<p>Sem anexos.</p>{% endfor %}</section>
-{% if pode_gerenciar %}<section class="panel"><h3>Atendimento da TI</h3><form method="post" enctype="multipart/form-data" action="{% url 'gestao_acessos_atender' solicitacao.id %}">{% csrf_token %}{% for campo in form %}<div class="field"><label>{{ campo.label }}</label>{{ campo }}</div>{% endfor %}<div class="field"><label>Adicionar anexos</label><input type="file" name="anexos" multiple accept=".pdf,.doc,.docx,.xls,.xlsx,.csv,.txt,.jpg,.jpeg,.png"></div><button class="btn btn-primary" type="submit">Atualizar atendimento</button></form></section>{% endif %}</div>
-<section class="panel"><h3>Histórico</h3>{% for evento in solicitacao.historico.all %}<div class="timeline-item"><strong>{{ evento.get_status_novo_display|default:evento.status_novo }}</strong> · {{ evento.criado_em|date:"d/m/Y H:i" }}<br><small>{{ evento.usuario.get_full_name|default:evento.usuario.username }} {{ evento.observacao }}</small></div>{% empty %}<p>Sem eventos.</p>{% endfor %}</section>
-</div>{% endblock %}
+{% block extra_css %}{% include "gestao_acessos/estilos.html" %}{% endblock %}
+{% block content %}
+<div class="page access-page">
+  {% include "components/page_header.html" with eyebrow="Gestão de Acessos" icon="🔐" title=solicitacao.colaborador_nome subtitle="Conferência da ficha e andamento da solicitação." secondary_url_name="gestao_acessos_lista" secondary_text="Voltar" %}
+
+  <div class="access-detail-head">
+    <div><small>PROTOCOLO</small><strong>#{{ solicitacao.id }}</strong></div>
+    <div><small>STATUS</small><strong class="access-status status-{{ solicitacao.status }}">{{ solicitacao.get_status_display }}</strong></div>
+    <div><small>SOLICITADO EM</small><strong>{{ solicitacao.criado_em|date:"d/m/Y H:i" }}</strong></div>
+    <div><small>RESPONSÁVEL</small><strong>{% if solicitacao.responsavel %}{{ solicitacao.responsavel.get_full_name|default:solicitacao.responsavel.username }}{% else %}Aguardando TI{% endif %}</strong></div>
+  </div>
+
+  <div class="access-columns">
+    <div>
+      <section class="access-card">
+        <div class="access-card-title"><span>👤</span><div><h2>Dados do profissional</h2><p>Informações de identificação e registro.</p></div></div>
+        <dl class="access-data">
+          <div><dt>Nome completo</dt><dd>{{ solicitacao.colaborador_nome }}</dd></div>
+          <div><dt>CPF</dt><dd>{{ solicitacao.cpf }}</dd></div>
+          <div><dt>Conselho</dt><dd>{{ solicitacao.tipo_conselho }} {{ solicitacao.numero_conselho }} / {{ solicitacao.uf_conselho }}</dd></div>
+          <div><dt>Especialidade</dt><dd>{{ solicitacao.especialidade }}</dd></div>
+          <div><dt>Unidade</dt><dd>{{ solicitacao.unidade.nome }}</dd></div>
+          <div><dt>Setor</dt><dd>{{ solicitacao.setor.nome }}</dd></div>
+        </dl>
+      </section>
+
+      <section class="access-card">
+        <div class="access-card-title"><span>🖥️</span><div><h2>Acessos solicitados</h2><p>{{ solicitacao.get_tipo_display }} · prioridade {{ solicitacao.get_prioridade_display|lower }}</p></div></div>
+        <div class="access-text"><h3>Sistemas e perfis</h3><p>{{ solicitacao.sistemas|linebreaksbr }}</p><h3>Justificativa</h3><p>{{ solicitacao.justificativa }}</p></div>
+      </section>
+
+      <section class="access-card">
+        <div class="access-card-title"><span>📎</span><div><h2>Ficha e documentos</h2><p>Arquivos anexados pelo solicitante ou pela TI.</p></div></div>
+        <div class="access-files">{% for anexo in solicitacao.anexos.all %}<a href="{% url 'gestao_acessos_anexo' anexo.id %}"><span>📄</span><div><strong>{{ anexo.nome_original }}</strong><small>{{ anexo.tamanho|filesizeformat }} · {{ anexo.criado_em|date:"d/m/Y H:i" }}</small></div><b>Baixar</b></a>{% empty %}<div class="access-empty">Nenhuma ficha foi anexada.</div>{% endfor %}</div>
+      </section>
+    </div>
+
+    <div>
+      {% if pode_gerenciar %}<section class="access-card access-sticky"><div class="access-card-title"><span>⚙️</span><div><h2>Recebimento pela TI</h2><p>Confira a ficha, assuma e atualize o andamento.</p></div></div>
+        <form method="post" enctype="multipart/form-data" action="{% url 'gestao_acessos_atender' solicitacao.id %}">{% csrf_token %}
+          {% for campo in form %}{% include "gestao_acessos/campo.html" with campo=campo %}{% endfor %}
+          <div class="form-group"><label>Adicionar ficha ou evidência</label><input type="file" name="anexos" multiple accept=".pdf,.doc,.docx,.xls,.xlsx,.csv,.txt,.jpg,.jpeg,.png"><small>É possível anexar mais de um arquivo.</small></div>
+          <button class="btn-submit access-full-button" type="submit">Salvar andamento</button>
+        </form>
+      </section>{% endif %}
+
+      <section class="access-card"><div class="access-card-title"><span>🕘</span><div><h2>Histórico</h2><p>Rastreabilidade das alterações.</p></div></div><div class="access-timeline">{% for evento in solicitacao.historico.all %}<div><i></i><p><strong>{{ evento.status_novo|title }}</strong><small>{{ evento.criado_em|date:"d/m/Y H:i" }} · {% if evento.usuario %}{{ evento.usuario.get_full_name|default:evento.usuario.username }}{% else %}Sistema{% endif %}</small>{% if evento.observacao %}<span>{{ evento.observacao }}</span>{% endif %}</p></div>{% empty %}<div class="access-empty">Sem eventos registrados.</div>{% endfor %}</div></section>
+    </div>
+  </div>
+</div>
+{% endblock %}

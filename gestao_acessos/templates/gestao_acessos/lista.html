@@ -10,7 +10,7 @@
   </section>
   <section class="panel">
     <form method="get" class="form-grid">
-      <div class="field"><label>Buscar</label><input name="busca" value="{{ busca }}" placeholder="Colaborador, matrícula ou sistema"></div>
+      <div class="field"><label>Buscar</label><input name="busca" value="{{ busca }}" placeholder="Profissional, CPF, conselho ou sistema"></div>
       <div class="field"><label>Status</label><select name="status"><option value="">Todos</option>{% for valor, rotulo in status_choices %}<option value="{{ valor }}" {% if status_atual == valor %}selected{% endif %}>{{ rotulo }}</option>{% endfor %}</select></div>
       <div class="field field-actions"><button class="btn btn-primary">Filtrar</button></div>
     </form>

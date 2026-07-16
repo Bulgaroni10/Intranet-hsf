@@ -40,8 +40,18 @@ class SolicitacaoAcesso(models.Model):
     prioridade = models.CharField(max_length=20, choices=PRIORIDADE_CHOICES, default='normal')
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pendente')
     colaborador_nome = models.CharField(max_length=180)
-    colaborador_matricula = models.CharField(max_length=60, blank=True)
-    colaborador_cargo = models.CharField(max_length=120, blank=True)
+    cpf = models.CharField(max_length=14)
+    tipo_conselho = models.CharField(
+        max_length=20,
+        choices=[
+            ('CRM', 'CRM'), ('COREN', 'COREN'), ('CREFITO', 'CREFITO'),
+            ('CRP', 'CRP'), ('CRN', 'CRN'), ('CREFONO', 'CREFONO'),
+            ('OUTRO', 'Outro'),
+        ],
+    )
+    numero_conselho = models.CharField(max_length=60)
+    uf_conselho = models.CharField(max_length=2)
+    especialidade = models.CharField(max_length=150)
     sistemas = models.TextField(help_text='Informe um sistema ou acesso por linha.')
     justificativa = models.TextField()
     data_necessaria = models.DateField(null=True, blank=True)

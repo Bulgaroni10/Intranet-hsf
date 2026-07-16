@@ -1,6 +1,50 @@
 {% extends "base/base.html" %}
 {% block title %}Nova solicitação de acesso{% endblock %}
-{% block content %}<div class="page">
-{% include "components/page_header.html" with eyebrow="Gestão de Acessos" icon="➕" title="Nova solicitação" subtitle="Informe o colaborador e todos os acessos necessários." secondary_url_name="gestao_acessos_lista" secondary_text="Voltar" %}
-<section class="panel"><form method="post" enctype="multipart/form-data">{% csrf_token %}{{ form.non_field_errors }}<div class="form-grid">{% for campo in form %}<div class="field {% if campo.name == 'sistemas' or campo.name == 'justificativa' %}field-full{% endif %}"><label for="{{ campo.id_for_label }}">{{ campo.label }}{% if campo.field.required %} *{% endif %}</label>{{ campo }}{% for erro in campo.errors %}<small class="error">{{ erro }}</small>{% endfor %}</div>{% endfor %}<div class="field field-full"><label>Anexos</label><input type="file" name="anexos" multiple accept=".pdf,.doc,.docx,.xls,.xlsx,.csv,.txt,.jpg,.jpeg,.png"><small>Até 10 MB por arquivo. É permitido selecionar vários documentos.</small></div></div><div class="form-actions"><button class="btn btn-primary" type="submit">Registrar solicitação</button></div></form></section>
-</div>{% endblock %}
+{% block extra_css %}{% include "gestao_acessos/estilos.html" %}{% endblock %}
+{% block content %}
+<div class="page access-page">
+  {% include "components/page_header.html" with eyebrow="Gestão de Acessos" icon="🔐" title="Nova solicitação" subtitle="Cadastre o profissional, os acessos necessários e anexe a ficha." secondary_url_name="gestao_acessos_lista" secondary_text="Voltar" %}
+
+  <form method="post" enctype="multipart/form-data" class="access-form">
+    {% csrf_token %}
+    {% if form.non_field_errors %}<div class="access-error">{{ form.non_field_errors }}</div>{% endif %}
+
+    <section class="access-card">
+      <div class="access-card-title"><span>1</span><div><h2>Dados da solicitação</h2><p>Defina o tipo, a prioridade e quando o acesso será necessário.</p></div></div>
+      <div class="access-grid three">
+        {% include "gestao_acessos/campo.html" with campo=form.tipo %}
+        {% include "gestao_acessos/campo.html" with campo=form.prioridade %}
+        {% include "gestao_acessos/campo.html" with campo=form.data_necessaria %}
+      </div>
+    </section>
+
+    <section class="access-card">
+      <div class="access-card-title"><span>2</span><div><h2>Profissional</h2><p>Dados usados para identificar corretamente o profissional nos sistemas.</p></div></div>
+      <div class="access-grid">
+        {% include "gestao_acessos/campo.html" with campo=form.colaborador_nome %}
+        {% include "gestao_acessos/campo.html" with campo=form.cpf %}
+        {% include "gestao_acessos/campo.html" with campo=form.tipo_conselho %}
+        {% include "gestao_acessos/campo.html" with campo=form.numero_conselho %}
+        {% include "gestao_acessos/campo.html" with campo=form.uf_conselho %}
+        {% include "gestao_acessos/campo.html" with campo=form.especialidade %}
+        {% include "gestao_acessos/campo.html" with campo=form.setor %}
+      </div>
+    </section>
+
+    <section class="access-card">
+      <div class="access-card-title"><span>3</span><div><h2>Acessos e documentação</h2><p>Liste os sistemas, explique a necessidade e envie a ficha preenchida.</p></div></div>
+      <div class="access-grid">
+        <div class="access-wide">{% include "gestao_acessos/campo.html" with campo=form.sistemas %}</div>
+        <div class="access-wide">{% include "gestao_acessos/campo.html" with campo=form.justificativa %}</div>
+        <div class="access-upload access-wide">
+          <label for="anexos">Ficha e documentos</label>
+          <input id="anexos" type="file" name="anexos" multiple accept=".pdf,.doc,.docx,.xls,.xlsx,.csv,.txt,.jpg,.jpeg,.png">
+          <small>Selecione um ou vários arquivos. Limite de 10 MB por arquivo.</small>
+        </div>
+      </div>
+    </section>
+
+    <div class="access-actions"><a href="{% url 'gestao_acessos_lista' %}" class="btn-link">Cancelar</a><button class="btn-submit" type="submit">Enviar solicitação</button></div>
+  </form>
+</div>
+{% endblock %}

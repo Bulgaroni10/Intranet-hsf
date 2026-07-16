@@ -97,7 +97,9 @@ def lista(request):
     if busca:
         solicitacoes = solicitacoes.filter(
             Q(colaborador_nome__icontains=busca) |
-            Q(colaborador_matricula__icontains=busca) |
+            Q(cpf__icontains=busca) |
+            Q(numero_conselho__icontains=busca) |
+            Q(especialidade__icontains=busca) |
             Q(sistemas__icontains=busca)
         )
     if status:
