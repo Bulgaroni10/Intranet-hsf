@@ -1,5 +1,29 @@
-{% extends "base/base.html" %}{% block title %}{{ item.nome }} | Suprimentos{% endblock %}{% block content %}<div class="page">
-{% if modulo_setorial %}{% url 'estoque_setorial_movimentar' item.id as mover_url %}{% url 'estoque_setorial' as voltar_url %}{% else %}{% url 'inventario_ti_suprimento_movimentar' item.id as mover_url %}{% url 'inventario_ti_suprimentos' as voltar_url %}{% endif %}{% include "components/page_header.html" with eyebrow="Suprimentos" icon="📦" title=item.nome subtitle="Saldo e histórico completo do material." secondary_href=voltar_url secondary_text="Voltar" action_href=mover_url action_text="Movimentar" %}
-<div class="summary-grid">{% include "components/kpi_card.html" with icon="📦" title="Saldo" value=item.quantidade %}{% include "components/kpi_card.html" with icon="⚠️" title="Alerta ao chegar em" value="5 unidades" %}{% include "components/kpi_card.html" with icon="🏥" title="Unidade" value=item.unidade.sigla %}</div>
-<div class="detail-card"><h2>Movimentações</h2>{% for mov in movimentacoes %}<div class="notification-card"><strong>{{ mov.get_tipo_display }} · {{ mov.quantidade }} · {{ mov.criado_em|date:"d/m/Y H:i" }}</strong>{% if mov.estornada_em %}<p><span class="gsf-badge gsf-badge-danger">Estornada em {{ mov.estornada_em|date:"d/m/Y H:i" }}</span></p>{% endif %}<p>Saldo: {{ mov.saldo_anterior }} → {{ mov.saldo_atual }}</p><p>Destino: {{ mov.setor_destino|default:"-" }} · {{ mov.impressora_destino|default:"-" }} · Responsável: {{ mov.responsavel|default:"-" }}</p><p>{{ mov.observacao|default:"Sem observação." }}</p>{% if mov.anexos.all %}<p><strong>Documentos:</strong>{% for anexo in mov.anexos.all %} <a class="btn-link" href="{% url 'suprimento_movimentacao_anexo' anexo.id %}">{{ anexo.nome_original }}</a>{% endfor %}</p>{% endif %}{% if mov.estornada_em %}<p><strong>Motivo do estorno:</strong> {{ mov.motivo_estorno }} · {{ mov.estornada_por|default:"-" }}</p>{% elif mov.id == movimentacao_estornavel_id %}{% if modulo_setorial %}{% url 'estoque_setorial_estornar' item.id mov.id as estornar_url %}{% else %}{% url 'inventario_ti_suprimento_estornar' item.id mov.id as estornar_url %}{% endif %}<form method="post" action="{{ estornar_url }}" onsubmit="return confirm('Estornar esta movimentação e restaurar o saldo anterior?');">{% csrf_token %}<div class="form-group"><label>Motivo do estorno</label><input name="motivo" required placeholder="Ex.: lançamento feito por engano"></div><button class="btn-link" type="submit">Estornar movimentação</button></form>{% endif %}</div>{% empty %}<p>Nenhuma movimentação registrada.</p>{% endfor %}</div>
-</div>{% endblock %}
+{% extends "base/base.html" %}
+{% load static %}
+{% block title %}{{ item.nome }} | Suprimentos{% endblock %}
+{% block extra_css %}<link rel="stylesheet" href="{% static 'core/css/suprimentos.css' %}">{% endblock %}
+{% block content %}
+<div class="page supplies-page">
+  {% if modulo_setorial %}{% url 'estoque_setorial_movimentar' item.id as mover_url %}{% url 'estoque_setorial' as voltar_url %}{% else %}{% url 'inventario_ti_suprimento_movimentar' item.id as mover_url %}{% url 'inventario_ti_suprimentos' as voltar_url %}{% endif %}
+  {% include "components/page_header.html" with eyebrow="Suprimentos" icon="📦" title=item.nome subtitle="Saldo e histórico completo do material." secondary_href=voltar_url secondary_text="Voltar" action_href=mover_url action_text="Movimentar" %}
+  <div class="summary-grid supplies-kpis">
+    {% include "components/kpi_card.html" with icon="📦" title="Saldo" value=item.quantidade %}
+    {% include "components/kpi_card.html" with icon="⚠️" title="Alerta ao chegar em" value="5 unidades" color="warning" %}
+    {% include "components/kpi_card.html" with icon="🏥" title="Unidade" value=item.unidade.sigla %}
+  </div>
+  <section class="detail-card">
+    <span class="eyebrow">Rastreabilidade</span><h2>Histórico de movimentações</h2><p class="supplies-card-intro">Entradas, saídas, ajustes, anexos e estornos deste item.</p>
+    <div class="supplies-history">
+      {% for mov in movimentacoes %}
+      <article class="notification-card supplies-movement{% if mov.estornada_em %} is-reversed{% endif %}">
+        <div class="supplies-movement-head"><div><h3>{{ mov.get_tipo_display }} · {{ mov.quantidade }} unidade{{ mov.quantidade|pluralize }}</h3><div class="supplies-movement-meta">{{ mov.criado_em|date:"d/m/Y H:i" }} · registrado por {{ mov.usuario|default:"—" }}</div></div>{% if mov.estornada_em %}<span class="gsf-badge gsf-badge-danger">Estornada</span>{% else %}<span class="gsf-badge gsf-badge-info">{{ mov.get_tipo_display }}</span>{% endif %}</div>
+        <div class="supplies-movement-data"><div><span>Saldo</span><strong>{{ mov.saldo_anterior }} → {{ mov.saldo_atual }}</strong></div><div><span>Destino</span><strong>{{ mov.setor_destino|default:"—" }}</strong><br><small>{% if mov.impressora_monitorada %}{{ mov.impressora_monitorada.local }} · {{ mov.impressora_monitorada.ip }}{% else %}{{ mov.impressora_destino|default:"—" }}{% endif %}</small></div><div><span>Responsável</span><strong>{{ mov.responsavel|default:"—" }}</strong></div></div>
+        {% if mov.observacao %}<p>{{ mov.observacao }}</p>{% endif %}
+        {% if mov.anexos.all %}<div class="supplies-actions" style="justify-content:flex-start"><strong>Documentos:</strong>{% for anexo in mov.anexos.all %}<a class="btn-link" href="{% url 'suprimento_movimentacao_anexo' anexo.id %}">{{ anexo.nome_original }}</a>{% endfor %}</div>{% endif %}
+        {% if mov.estornada_em %}<p><strong>Motivo do estorno:</strong> {{ mov.motivo_estorno }} · {{ mov.estornada_por|default:"—" }} · {{ mov.estornada_em|date:"d/m/Y H:i" }}</p>{% elif mov.id == movimentacao_estornavel_id %}{% if modulo_setorial %}{% url 'estoque_setorial_estornar' item.id mov.id as estornar_url %}{% else %}{% url 'inventario_ti_suprimento_estornar' item.id mov.id as estornar_url %}{% endif %}<form method="post" action="{{ estornar_url }}" onsubmit="return confirm('Estornar esta movimentação e restaurar o saldo anterior?');">{% csrf_token %}<div class="supplies-form-grid"><div class="form-group"><label>Motivo do estorno</label><input name="motivo" required placeholder="Ex.: lançamento feito por engano"></div><div class="form-group" style="align-self:end"><button class="btn-warning" type="submit">Estornar movimentação</button></div></div></form>{% endif %}
+      </article>
+      {% empty %}<div class="access-empty">Nenhuma movimentação registrada.</div>{% endfor %}
+    </div>
+  </section>
+</div>
+{% endblock %}

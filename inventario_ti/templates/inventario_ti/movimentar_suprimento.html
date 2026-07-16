@@ -1,12 +1,34 @@
-{% extends "base/base.html" %}{% block title %}Movimentar {{ item.nome }}{% endblock %}{% block content %}<div class="page">
-{% if modulo_setorial %}{% url 'estoque_setorial' as voltar_url %}{% else %}{% url 'inventario_ti_suprimentos' as voltar_url %}{% endif %}{% include "components/page_header.html" with eyebrow="Suprimentos" icon="🔄" title="Movimentar estoque" subtitle="Registre entrada, saída ou ajuste com rastreabilidade." secondary_href=voltar_url secondary_text="Voltar" %}
-<div class="detail-card"><h2>{{ item.codigo }} · {{ item.nome }}</h2><p>Saldo disponível: <strong>{{ item.quantidade }}</strong> · Alerta automático em 5 unidades</p></div>
-<div class="form-card"><form method="post" enctype="multipart/form-data">{% csrf_token %}<div class="form-grid">
-<div class="form-group"><label>Movimentação</label><select name="tipo">{% for valor, rotulo in tipos %}<option value="{{ valor }}">{{ rotulo }}</option>{% endfor %}</select></div>
-<div class="form-group"><label>Quantidade</label><input type="number" min="1" name="quantidade" required><small>Em ajuste, informe o novo saldo total.</small></div>
-<div class="form-group"><label>Setor de destino (saída)</label><select name="setor_destino"><option value="">Selecione</option>{% for setor in setores %}<option value="{{ setor.id }}">{{ setor.nome }}</option>{% endfor %}</select></div>
-<div class="form-group"><label>Impressora de destino</label><select name="impressora_monitorada"><option value="">Nenhuma / outro destino</option>{% for impressora in impressoras %}<option value="{{ impressora.id }}">{{ impressora.local }} · {{ impressora.ip }} · {{ impressora.modelo }}</option>{% endfor %}</select><small>Ao selecionar, o consumo será ligado à impressora no relatório.</small></div>
-<div class="form-group"><label>Outro local de destino</label><input name="impressora_destino" placeholder="Use somente quando não houver impressora cadastrada"></div>
-<div class="form-group"><label>Responsável</label><input name="responsavel"></div><div class="form-group"><label>Observação</label><textarea name="observacao"></textarea></div>
-<div class="form-group"><label>Documentos comprobatórios</label><input type="file" name="anexos" multiple accept=".pdf,.doc,.docx,.xls,.xlsx,.csv,.txt,.jpg,.jpeg,.png"><small>Opcional. Até 10 MB por arquivo.</small></div>
-</div><button class="btn-submit">Registrar movimentação</button></form></div></div>{% endblock %}
+{% extends "base/base.html" %}
+{% load static %}
+{% block title %}Movimentar {{ item.nome }}{% endblock %}
+{% block extra_css %}<link rel="stylesheet" href="{% static 'core/css/suprimentos.css' %}">{% endblock %}
+{% block content %}
+<div class="page supplies-page">
+  {% if modulo_setorial %}{% url 'estoque_setorial' as voltar_url %}{% else %}{% url 'inventario_ti_suprimentos' as voltar_url %}{% endif %}
+  {% include "components/page_header.html" with eyebrow="Suprimentos" icon="🔄" title="Movimentar estoque" subtitle="Registre entrada, saída ou ajuste com rastreabilidade." secondary_href=voltar_url secondary_text="Voltar" %}
+  <div class="supplies-workspace">
+    <div class="form-card supplies-form-card">
+      <h2>Dados da movimentação</h2><p class="supplies-card-intro">Preencha apenas os campos aplicáveis ao tipo escolhido.</p>
+      <form method="post" enctype="multipart/form-data">{% csrf_token %}
+        <div class="supplies-form-grid">
+          <div class="form-group"><label>Movimentação</label><select name="tipo">{% for valor, rotulo in tipos %}<option value="{{ valor }}">{{ rotulo }}</option>{% endfor %}</select></div>
+          <div class="form-group"><label>Quantidade</label><input type="number" min="1" name="quantidade" required><small>Em ajuste, informe o novo saldo total.</small></div>
+          <div class="form-group"><label>Setor de destino (saída)</label><select name="setor_destino"><option value="">Selecione</option>{% for setor in setores %}<option value="{{ setor.id }}">{{ setor.nome }}</option>{% endfor %}</select></div>
+          <div class="form-group"><label>Impressora de destino</label><select name="impressora_monitorada"><option value="">Nenhuma / outro destino</option>{% for impressora in impressoras %}<option value="{{ impressora.id }}">{{ impressora.local }} · {{ impressora.ip }} · {{ impressora.modelo }}</option>{% endfor %}</select><small>Vincula o consumo ao relatório da impressora.</small></div>
+          <div class="form-group"><label>Outro local de destino</label><input name="impressora_destino" placeholder="Use quando não houver impressora cadastrada"></div>
+          <div class="form-group"><label>Responsável</label><input name="responsavel" placeholder="Quem recebeu ou solicitou"></div>
+          <div class="form-group supplies-wide"><label>Observação</label><textarea name="observacao" placeholder="Descreva o motivo ou alguma informação importante"></textarea></div>
+          <div class="form-group supplies-wide"><label>Documentos comprobatórios</label><input type="file" name="anexos" multiple accept=".pdf,.doc,.docx,.xls,.xlsx,.csv,.txt,.jpg,.jpeg,.png"><small>Opcional. PDF, Office, CSV, texto ou imagem; até 10 MB por arquivo.</small></div>
+        </div>
+        <div class="supplies-form-actions"><a class="btn-link" href="{{ voltar_url }}">Cancelar</a><button class="btn-submit">Registrar movimentação</button></div>
+      </form>
+    </div>
+    <aside class="detail-card supplies-side-card">
+      <span class="eyebrow">Item selecionado</span><h2>{{ item.nome }}</h2><p>{{ item.codigo }} · {{ item.categoria }}</p>
+      <div class="supplies-balance"><span>Saldo disponível</span><strong>{{ item.quantidade }}</strong></div>
+      <ul class="supplies-help-list"><li><span>+</span><div><strong>Entrada</strong><br>Adiciona unidades ao estoque.</div></li><li><span>−</span><div><strong>Saída</strong><br>Registra consumo e destino.</div></li><li><span>=</span><div><strong>Ajuste</strong><br>Define o saldo total correto.</div></li></ul>
+      <p class="supplies-muted">O alerta é acionado quando o saldo chegar a 5 unidades.</p>
+    </aside>
+  </div>
+</div>
+{% endblock %}
