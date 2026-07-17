@@ -86,6 +86,7 @@ Variáveis essenciais:
 - `GSF_SECRET_KEY` longa, exclusiva e não versionada;
 - `GSF_ALLOWED_HOSTS` com os nomes de acesso;
 - `GSF_LOG_DIR` e `GSF_LOG_LEVEL`;
+- `GSF_PRINTER_ADMIN_PASSWORD` para leitura autenticada da manutenção Brother;
 - `GSF_DB_ENGINE` e credenciais do banco quando PostgreSQL for ativado;
 - variáveis `GSF_MV_*` somente para a integração Oracle autorizada.
 

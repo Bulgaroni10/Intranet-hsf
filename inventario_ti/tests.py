@@ -13,7 +13,7 @@ from usuarios.models import Setor, Unidade
 
 from .models import AnexoMovimentacaoSuprimento, ComputadorInventario, ErroAgenteInventario, ImpressoraMonitorada, LeituraImpressora, MonitoramentoActiveDirectory, MonitoramentoRede, MonitoramentoServidor, MovimentacaoPatrimonioTI, MovimentacaoSuprimentoTI, PatrimonioTI, SuprimentoTI
 from .services_ad import monitorar_active_directory
-from .services_impressoras import atualizar_impressora
+from .services_impressoras import atualizar_impressora, extrair_suprimentos_manutencao
 from .views import (
     agent_error,
     dashboard,
@@ -114,6 +114,25 @@ class MonitoramentoImpressoraTests(TestCase):
         self.impressora = ImpressoraMonitorada.objects.create(
             unidade=self.unidade, ip="192.0.2.10", modelo_informado="Modelo incorreto", local="Recepcao"
         )
+
+    def test_extrai_percentuais_da_pagina_de_manutencao(self):
+        conteudo = """
+            <dl><dt>Toner Cartridge</dt><dd>Remaining Life 67%</dd>
+            <dt>Drum Unit</dt><dd>Remaining Life 42%</dd></dl>
+        """
+        self.assertEqual(
+            extrair_suprimentos_manutencao(conteudo),
+            {"toner_percentual": 67, "cilindro_percentual": 42},
+        )
+
+    @patch("inventario_ti.services_impressoras.consultar_suprimentos_manutencao", return_value={"toner_percentual": 67, "cilindro_percentual": 42})
+    @patch("inventario_ti.services_impressoras.consultar_suprimentos_snmp", return_value={"toner_percentual": 48, "cilindro_percentual": 18})
+    @patch("inventario_ti.services_impressoras._abrir_url_impressora", return_value=_RespostaImpressoraFake())
+    def test_manutencao_autenticada_tem_prioridade_sobre_snmp(self, _urlopen, _snmp, _manutencao):
+        atualizar_impressora(self.impressora)
+        self.impressora.refresh_from_db()
+        self.assertEqual(self.impressora.toner_percentual, 67)
+        self.assertEqual(self.impressora.cilindro_percentual, 42)
 
     @patch("inventario_ti.services_impressoras.consultar_suprimentos_snmp", return_value={"toner_percentual": 48, "cilindro_percentual": 18})
     @patch("inventario_ti.services_impressoras._abrir_url_impressora", return_value=_RespostaImpressoraFake())

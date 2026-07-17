@@ -1,9 +1,12 @@
 import asyncio
 import html
+import os
 import re
 import ssl
 from datetime import timedelta
-from urllib.request import HTTPSHandler, ProxyHandler, Request, build_opener
+from http.cookiejar import CookieJar
+from urllib.parse import urlencode
+from urllib.request import HTTPSHandler, HTTPCookieProcessor, ProxyHandler, Request, build_opener
 
 from django.contrib.auth import get_user_model
 from django.db.models import Q
@@ -17,6 +20,8 @@ from .models import ImpressoraMonitorada, LeituraImpressora
 STATUS_RE = re.compile(r'<div id="moni_data">.*?<span[^>]*>(.*?)</span>', re.I | re.S)
 TITLE_RE = re.compile(r"<title[^>]*>(.*?)</title>", re.I | re.S)
 TONER_HEIGHT_RE = re.compile(r'class="tonerremain"[^>]*height="(\d+)"', re.I)
+PASSWORD_FIELD_RE = re.compile(r'type="password"[^>]*name="([^"]+)"', re.I)
+CSRF_RE = re.compile(r'name="CSRFToken"[^>]*value="([^"]+)"', re.I)
 SUPPLY_DESCRIPTION_OID = "1.3.6.1.2.1.43.11.1.1.6.1"
 SUPPLY_MAX_OID = "1.3.6.1.2.1.43.11.1.1.8.1"
 SUPPLY_LEVEL_OID = "1.3.6.1.2.1.43.11.1.1.9.1"
@@ -42,6 +47,66 @@ def _abrir_url_impressora(request, timeout):
 
 def _texto_html(valor):
     return re.sub(r"\s+", " ", html.unescape(re.sub(r"<[^>]+>", "", valor))).strip()
+
+
+def _extrair_percentual_manutencao(conteudo, nomes):
+    texto = _texto_html(conteudo)
+    termos = "|".join(re.escape(nome) for nome in nomes)
+    encontrado = re.search(rf"(?:{termos})\b.{{0,180}}?\b(100|[1-9]?\d)\s*%", texto, re.I)
+    return int(encontrado.group(1)) if encontrado else None
+
+
+def extrair_suprimentos_manutencao(conteudo):
+    """Extrai a vida útil exibida em General > Maintenance Information."""
+    return {
+        "toner_percentual": _extrair_percentual_manutencao(
+            conteudo, ("toner", "toner cartridge", "cartucho de toner")
+        ),
+        "cilindro_percentual": _extrair_percentual_manutencao(
+            conteudo, ("drum", "drum unit", "tambor", "cilindro")
+        ),
+    }
+
+
+def consultar_suprimentos_manutencao(impressora, timeout=4):
+    """Consulta a página autenticada da Brother sem persistir a senha no banco."""
+    senha = os.environ.get("GSF_PRINTER_ADMIN_PASSWORD", "").strip()
+    if not senha:
+        return {"toner_percentual": None, "cilindro_percentual": None}
+    for protocolo in ("http", "https"):
+        try:
+            opener = build_opener(
+                ProxyHandler({}), HTTPSHandler(context=_contexto_ssl_impressora()),
+                HTTPCookieProcessor(CookieJar()),
+            )
+            url = f"{protocolo}://{impressora.ip}/general/information.html"
+            headers = {"User-Agent": "GSF-NOC/1.2"}
+            with opener.open(Request(url, headers=headers), timeout=timeout) as resposta:
+                login = resposta.read(256_000).decode("latin-1", errors="replace")
+            campo_senha = PASSWORD_FIELD_RE.search(login)
+            csrf = CSRF_RE.search(login)
+            if not campo_senha or not csrf:
+                continue
+            corpo = urlencode({
+                "CSRFToken": html.unescape(csrf.group(1)),
+                campo_senha.group(1): senha,
+                "loginurl": "/general/information.html",
+            }).encode("ascii")
+            request = Request(
+                url, data=corpo,
+                headers={**headers, "Content-Type": "application/x-www-form-urlencoded"},
+            )
+            with opener.open(request, timeout=timeout) as resposta:
+                conteudo = resposta.read(512_000).decode("latin-1", errors="replace")
+            texto = _texto_html(conteudo).casefold()
+            if "password error" in texto or "login failure" in texto or "please login" in texto:
+                continue
+            dados = extrair_suprimentos_manutencao(conteudo)
+            if any(valor is not None for valor in dados.values()):
+                return dados
+        except Exception:
+            continue
+    return {"toner_percentual": None, "cilindro_percentual": None}
 
 
 def consultar_impressora(impressora, timeout=4):
@@ -254,18 +319,25 @@ def _registrar_leitura(impressora):
 def atualizar_impressora(impressora):
     try:
         dados = consultar_impressora(impressora)
+        suprimentos_manutencao = consultar_suprimentos_manutencao(impressora)
         suprimentos_snmp = consultar_suprimentos_snmp(impressora.ip)
         impressora.online = True
         impressora.modelo_detectado = dados["modelo_detectado"] or impressora.modelo_detectado
         impressora.status_dispositivo = dados["status_dispositivo"]
-        # O painel web da Brother representa o nível em poucos degraus.
-        # O Printer-MIB fornece a leitura mais precisa quando está disponível.
+        # A página autenticada é a fonte mais precisa nas Brother. SNMP e a
+        # barra pública permanecem como alternativas automáticas.
         impressora.toner_percentual = (
-            suprimentos_snmp["toner_percentual"]
+            suprimentos_manutencao["toner_percentual"]
+            if suprimentos_manutencao["toner_percentual"] is not None
+            else suprimentos_snmp["toner_percentual"]
             if suprimentos_snmp["toner_percentual"] is not None
             else dados["toner_percentual"]
         )
-        impressora.cilindro_percentual = suprimentos_snmp["cilindro_percentual"]
+        impressora.cilindro_percentual = (
+            suprimentos_manutencao["cilindro_percentual"]
+            if suprimentos_manutencao["cilindro_percentual"] is not None
+            else suprimentos_snmp["cilindro_percentual"]
+        )
         impressora.ultimo_erro = ""
     except Exception as exc:
         descricao_snmp = consultar_snmp(impressora.ip)

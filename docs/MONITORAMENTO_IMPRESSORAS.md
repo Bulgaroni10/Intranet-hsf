@@ -34,6 +34,27 @@ O monitoramento suporta Brother, Kyocera e Ricoh. A coleta Brother também utili
 
 O SNMP é opcional nas Brother quando a página web já fornece as informações básicas. Para Kyocera e Ricoh, ele deve ser habilitado para garantir detecção, disponibilidade e suprimentos. Alguns modelos não disponibilizam percentual de cilindro nem mesmo via SNMP; nesses casos o campo permanece vazio.
 
+## Precisão pela página Maintenance Information da Brother
+
+As barras da página pública representam o toner em poucos degraus. Para obter a vida útil apresentada em **General > Maintenance Information**, configure a senha administrativa somente no ambiente do serviço:
+
+```powershell
+# Teste temporário na sessão atual; não grave a senha no Git.
+$env:GSF_PRINTER_ADMIN_PASSWORD = Read-Host 'Senha dos painéis Brother'
+C:\Projetos\venv_intranet\Scripts\python.exe manage.py monitorar_impressoras
+Remove-Item Env:GSF_PRINTER_ADMIN_PASSWORD -ErrorAction SilentlyContinue
+```
+
+Em produção, configure `GSF_PRINTER_ADMIN_PASSWORD` como variável de ambiente da máquina, pois a coleta é executada pela tarefa agendada em um processo separado do serviço NSSM. Reinicie o serviço e execute novamente a tarefa após configurar. O coletor usa esta ordem:
+
+1. página autenticada `/general/information.html` (Maintenance Information);
+2. Printer-MIB via SNMP;
+3. barra da página pública de status.
+
+Se uma impressora tiver senha diferente, estiver bloqueada ou não oferecer os percentuais nessa página, ela continua funcionando pelas fontes seguintes. A senha nunca é salva no banco, histórico ou logs.
+
+Importante: a porcentagem do cilindro só será confiável se o contador tiver sido redefinido corretamente quando o cilindro foi substituído. Caso contrário, até a própria impressora mostrará uma estimativa incorreta.
+
 ## Responsabilidade dos servidores
 
 ### Servidor da intranet
