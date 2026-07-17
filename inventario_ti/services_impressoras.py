@@ -92,8 +92,11 @@ def consultar_suprimentos_manutencao(impressora, timeout=4):
                 campo_senha.group(1): senha,
                 "loginurl": "/general/information.html",
             }).encode("ascii")
+            # O formulário é exibido em information.html, mas as Brother dessa
+            # família processam o login em status.html e redirecionam de volta.
+            login_url = f"{protocolo}://{impressora.ip}/general/status.html"
             request = Request(
-                url, data=corpo,
+                login_url, data=corpo,
                 headers={**headers, "Content-Type": "application/x-www-form-urlencoded"},
             )
             with opener.open(request, timeout=timeout) as resposta:
