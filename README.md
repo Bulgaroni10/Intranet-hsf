@@ -205,6 +205,7 @@ O procedimento detalhado está em `docs/RUNBOOK_INCIDENTES.md`.
 - `docs/RUNBOOK_INCIDENTES.md`: atendimento de incidentes;
 - `docs/MONITORAMENTO_IMPRESSORAS.md`: cadastro e coleta das impressoras;
 - `docs/MIGRACAO_POSTGRESQL.md`: ensaio e migração do banco;
+- `docs/BACKUP_E_RESTAURACAO.md`: backup diário e recuperação;
 - `docs/SINCRONIZACAO_MV.md`: integração MV;
 - `docs/DESIGN_SYSTEM.md`: padrão visual;
 - `docs/ROADMAP.md` e `docs/BACKLOG.md`: evolução planejada.
