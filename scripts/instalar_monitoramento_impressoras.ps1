@@ -9,6 +9,7 @@ param(
 $ErrorActionPreference = 'Stop'
 $nomeTarefa = 'GSF-Monitorar-Impressoras'
 $managePy = Join-Path $Projeto 'manage.py'
+$executor = Join-Path $Projeto 'scripts\executar_monitoramento_noc.ps1'
 
 if (-not (Test-Path -LiteralPath $Python)) {
     throw "Python do ambiente virtual não encontrado: $Python"
@@ -18,13 +19,18 @@ if (-not (Test-Path -LiteralPath $managePy)) {
     throw "Projeto Django não encontrado: $managePy"
 }
 
+if (-not (Test-Path -LiteralPath $executor)) {
+    throw "Executor do monitoramento não encontrado: $executor"
+}
+
 if ($IntervaloMinutos -lt 1) {
     throw 'O intervalo deve ser de pelo menos 1 minuto.'
 }
 
+$argumentos = "-NoProfile -ExecutionPolicy Bypass -File `"$executor`" -Projeto `"$Projeto`" -Python `"$Python`""
 $acao = New-ScheduledTaskAction `
-    -Execute $Python `
-    -Argument 'manage.py monitorar_noc' `
+    -Execute 'powershell.exe' `
+    -Argument $argumentos `
     -WorkingDirectory $Projeto
 
 $gatilho = New-ScheduledTaskTrigger `
@@ -47,7 +53,7 @@ Register-ScheduledTask `
     -Force | Out-Null
 
 Write-Host 'Executando a primeira coleta...' -ForegroundColor Cyan
-& $Python $managePy monitorar_noc
+& powershell.exe -NoProfile -ExecutionPolicy Bypass -File $executor -Projeto $Projeto -Python $Python
 if ($LASTEXITCODE -ne 0) {
     throw "A coleta inicial terminou com código $LASTEXITCODE."
 }

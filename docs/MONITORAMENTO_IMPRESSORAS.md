@@ -153,6 +153,8 @@ powershell.exe -ExecutionPolicy Bypass `
 
 O instalador cria ou atualiza a tarefa `GSF-Monitorar-Impressoras`, executada como `SYSTEM` a cada cinco minutos. Ele também realiza uma primeira coleta e impede execuções simultâneas.
 
+A tarefa chama `scripts/executar_monitoramento_noc.ps1`. Esse executor importa de forma segura o `AppEnvironmentExtra` do serviço NSSM antes de carregar o Django e grava o resultado em `C:\ProgramData\GSF\logs\monitoramento-noc.log`. Não configure uma segunda cópia da `GSF_SECRET_KEY` na tarefa.
+
 Validar a tarefa:
 
 ```powershell
