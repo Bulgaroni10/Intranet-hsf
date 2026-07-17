@@ -10,6 +10,7 @@ from .models import (
     MovimentacaoSuprimentoTI,
     ImpressoraMonitorada,
     LeituraImpressora,
+    MovimentacaoImpressora,
     MonitoramentoActiveDirectory,
     MonitoramentoServidor,
     MonitoramentoRede,
@@ -209,10 +210,18 @@ class MovimentacaoPatrimonioTIAdmin(admin.ModelAdmin):
 
 @admin.register(ImpressoraMonitorada)
 class ImpressoraMonitoradaAdmin(admin.ModelAdmin):
-    list_display = ["local", "ip", "modelo_detectado", "unidade", "online", "status_dispositivo", "ultima_consulta"]
-    search_fields = ["local", "ip", "modelo_informado", "modelo_detectado"]
-    list_filter = ["unidade", "online", "ativo"]
+    list_display = ["local", "patrimonio", "situacao", "ip", "modelo_detectado", "unidade", "online", "ultima_consulta"]
+    search_fields = ["local", "ip", "patrimonio", "numero_serie", "modelo_informado", "modelo_detectado"]
+    list_filter = ["unidade", "situacao", "online", "ativo"]
     readonly_fields = ["modelo_detectado", "online", "status_dispositivo", "toner_percentual", "cilindro_percentual", "ultimo_erro", "ultima_consulta", "criado_em", "atualizado_em"]
+
+
+@admin.register(MovimentacaoImpressora)
+class MovimentacaoImpressoraAdmin(admin.ModelAdmin):
+    list_display = ["impressora", "situacao_anterior", "situacao_nova", "ip_anterior", "ip_novo", "usuario", "criado_em"]
+    list_filter = ["situacao_nova", "criado_em"]
+    search_fields = ["impressora__local", "impressora__patrimonio", "ip_anterior", "ip_novo"]
+    readonly_fields = ["impressora", "situacao_anterior", "situacao_nova", "setor_anterior", "setor_novo", "ip_anterior", "ip_novo", "local_anterior", "local_novo", "observacao", "usuario", "criado_em"]
 
 
 @admin.register(LeituraImpressora)

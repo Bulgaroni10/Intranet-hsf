@@ -336,9 +336,19 @@ class AnexoMovimentacaoSuprimento(models.Model):
 
 
 class ImpressoraMonitorada(models.Model):
+    SITUACAO_CHOICES = [
+        ("estoque", "Em estoque"),
+        ("em_uso", "Em uso"),
+        ("manutencao", "Em manutenção"),
+        ("baixada", "Baixada"),
+    ]
+
     unidade = models.ForeignKey(Unidade, on_delete=models.SET_NULL, null=True, blank=True)
     setor = models.ForeignKey(Setor, on_delete=models.SET_NULL, null=True, blank=True, related_name="impressoras_monitoradas")
-    ip = models.GenericIPAddressField(unique=True)
+    ip = models.GenericIPAddressField(unique=True, null=True, blank=True)
+    patrimonio = models.CharField(max_length=80, blank=True, default="")
+    numero_serie = models.CharField(max_length=120, blank=True, default="")
+    situacao = models.CharField(max_length=20, choices=SITUACAO_CHOICES, default="em_uso")
     modelo_informado = models.CharField(max_length=180, blank=True, default="")
     modelo_detectado = models.CharField(max_length=180, blank=True, default="")
     local = models.CharField(max_length=180)
@@ -359,7 +369,7 @@ class ImpressoraMonitorada(models.Model):
         indexes = [models.Index(fields=["unidade", "ativo", "online"])]
 
     def __str__(self):
-        return f"{self.local} - {self.ip}"
+        return f"{self.local} - {self.ip or 'sem IP'}"
 
     @property
     def modelo(self):
@@ -367,11 +377,45 @@ class ImpressoraMonitorada(models.Model):
 
     @property
     def possui_alerta(self):
+        if not self.ativo or not self.ip:
+            return False
         texto = self.status_dispositivo.lower()
         termos = ("replace", "substit", "low", "baixo", "error", "erro", "jam", "atol")
         toner_baixo = self.toner_percentual is not None and self.toner_percentual <= 20
         cilindro_baixo = self.cilindro_percentual is not None and self.cilindro_percentual <= 20
         return not self.online or toner_baixo or cilindro_baixo or any(termo in texto for termo in termos)
+
+
+class MovimentacaoImpressora(models.Model):
+    impressora = models.ForeignKey(
+        ImpressoraMonitorada, on_delete=models.CASCADE, related_name="movimentacoes",
+    )
+    situacao_anterior = models.CharField(max_length=20, choices=ImpressoraMonitorada.SITUACAO_CHOICES)
+    situacao_nova = models.CharField(max_length=20, choices=ImpressoraMonitorada.SITUACAO_CHOICES)
+    setor_anterior = models.ForeignKey(
+        Setor, on_delete=models.SET_NULL, null=True, blank=True, related_name="movimentacoes_impressora_origem",
+    )
+    setor_novo = models.ForeignKey(
+        Setor, on_delete=models.SET_NULL, null=True, blank=True, related_name="movimentacoes_impressora_destino",
+    )
+    ip_anterior = models.GenericIPAddressField(null=True, blank=True)
+    ip_novo = models.GenericIPAddressField(null=True, blank=True)
+    local_anterior = models.CharField(max_length=180, blank=True, default="")
+    local_novo = models.CharField(max_length=180, blank=True, default="")
+    observacao = models.TextField(blank=True, default="")
+    usuario = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True,
+        related_name="movimentacoes_impressoras",
+    )
+    criado_em = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["-criado_em"]
+        verbose_name = "Movimentação de impressora"
+        verbose_name_plural = "Movimentações de impressoras"
+
+    def __str__(self):
+        return f"{self.impressora} - {self.get_situacao_nova_display()}"
 
 
 class LeituraImpressora(models.Model):

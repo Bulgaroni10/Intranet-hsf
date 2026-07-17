@@ -371,4 +371,7 @@ def atualizar_impressora(impressora):
 
 
 def atualizar_todas_impressoras():
-    return [atualizar_impressora(item) for item in ImpressoraMonitorada.objects.filter(ativo=True).select_related("unidade")]
+    return [
+        atualizar_impressora(item)
+        for item in ImpressoraMonitorada.objects.filter(ativo=True, ip__isnull=False).select_related("unidade")
+    ]

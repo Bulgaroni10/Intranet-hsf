@@ -1,0 +1,15 @@
+{% extends "base/base.html" %}
+{% block title %}Movimentar · {{ impressora.local }}{% endblock %}
+{% block extra_css %}{% include "gestao_acessos/estilos.html" %}{% endblock %}
+{% block content %}
+<div class="page access-page">
+  {% include "components/page_header.html" with eyebrow="Inventário TI" icon="🔄" title="Movimentar impressora" subtitle="Altere a situação, o destino e o IP sem perder o histórico." secondary_url_name="inventario_ti_impressoras" secondary_text="Voltar" %}
+  <section class="access-detail-head"><div><small>Equipamento</small><strong>{{ impressora.modelo|default:"Modelo não informado" }}</strong></div><div><small>Patrimônio</small><strong>{{ impressora.patrimonio|default:"—" }}</strong></div><div><small>Situação atual</small><strong>{{ impressora.get_situacao_display }}</strong></div><div><small>IP atual</small><strong>{{ impressora.ip|default:"Sem IP" }}</strong></div></section>
+  <form method="post" class="access-form">{% csrf_token %}
+    {% if form.non_field_errors %}<div class="access-error">{{ form.non_field_errors }}</div>{% endif %}
+    <section class="access-card"><div class="access-card-title"><span>📍</span><div><h2>Novo destino</h2><p>Para entrar no NOC, selecione Em uso, informe o IP e marque o monitoramento.</p></div></div><div class="access-grid">{% include "gestao_acessos/campo.html" with campo=form.situacao %}{% include "gestao_acessos/campo.html" with campo=form.setor %}{% include "gestao_acessos/campo.html" with campo=form.local %}{% include "gestao_acessos/campo.html" with campo=form.ip %}{% include "gestao_acessos/campo.html" with campo=form.monitorar_noc %}<div class="access-wide">{% include "gestao_acessos/campo.html" with campo=form.observacao %}</div></div></section>
+    <div class="access-actions"><a class="btn-link" href="{% url 'inventario_ti_impressoras' %}">Cancelar</a><button class="btn-submit" type="submit">Registrar movimentação</button></div>
+  </form>
+  <section class="access-card table-wrap"><div class="access-card-title"><span>🕘</span><div><h2>Histórico de movimentações</h2><p>Últimas 30 alterações deste equipamento.</p></div></div><table><thead><tr><th>Data</th><th>Situação</th><th>Origem</th><th>Destino</th><th>IP</th><th>Responsável</th></tr></thead><tbody>{% for mov in movimentacoes %}<tr><td>{{ mov.criado_em|date:"d/m/Y H:i" }}</td><td>{{ mov.get_situacao_anterior_display }} → {{ mov.get_situacao_nova_display }}</td><td>{{ mov.local_anterior|default:"—" }}{% if mov.setor_anterior %}<br><small>{{ mov.setor_anterior }}</small>{% endif %}</td><td>{{ mov.local_novo|default:"—" }}{% if mov.setor_novo %}<br><small>{{ mov.setor_novo }}</small>{% endif %}</td><td>{{ mov.ip_anterior|default:"—" }} → {{ mov.ip_novo|default:"—" }}</td><td>{{ mov.usuario.get_full_name|default:mov.usuario.username|default:"—" }}</td></tr>{% empty %}<tr><td colspan="6"><div class="access-empty">Nenhuma movimentação registrada.</div></td></tr>{% endfor %}</tbody></table></section>
+</div>
+{% endblock %}

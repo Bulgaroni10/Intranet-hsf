@@ -3,19 +3,19 @@
 {% block extra_css %}{% include "gestao_acessos/estilos.html" %}{% endblock %}
 {% block content %}
 <div class="page access-page">
-  {% if impressora %}{% include "components/page_header.html" with eyebrow="Inventário TI" icon="🖨️" title="Editar impressora" subtitle="Troque o IP, modelo ou local sem perder o cadastro do NOC." secondary_url_name="inventario_ti_impressoras" secondary_text="Voltar" %}{% else %}{% include "components/page_header.html" with eyebrow="Inventário TI" icon="🖨️" title="Nova impressora" subtitle="Ao salvar, uma coleta será executada para validar a comunicação." secondary_url_name="inventario_ti_impressoras" secondary_text="Voltar" %}{% endif %}
+  {% if impressora %}{% include "components/page_header.html" with eyebrow="Inventário TI" icon="🖨️" title="Editar impressora" subtitle="Atualize a identificação patrimonial e os dados de rede." secondary_url_name="inventario_ti_impressoras" secondary_text="Voltar" %}{% else %}{% include "components/page_header.html" with eyebrow="Inventário TI" icon="🖨️" title="Cadastrar impressora" subtitle="Impressoras de backup podem ficar em estoque sem IP e fora do NOC." secondary_url_name="inventario_ti_impressoras" secondary_text="Voltar" %}{% endif %}
   <form method="post" class="access-form">{% csrf_token %}
     {% if form.non_field_errors %}<div class="access-error">{{ form.non_field_errors }}</div>{% endif %}
     <section class="access-card">
-      <div class="access-card-title"><span>1</span><div><h2>Identificação na rede</h2><p>O IP deve ser fixo e acessível pelo servidor da intranet.</p></div></div>
-      <div class="access-grid">{% include "gestao_acessos/campo.html" with campo=form.ip %}{% include "gestao_acessos/campo.html" with campo=form.modelo_informado %}</div>
+      <div class="access-card-title"><span>1</span><div><h2>Identificação do equipamento</h2><p>Cadastre também as impressoras guardadas como backup.</p></div></div>
+      <div class="access-grid">{% include "gestao_acessos/campo.html" with campo=form.patrimonio %}{% include "gestao_acessos/campo.html" with campo=form.numero_serie %}{% include "gestao_acessos/campo.html" with campo=form.modelo_informado %}{% include "gestao_acessos/campo.html" with campo=form.situacao %}</div>
     </section>
     <section class="access-card">
       <div class="access-card-title"><span>2</span><div><h2>Localização e monitoramento</h2><p>Essas informações serão exibidas diretamente no NOC.</p></div></div>
-      <div class="access-grid">{% include "gestao_acessos/campo.html" with campo=form.setor %}{% include "gestao_acessos/campo.html" with campo=form.local %}{% include "gestao_acessos/campo.html" with campo=form.ativo %}</div>
+      <div class="access-grid">{% include "gestao_acessos/campo.html" with campo=form.setor %}{% include "gestao_acessos/campo.html" with campo=form.local %}{% include "gestao_acessos/campo.html" with campo=form.ip %}{% include "gestao_acessos/campo.html" with campo=form.ativo %}</div>
     </section>
     {% if impressora %}<section class="access-card"><div class="access-card-title"><span>📡</span><div><h2>Última leitura</h2><p>{{ impressora.ultima_consulta|date:"d/m/Y H:i"|default:"Nunca consultada" }}</p></div></div><dl class="access-data"><div><dt>Modelo detectado</dt><dd>{{ impressora.modelo_detectado|default:"—" }}</dd></div><div><dt>Status</dt><dd>{{ impressora.status_dispositivo|default:"—" }}</dd></div><div><dt>Toner</dt><dd>{{ impressora.toner_percentual|default_if_none:"—" }}%</dd></div><div><dt>Erro</dt><dd>{{ impressora.ultimo_erro|default:"Nenhum" }}</dd></div></dl></section>{% endif %}
-    <div class="access-actions"><a class="btn-link" href="{% url 'inventario_ti_impressoras' %}">Cancelar</a><button class="btn-submit" type="submit">Salvar e testar comunicação</button></div>
+    <div class="access-actions"><a class="btn-link" href="{% url 'inventario_ti_impressoras' %}">Cancelar</a><button class="btn-submit" type="submit">Salvar impressora</button></div>
   </form>
 </div>
 {% endblock %}

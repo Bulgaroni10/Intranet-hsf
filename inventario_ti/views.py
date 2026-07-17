@@ -26,8 +26,8 @@ from core.services.permissions import usuario_eh_ti
 from usuarios.models import Setor, Unidade
 from usuarios.escopo import aplicar_escopo_unidade, obter_unidade_ativa
 
-from .models import AnexoMovimentacaoSuprimento, ComputadorInventario, ErroAgenteInventario, ImpressoraMonitorada, LeituraImpressora, MovimentacaoPatrimonioTI, MovimentacaoSuprimentoTI, PatrimonioTI, SuprimentoTI
-from .forms import ImpressoraMonitoradaForm
+from .models import AnexoMovimentacaoSuprimento, ComputadorInventario, ErroAgenteInventario, ImpressoraMonitorada, LeituraImpressora, MovimentacaoImpressora, MovimentacaoPatrimonioTI, MovimentacaoSuprimentoTI, PatrimonioTI, SuprimentoTI
+from .forms import ImpressoraMonitoradaForm, MovimentacaoImpressoraForm
 from .services_impressoras import atualizar_impressora
 from .services import (
     CAMPOS_MONITORADOS,
@@ -83,6 +83,7 @@ def impressoras_monitoradas(request):
         "impressoras": itens, "busca": busca,
         "total": itens.count(), "online": itens.filter(ativo=True, online=True).count(),
         "offline": itens.filter(ativo=True, online=False).count(),
+        "estoque": itens.filter(situacao="estoque").count(),
     })
 
 
@@ -200,7 +201,7 @@ def editar_impressora(request, impressora_id=None):
         item.unidade = unidade
         if item.setor and not item.local.strip():
             item.local = item.setor.nome
-        if ip_anterior and str(item.ip) != str(ip_anterior):
+        if str(item.ip or "") != str(ip_anterior or ""):
             item.online = False
             item.modelo_detectado = ""
             item.status_dispositivo = "Aguardando coleta no novo IP"
@@ -208,17 +209,81 @@ def editar_impressora(request, impressora_id=None):
             item.cilindro_percentual = None
             item.ultimo_erro = ""
         item.save()
-        if item.ativo:
+        if item.ativo and item.ip:
             atualizar_impressora(item)
             if item.online:
                 messages.success(request, f"Impressora salva e localizada em {item.ip}.")
             else:
                 messages.warning(request, f"Cadastro salvo, mas {item.ip} não respondeu à coleta.")
         else:
-            messages.success(request, "Impressora desativada e removida do NOC.")
+            messages.success(request, "Impressora salva no inventário e fora do monitoramento do NOC.")
         return redirect("inventario_ti_impressoras")
     return render(request, "inventario_ti/formulario_impressora.html", {
         "form": form, "impressora": impressora,
+    })
+
+
+@login_required(login_url="/")
+def movimentar_impressora(request, impressora_id):
+    if not usuario_pode_acessar_inventario_ti(request.user):
+        return render(request, "core/sem_permissao.html", status=403)
+    impressora = get_object_or_404(
+        aplicar_escopo_unidade(
+            ImpressoraMonitorada.objects.select_related("unidade", "setor"), request.user,
+        ),
+        pk=impressora_id,
+    )
+    iniciais = {
+        "situacao": impressora.situacao,
+        "setor": impressora.setor,
+        "local": impressora.local,
+        "ip": impressora.ip,
+        "monitorar_noc": impressora.ativo,
+    }
+    form = MovimentacaoImpressoraForm(request.POST or None, initial=iniciais)
+    if request.method == "POST" and form.is_valid():
+        dados = form.cleaned_data
+        with transaction.atomic():
+            MovimentacaoImpressora.objects.create(
+                impressora=impressora,
+                situacao_anterior=impressora.situacao,
+                situacao_nova=dados["situacao"],
+                setor_anterior=impressora.setor,
+                setor_novo=dados.get("setor"),
+                ip_anterior=impressora.ip,
+                ip_novo=dados.get("ip"),
+                local_anterior=impressora.local,
+                local_novo=dados.get("local") or "",
+                observacao=dados.get("observacao") or "",
+                usuario=request.user,
+            )
+            mudou_ip = str(impressora.ip or "") != str(dados.get("ip") or "")
+            impressora.situacao = dados["situacao"]
+            impressora.setor = dados.get("setor")
+            impressora.local = dados.get("local") or "Estoque TI"
+            impressora.ip = dados.get("ip")
+            impressora.ativo = dados.get("monitorar_noc", False)
+            if mudou_ip or not impressora.ativo:
+                impressora.online = False
+                impressora.modelo_detectado = ""
+                impressora.toner_percentual = None
+                impressora.cilindro_percentual = None
+                impressora.ultimo_erro = ""
+            impressora.status_dispositivo = (
+                "Aguardando coleta no novo IP" if impressora.ativo
+                else impressora.get_situacao_display()
+            )
+            impressora.save()
+        if impressora.ativo:
+            atualizar_impressora(impressora)
+        messages.success(request, "Movimentação registrada e cadastro da impressora atualizado.")
+        return redirect("inventario_ti_impressoras")
+    return render(request, "inventario_ti/movimentar_impressora.html", {
+        "form": form,
+        "impressora": impressora,
+        "movimentacoes": impressora.movimentacoes.select_related(
+            "setor_anterior", "setor_novo", "usuario",
+        )[:30],
     })
 
 

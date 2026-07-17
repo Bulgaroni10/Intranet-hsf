@@ -11,7 +11,7 @@ from django.utils import timezone
 
 from usuarios.models import Setor, Unidade
 
-from .models import AnexoMovimentacaoSuprimento, ComputadorInventario, ErroAgenteInventario, ImpressoraMonitorada, LeituraImpressora, MonitoramentoActiveDirectory, MonitoramentoRede, MonitoramentoServidor, MovimentacaoPatrimonioTI, MovimentacaoSuprimentoTI, PatrimonioTI, SuprimentoTI
+from .models import AnexoMovimentacaoSuprimento, ComputadorInventario, ErroAgenteInventario, ImpressoraMonitorada, LeituraImpressora, MonitoramentoActiveDirectory, MonitoramentoRede, MonitoramentoServidor, MovimentacaoImpressora, MovimentacaoPatrimonioTI, MovimentacaoSuprimentoTI, PatrimonioTI, SuprimentoTI
 from .services_ad import monitorar_active_directory
 from .services_impressoras import atualizar_impressora, extrair_suprimentos_manutencao
 from .views import (
@@ -239,7 +239,7 @@ class CadastroImpressoraMonitoradaTests(TestCase):
     def test_cadastra_e_dispara_coleta(self, coleta):
         resposta = self.client.post(reverse("inventario_ti_impressora_nova"), {
             "ip": "192.0.2.50", "modelo_informado": "Brother HL-L6202DW",
-            "setor": self.setor.pk, "local": "Recepção", "ativo": "on",
+            "setor": self.setor.pk, "local": "Recepção", "situacao": "em_uso", "ativo": "on",
         })
         self.assertEqual(resposta.status_code, 302)
         item = ImpressoraMonitorada.objects.get(ip="192.0.2.50")
@@ -255,7 +255,7 @@ class CadastroImpressoraMonitoradaTests(TestCase):
         )
         resposta = self.client.post(reverse("inventario_ti_impressora_editar", args=[item.pk]), {
             "ip": "192.0.2.52", "modelo_informado": "Brother HL-L6202DW",
-            "setor": self.setor.pk, "local": "Recepção", "ativo": "on",
+            "setor": self.setor.pk, "local": "Recepção", "situacao": "em_uso", "ativo": "on",
         })
         self.assertEqual(resposta.status_code, 302)
         item.refresh_from_db()
@@ -263,6 +263,40 @@ class CadastroImpressoraMonitoradaTests(TestCase):
         self.assertEqual(item.modelo_detectado, "")
         self.assertIsNone(item.toner_percentual)
         coleta.assert_called_once()
+
+    @patch("inventario_ti.views.atualizar_impressora")
+    def test_cadastra_impressora_de_backup_sem_ip_e_fora_do_noc(self, coleta):
+        resposta = self.client.post(reverse("inventario_ti_impressora_nova"), {
+            "patrimonio": "IMP-RES-01", "numero_serie": "SERIE-001",
+            "modelo_informado": "Brother HL-L6202DW", "situacao": "estoque",
+            "local": "Estoque TI",
+        })
+        self.assertEqual(resposta.status_code, 302)
+        item = ImpressoraMonitorada.objects.get(patrimonio="IMP-RES-01")
+        self.assertIsNone(item.ip)
+        self.assertFalse(item.ativo)
+        self.assertEqual(item.situacao, "estoque")
+        coleta.assert_not_called()
+
+    @patch("inventario_ti.views.atualizar_impressora")
+    def test_movimenta_backup_para_uso_com_ip_e_registra_historico(self, coleta):
+        item = ImpressoraMonitorada.objects.create(
+            unidade=self.unidade, patrimonio="IMP-RES-02", modelo_informado="Brother",
+            situacao="estoque", local="Estoque TI", ativo=False,
+        )
+        resposta = self.client.post(reverse("inventario_ti_impressora_movimentar", args=[item.pk]), {
+            "situacao": "em_uso", "setor": self.setor.pk, "local": "Recepção",
+            "ip": "192.0.2.80", "monitorar_noc": "on", "observacao": "Instalação",
+        })
+        self.assertEqual(resposta.status_code, 302)
+        item.refresh_from_db()
+        self.assertEqual(str(item.ip), "192.0.2.80")
+        self.assertTrue(item.ativo)
+        self.assertEqual(item.situacao, "em_uso")
+        movimento = MovimentacaoImpressora.objects.get(impressora=item)
+        self.assertEqual(movimento.situacao_anterior, "estoque")
+        self.assertEqual(movimento.situacao_nova, "em_uso")
+        coleta.assert_called_once_with(item)
 
     def test_usuario_sem_perfil_ti_recebe_403(self):
         comum = get_user_model().objects.create_user(
