@@ -351,7 +351,7 @@ class ImpressoraMonitorada(models.Model):
     situacao = models.CharField(max_length=20, choices=SITUACAO_CHOICES, default="em_uso")
     modelo_informado = models.CharField(max_length=180, blank=True, default="")
     modelo_detectado = models.CharField(max_length=180, blank=True, default="")
-    local = models.CharField(max_length=180)
+    local = models.CharField(max_length=180, blank=True, default="")
     ativo = models.BooleanField(default=True)
     online = models.BooleanField(default=False)
     status_dispositivo = models.CharField(max_length=255, blank=True, default="")

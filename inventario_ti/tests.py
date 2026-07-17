@@ -267,15 +267,14 @@ class CadastroImpressoraMonitoradaTests(TestCase):
     @patch("inventario_ti.views.atualizar_impressora")
     def test_cadastra_impressora_de_backup_sem_ip_e_fora_do_noc(self, coleta):
         resposta = self.client.post(reverse("inventario_ti_impressora_nova"), {
-            "patrimonio": "IMP-RES-01", "numero_serie": "SERIE-001",
-            "modelo_informado": "Brother HL-L6202DW", "situacao": "estoque",
-            "local": "Estoque TI",
+            "modelo_informado": "Brother HL-L6202DW",
         })
         self.assertEqual(resposta.status_code, 302)
-        item = ImpressoraMonitorada.objects.get(patrimonio="IMP-RES-01")
+        item = ImpressoraMonitorada.objects.get(modelo_informado="Brother HL-L6202DW")
         self.assertIsNone(item.ip)
         self.assertFalse(item.ativo)
         self.assertEqual(item.situacao, "estoque")
+        self.assertEqual(item.local, "")
         coleta.assert_not_called()
 
     @patch("inventario_ti.views.atualizar_impressora")

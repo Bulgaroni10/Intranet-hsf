@@ -199,6 +199,7 @@ def editar_impressora(request, impressora_id=None):
     if request.method == "POST" and form.is_valid():
         item = form.save(commit=False)
         item.unidade = unidade
+        item.situacao = form.cleaned_data.get("situacao") or "estoque"
         if item.setor and not item.local.strip():
             item.local = item.setor.nome
         if str(item.ip or "") != str(ip_anterior or ""):
@@ -260,7 +261,7 @@ def movimentar_impressora(request, impressora_id):
             mudou_ip = str(impressora.ip or "") != str(dados.get("ip") or "")
             impressora.situacao = dados["situacao"]
             impressora.setor = dados.get("setor")
-            impressora.local = dados.get("local") or "Estoque TI"
+            impressora.local = dados.get("local") or ""
             impressora.ip = dados.get("ip")
             impressora.ativo = dados.get("monitorar_noc", False)
             if mudou_ip or not impressora.ativo:

@@ -24,9 +24,14 @@ class ImpressoraMonitoradaForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.fields['setor'].queryset = Setor.objects.filter(ativo=True).order_by('nome')
+        self.fields['modelo_informado'].required = True
+        self.fields['situacao'].required = False
+        if not self.instance.pk:
+            self.fields['situacao'].initial = 'estoque'
 
     def clean(self):
         dados = super().clean()
+        dados['situacao'] = dados.get('situacao') or 'estoque'
         setor = dados.get('setor')
         if setor and not dados.get('local'):
             dados['local'] = setor.nome

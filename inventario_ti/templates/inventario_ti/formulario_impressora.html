@@ -11,7 +11,7 @@
       <div class="access-grid">{% include "gestao_acessos/campo.html" with campo=form.patrimonio %}{% include "gestao_acessos/campo.html" with campo=form.numero_serie %}{% include "gestao_acessos/campo.html" with campo=form.modelo_informado %}{% include "gestao_acessos/campo.html" with campo=form.situacao %}</div>
     </section>
     <section class="access-card">
-      <div class="access-card-title"><span>2</span><div><h2>Localização e monitoramento</h2><p>Essas informações serão exibidas diretamente no NOC.</p></div></div>
+      <div class="access-card-title"><span>2</span><div><h2>Localização e monitoramento opcionais</h2><p>Preencha somente quando a impressora entrar em uso. Equipamentos em estoque não precisam de setor, local ou IP.</p></div></div>
       <div class="access-grid">{% include "gestao_acessos/campo.html" with campo=form.setor %}{% include "gestao_acessos/campo.html" with campo=form.local %}{% include "gestao_acessos/campo.html" with campo=form.ip %}{% include "gestao_acessos/campo.html" with campo=form.ativo %}</div>
     </section>
     {% if impressora %}<section class="access-card"><div class="access-card-title"><span>📡</span><div><h2>Última leitura</h2><p>{{ impressora.ultima_consulta|date:"d/m/Y H:i"|default:"Nunca consultada" }}</p></div></div><dl class="access-data"><div><dt>Modelo detectado</dt><dd>{{ impressora.modelo_detectado|default:"—" }}</dd></div><div><dt>Status</dt><dd>{{ impressora.status_dispositivo|default:"—" }}</dd></div><div><dt>Toner</dt><dd>{{ impressora.toner_percentual|default_if_none:"—" }}%</dd></div><div><dt>Erro</dt><dd>{{ impressora.ultimo_erro|default:"Nenhum" }}</dd></div></dl></section>{% endif %}

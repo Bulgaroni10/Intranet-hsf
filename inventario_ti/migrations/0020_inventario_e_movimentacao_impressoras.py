@@ -26,6 +26,10 @@ class Migration(migrations.Migration):
             model_name='impressoramonitorada', name='situacao',
             field=models.CharField(choices=[('estoque', 'Em estoque'), ('em_uso', 'Em uso'), ('manutencao', 'Em manutenção'), ('baixada', 'Baixada')], default='em_uso', max_length=20),
         ),
+        migrations.AlterField(
+            model_name='impressoramonitorada', name='local',
+            field=models.CharField(blank=True, default='', max_length=180),
+        ),
         migrations.CreateModel(
             name='MovimentacaoImpressora',
             fields=[
