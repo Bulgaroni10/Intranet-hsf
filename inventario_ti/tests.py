@@ -304,6 +304,46 @@ class CadastroImpressoraMonitoradaTests(TestCase):
         self.client.force_login(comum)
         self.assertEqual(self.client.get(reverse("inventario_ti_impressoras")).status_code, 403)
 
+    def test_filtros_da_listagem_de_impressoras(self):
+        alvo = ImpressoraMonitorada.objects.create(
+            unidade=self.unidade, setor=self.setor, ip="192.0.2.91", local="Recepção",
+            modelo_informado="Brother", situacao="em_uso", ativo=True, online=True,
+        )
+        ImpressoraMonitorada.objects.create(
+            unidade=self.unidade, modelo_informado="Kyocera", situacao="estoque", ativo=False,
+        )
+        resposta = self.client.get(reverse("inventario_ti_impressoras"), {
+            "busca": "Recepção", "situacao": "em_uso", "noc": "online",
+            "setor": self.setor.pk,
+        })
+        self.assertEqual(resposta.status_code, 200)
+        self.assertEqual(list(resposta.context["impressoras"]), [alvo])
+
+    def test_excluir_impressora_remove_somente_da_unidade_ativa(self):
+        propria = ImpressoraMonitorada.objects.create(
+            unidade=self.unidade, modelo_informado="Brother", situacao="estoque", ativo=False,
+        )
+        outra_unidade = Unidade.objects.create(nome="Outra Unidade", sigla="OUTDEL")
+        outra = ImpressoraMonitorada.objects.create(
+            unidade=outra_unidade, modelo_informado="Ricoh", situacao="estoque", ativo=False,
+        )
+        resposta = self.client.post(reverse("inventario_ti_impressora_excluir", args=[propria.pk]))
+        self.assertEqual(resposta.status_code, 302)
+        self.assertFalse(ImpressoraMonitorada.objects.filter(pk=propria.pk).exists())
+        self.assertTrue(ImpressoraMonitorada.objects.filter(pk=outra.pk).exists())
+        self.assertEqual(
+            self.client.post(reverse("inventario_ti_impressora_excluir", args=[outra.pk])).status_code,
+            404,
+        )
+
+    def test_excluir_impressora_exige_post(self):
+        item = ImpressoraMonitorada.objects.create(
+            unidade=self.unidade, modelo_informado="Brother", situacao="estoque", ativo=False,
+        )
+        resposta = self.client.get(reverse("inventario_ti_impressora_excluir", args=[item.pk]))
+        self.assertEqual(resposta.status_code, 405)
+        self.assertTrue(ImpressoraMonitorada.objects.filter(pk=item.pk).exists())
+
     def test_historico_respeita_unidade_ativa(self):
         propria = ImpressoraMonitorada.objects.create(
             unidade=self.unidade, ip="192.0.2.70", local="Recepção",

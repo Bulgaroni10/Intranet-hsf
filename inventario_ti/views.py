@@ -8,7 +8,7 @@ from django.http import FileResponse, HttpResponse, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
 from django.views.decorators.csrf import csrf_exempt
-from django.views.decorators.http import require_GET
+from django.views.decorators.http import require_GET, require_POST
 import csv
 from io import BytesIO
 import json
@@ -74,17 +74,58 @@ def impressoras_monitoradas(request):
         ImpressoraMonitorada.objects.select_related("unidade", "setor"), request.user,
     )
     busca = request.GET.get("busca", "").strip()
+    situacao = request.GET.get("situacao", "").strip()
+    noc = request.GET.get("noc", "").strip()
+    setor = request.GET.get("setor", "").strip()
     if busca:
         itens = itens.filter(
             Q(ip__icontains=busca) | Q(local__icontains=busca) |
-            Q(modelo_informado__icontains=busca) | Q(modelo_detectado__icontains=busca)
+            Q(setor__nome__icontains=busca) | Q(patrimonio__icontains=busca) |
+            Q(numero_serie__icontains=busca) | Q(modelo_informado__icontains=busca) |
+            Q(modelo_detectado__icontains=busca)
         )
+    if situacao in dict(ImpressoraMonitorada.SITUACAO_CHOICES):
+        itens = itens.filter(situacao=situacao)
+    if setor.isdigit():
+        itens = itens.filter(setor_id=setor)
+    if noc == "online":
+        itens = itens.filter(ativo=True, online=True)
+    elif noc == "offline":
+        itens = itens.filter(ativo=True, online=False)
+    elif noc == "fora":
+        itens = itens.filter(ativo=False)
+
+    total = itens.count()
+    online = itens.filter(ativo=True, online=True).count()
+    offline = itens.filter(ativo=True, online=False).count()
+    estoque = itens.filter(situacao="estoque").count()
+    setores = Setor.objects.filter(
+        impressoras_monitoradas__in=aplicar_escopo_unidade(
+            ImpressoraMonitorada.objects.all(), request.user,
+        ),
+    ).distinct().order_by("nome")
+    pagina = Paginator(itens.order_by("local", "ip"), 25).get_page(request.GET.get("pagina"))
     return render(request, "inventario_ti/impressoras.html", {
-        "impressoras": itens, "busca": busca,
-        "total": itens.count(), "online": itens.filter(ativo=True, online=True).count(),
-        "offline": itens.filter(ativo=True, online=False).count(),
-        "estoque": itens.filter(situacao="estoque").count(),
+        "impressoras": pagina, "busca": busca, "situacao": situacao, "noc": noc,
+        "setor_selecionado": setor, "setores": setores,
+        "situacoes": ImpressoraMonitorada.SITUACAO_CHOICES,
+        "total": total, "online": online, "offline": offline, "estoque": estoque,
     })
+
+
+@login_required(login_url="/")
+@require_POST
+def excluir_impressora(request, impressora_id):
+    if not usuario_pode_gerenciar_patrimonio_ti(request.user):
+        return render(request, "core/sem_permissao.html", status=403)
+    impressora = get_object_or_404(
+        aplicar_escopo_unidade(ImpressoraMonitorada.objects.all(), request.user),
+        pk=impressora_id,
+    )
+    identificacao = impressora.local or impressora.patrimonio or impressora.modelo or "Impressora"
+    impressora.delete()
+    messages.success(request, f'Impressora "{identificacao}" excluída do inventário e do NOC.')
+    return redirect("inventario_ti_impressoras")
 
 
 @login_required(login_url="/")

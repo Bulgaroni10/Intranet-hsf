@@ -1,23 +1,69 @@
 {% extends "base/base.html" %}
+{% load static %}
 {% block title %}Inventário de impressoras{% endblock %}
-{% block extra_css %}{% include "gestao_acessos/estilos.html" %}{% endblock %}
+{% block extra_css %}
+  {% include "gestao_acessos/estilos.html" %}
+  <link rel="stylesheet" href="{% static 'core/css/impressoras.css' %}">
+{% endblock %}
 {% block content %}
-<div class="page access-page">
+<div class="page access-page printers-page">
   {% include "components/page_header.html" with eyebrow="Inventário TI" icon="🖨️" title="Inventário de impressoras" subtitle="Controle impressoras em uso, estoque, manutenção e monitoramento no NOC." action_url_name="inventario_ti_impressora_nova" action_text="Cadastrar impressora" secondary_url_name="inventario_ti_dashboard" secondary_text="Voltar" %}
-  <div class="access-actions"><a class="btn-submit" href="{% url 'inventario_ti_relatorio_consumo_impressoras' %}">Relatório de consumo por setor</a></div>
-  <section class="kpi-grid">
+
+  <div class="printers-toolbar">
+    <a class="btn-link" href="{% url 'inventario_ti_relatorio_consumo_impressoras' %}">📊 Relatório de consumo</a>
+  </div>
+
+  <section class="kpi-grid printers-kpis">
     {% include "components/kpi_card.html" with icon="🖨️" title="Cadastradas" value=total color="info" %}
     {% include "components/kpi_card.html" with icon="🟢" title="Online" value=online color="success" %}
     {% include "components/kpi_card.html" with icon="🔴" title="Offline" value=offline color="danger" %}
     {% include "components/kpi_card.html" with icon="📦" title="Em estoque" value=estoque color="warning" %}
   </section>
-  <section class="access-card">
-    <form method="get" class="access-grid"><div class="form-group"><label>Pesquisar</label><input name="busca" value="{{ busca }}" placeholder="IP, setor, local ou modelo"></div><div class="access-actions"><a class="btn-link" href="{% url 'inventario_ti_impressoras' %}">Limpar</a><button class="btn-submit">Pesquisar</button></div></form>
+
+  <section class="access-card printers-filter-card">
+    <div class="printers-section-heading">
+      <div><span>FILTROS</span><h2>Localizar equipamentos</h2></div>
+      {% if busca or situacao or noc or setor_selecionado %}<span class="gsf-badge">Filtros ativos</span>{% endif %}
+    </div>
+    <form method="get" class="printers-filter-grid">
+      <div class="form-group printers-search">
+        <label for="id_busca">Pesquisar</label>
+        <input id="id_busca" name="busca" value="{{ busca }}" placeholder="IP, patrimônio, série, setor, local ou modelo">
+      </div>
+      <div class="form-group">
+        <label for="id_situacao">Situação</label>
+        <select id="id_situacao" name="situacao"><option value="">Todas</option>{% for valor, nome in situacoes %}<option value="{{ valor }}" {% if situacao == valor %}selected{% endif %}>{{ nome }}</option>{% endfor %}</select>
+      </div>
+      <div class="form-group">
+        <label for="id_noc">Monitoramento</label>
+        <select id="id_noc" name="noc"><option value="">Todos</option><option value="online" {% if noc == 'online' %}selected{% endif %}>Online</option><option value="offline" {% if noc == 'offline' %}selected{% endif %}>Offline</option><option value="fora" {% if noc == 'fora' %}selected{% endif %}>Fora do NOC</option></select>
+      </div>
+      <div class="form-group">
+        <label for="id_setor">Setor</label>
+        <select id="id_setor" name="setor"><option value="">Todos</option>{% for item_setor in setores %}<option value="{{ item_setor.id }}" {% if setor_selecionado == item_setor.id|stringformat:'s' %}selected{% endif %}>{{ item_setor.nome }}</option>{% endfor %}</select>
+      </div>
+      <div class="printers-filter-actions"><a class="btn-link" href="{% url 'inventario_ti_impressoras' %}">Limpar</a><button class="btn-submit" type="submit">Aplicar filtros</button></div>
+    </form>
   </section>
-  <section class="access-card table-wrap">
-    <table><thead><tr><th>Situação</th><th>NOC</th><th>Identificação</th><th>IP</th><th>Setor / local</th><th>Modelo / suprimentos</th><th></th></tr></thead><tbody>
-    {% for item in impressoras %}<tr><td><span class="gsf-badge">{{ item.get_situacao_display }}</span></td><td>{% if not item.ativo %}<span class="gsf-badge">Fora do NOC</span>{% elif item.online %}<span class="gsf-badge gsf-badge-success">Online</span>{% else %}<span class="gsf-badge gsf-badge-danger">Offline</span>{% endif %}</td><td><strong>{{ item.patrimonio|default:"Sem patrimônio" }}</strong><br><small>Série: {{ item.numero_serie|default:"—" }}</small></td><td><strong>{{ item.ip|default:"Sem IP" }}</strong></td><td>{{ item.local }}{% if item.setor %}<br><small>{{ item.setor.nome }}</small>{% endif %}</td><td>{{ item.modelo|default:"Não detectado" }}<br><small>Toner {{ item.toner_percentual|default_if_none:"—" }}% · Cilindro {{ item.cilindro_percentual|default_if_none:"—" }}%</small></td><td><div class="access-actions"><a class="btn-submit" href="{% url 'inventario_ti_impressora_movimentar' item.id %}">Movimentar</a>{% if item.ip %}<a class="btn-link" href="{% url 'inventario_ti_impressora_historico' item.id %}">Leituras</a>{% endif %}<a class="btn-link" href="{% url 'inventario_ti_impressora_editar' item.id %}">Editar</a></div></td></tr>{% empty %}<tr><td colspan="7"><div class="access-empty">Nenhuma impressora cadastrada.</div></td></tr>{% endfor %}
-    </tbody></table>
+
+  <section class="gsf-table-card printers-table-card">
+    <div class="gsf-table-header"><div><h2>Equipamentos</h2><p>{{ total }} impressora{{ total|pluralize }} encontrada{{ total|pluralize }}</p></div></div>
+    <div class="gsf-table-wrap"><table class="gsf-table printers-table">
+      <thead><tr><th>Situação</th><th>NOC</th><th>Identificação</th><th>Rede e destino</th><th>Modelo e suprimentos</th><th>Ações</th></tr></thead>
+      <tbody>
+      {% for item in impressoras %}
+        <tr>
+          <td><span class="gsf-badge">{{ item.get_situacao_display }}</span></td>
+          <td>{% if not item.ativo %}<span class="gsf-badge">Fora do NOC</span>{% elif item.online %}<span class="gsf-badge gsf-badge-success">Online</span>{% else %}<span class="gsf-badge gsf-badge-danger">Offline</span>{% endif %}</td>
+          <td><div class="printer-primary"><strong>{{ item.patrimonio|default:"Sem patrimônio" }}</strong><small>Série: {{ item.numero_serie|default:"—" }}</small></div></td>
+          <td><div class="printer-primary"><strong>{{ item.ip|default:"Sem IP" }}</strong><span>{{ item.local|default:"Sem local definido" }}</span>{% if item.setor %}<small>{{ item.setor.nome }}</small>{% endif %}</div></td>
+          <td><div class="printer-primary"><strong>{{ item.modelo|default:"Não detectado" }}</strong><small>Toner {{ item.toner_percentual|default_if_none:"—" }}% · Cilindro {{ item.cilindro_percentual|default_if_none:"—" }}%</small></div></td>
+          <td><div class="printers-row-actions"><a class="btn-submit" href="{% url 'inventario_ti_impressora_movimentar' item.id %}">Movimentar</a>{% if item.ip %}<a class="btn-link" href="{% url 'inventario_ti_impressora_historico' item.id %}">Leituras</a>{% endif %}<a class="btn-link" href="{% url 'inventario_ti_impressora_editar' item.id %}">Editar</a><form method="post" action="{% url 'inventario_ti_impressora_excluir' item.id %}" onsubmit="return confirm('Excluir esta impressora? As leituras e movimentações vinculadas também serão removidas. Esta ação não pode ser desfeita.');">{% csrf_token %}<button class="btn-danger" type="submit">Excluir</button></form></div></td>
+        </tr>
+      {% empty %}<tr><td colspan="6"><div class="access-empty">Nenhuma impressora corresponde aos filtros informados.</div></td></tr>{% endfor %}
+      </tbody>
+    </table></div>
+    {% if impressoras.paginator.num_pages > 1 %}<nav class="printers-pagination" aria-label="Paginação"><span>Página {{ impressoras.number }} de {{ impressoras.paginator.num_pages }}</span><div>{% if impressoras.has_previous %}<a class="btn-link" href="?busca={{ busca|urlencode }}&situacao={{ situacao }}&noc={{ noc }}&setor={{ setor_selecionado }}&pagina={{ impressoras.previous_page_number }}">Anterior</a>{% endif %}{% if impressoras.has_next %}<a class="btn-link" href="?busca={{ busca|urlencode }}&situacao={{ situacao }}&noc={{ noc }}&setor={{ setor_selecionado }}&pagina={{ impressoras.next_page_number }}">Próxima</a>{% endif %}</div></nav>{% endif %}
   </section>
 </div>
 {% endblock %}

@@ -17,6 +17,7 @@ urlpatterns = [
     path("portal/modulos/inventario-ti/impressoras/", views.impressoras_monitoradas, name="inventario_ti_impressoras"),
     path("portal/modulos/inventario-ti/impressoras/nova/", views.editar_impressora, name="inventario_ti_impressora_nova"),
     path("portal/modulos/inventario-ti/impressoras/<int:impressora_id>/editar/", views.editar_impressora, name="inventario_ti_impressora_editar"),
+    path("portal/modulos/inventario-ti/impressoras/<int:impressora_id>/excluir/", views.excluir_impressora, name="inventario_ti_impressora_excluir"),
     path("portal/modulos/inventario-ti/impressoras/<int:impressora_id>/movimentar/", views.movimentar_impressora, name="inventario_ti_impressora_movimentar"),
     path("portal/modulos/inventario-ti/impressoras/<int:impressora_id>/historico/", views.historico_impressora, name="inventario_ti_impressora_historico"),
     path("portal/modulos/inventario-ti/impressoras/relatorio-consumo/", views.relatorio_consumo_impressoras, name="inventario_ti_relatorio_consumo_impressoras"),
