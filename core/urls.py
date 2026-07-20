@@ -53,8 +53,10 @@ urlpatterns = [
     path('portal/administracao/unidades-setores/', usuarios_views.administracao_unidades_setores, name='administracao_unidades_setores'),
     path('portal/administracao/unidades-setores/unidade/nova/', usuarios_views.nova_unidade, name='nova_unidade'),
     path('portal/administracao/unidades-setores/unidade/editar/<int:unidade_id>/', usuarios_views.editar_unidade, name='editar_unidade'),
+    path('portal/administracao/unidades-setores/unidade/excluir/<int:unidade_id>/', usuarios_views.excluir_unidade, name='excluir_unidade'),
     path('portal/administracao/unidades-setores/setor/novo/', usuarios_views.novo_setor, name='novo_setor'),
     path('portal/administracao/unidades-setores/setor/editar/<int:setor_id>/', usuarios_views.editar_setor, name='editar_setor'),
+    path('portal/administracao/unidades-setores/setor/excluir/<int:setor_id>/', usuarios_views.excluir_setor, name='excluir_setor'),
 
     path('portal/administracao/permissoes-modulos/', usuarios_views.administracao_permissoes_modulos, name='administracao_permissoes_modulos'),
     path('portal/administracao/permissoes-modulos/editar/<int:modulo_id>/', usuarios_views.editar_permissao_modulo, name='editar_permissao_modulo'),

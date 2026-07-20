@@ -354,8 +354,16 @@
 
     .admin-table th:nth-child(3),
     .admin-table td:nth-child(3) {
-      width: 76px;
+      width: 158px;
       text-align: right;
+    }
+
+    .row-actions {
+      justify-content: flex-end;
+    }
+
+    .row-actions form {
+      margin: 0;
     }
 
     .row-action {
@@ -378,6 +386,20 @@
       background: rgba(45, 212, 191, 0.16);
       border-color: rgba(45, 212, 191, 0.50);
       transform: translateY(-1px);
+    }
+
+    .row-action.danger {
+      border-color: rgba(239, 68, 68, 0.34);
+      background: rgba(239, 68, 68, 0.10);
+      color: #fca5a5;
+      cursor: pointer;
+      font-family: inherit;
+    }
+
+    .row-action.danger:hover {
+      border-color: rgba(239, 68, 68, 0.62);
+      background: rgba(239, 68, 68, 0.18);
+      color: #fecaca;
     }
 
     .empty-state {
@@ -596,6 +618,10 @@
                           <a class="row-action" href="/portal/administracao/unidades-setores/unidade/editar/{{ unidade.id }}/">
                             Editar
                           </a>
+                          <form method="post" action="{% url 'excluir_unidade' unidade.id %}" onsubmit="return confirm('Excluir a unidade {{ unidade.nome|escapejs }}? Esta ação só será permitida se ela não possuir vínculos.');">
+                            {% csrf_token %}
+                            <button class="row-action danger" type="submit">Excluir</button>
+                          </form>
                         </div>
                       </td>
                     </tr>
@@ -657,6 +683,10 @@
                           <a class="row-action" href="/portal/administracao/unidades-setores/setor/editar/{{ setor.id }}/">
                             Editar
                           </a>
+                          <form method="post" action="{% url 'excluir_setor' setor.id %}" onsubmit="return confirm('Excluir o setor {{ setor.nome|escapejs }}? Esta ação só será permitida se ele não possuir vínculos.');">
+                            {% csrf_token %}
+                            <button class="row-action danger" type="submit">Excluir</button>
+                          </form>
                         </div>
                       </td>
                     </tr>

@@ -1,10 +1,11 @@
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import Group
-from django.core.exceptions import ValidationError
+from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.db import transaction
 from django.db.models import Q
 from django.shortcuts import get_object_or_404, redirect, render
+from django.views.decorators.http import require_POST
 
 from modulos.models import Modulo
 from .models import Usuario, Unidade, Setor
@@ -676,6 +677,41 @@ def editar_unidade(request, unidade_id):
     })
 
 
+def _quantidade_vinculos(objeto):
+    """Conta relações reversas sem executar exclusões em cascata."""
+    total = 0
+    for relacao in objeto._meta.related_objects:
+        try:
+            relacionado = getattr(objeto, relacao.get_accessor_name())
+            if hasattr(relacionado, 'count'):
+                total += relacionado.count()
+            elif relacionado is not None:
+                total += 1
+        except (AttributeError, ObjectDoesNotExist):
+            continue
+    return total
+
+
+@login_required(login_url='/login/')
+@require_POST
+def excluir_unidade(request, unidade_id):
+    if not usuario_tem_acesso_administracao(request.user):
+        return render(request, 'core/sem_permissao.html', status=403)
+
+    unidade = get_object_or_404(Unidade, id=unidade_id)
+    vinculos = _quantidade_vinculos(unidade)
+    if vinculos:
+        messages.error(
+            request,
+            f'Não foi possível excluir {unidade.nome}: existem {vinculos} vínculo(s) com usuários ou módulos. Desative a unidade para preservar o histórico.',
+        )
+    else:
+        nome = unidade.nome
+        unidade.delete()
+        messages.success(request, f'Unidade "{nome}" excluída com sucesso.')
+    return redirect('administracao_unidades_setores')
+
+
 @login_required(login_url='/login/')
 def novo_setor(request):
     if not usuario_tem_acesso_administracao(request.user):
@@ -798,6 +834,26 @@ def editar_setor(request, setor_id):
         'url_salvar': f'/portal/administracao/unidades-setores/setor/editar/{setor.id}/',
         'modo': 'editar',
     })
+
+
+@login_required(login_url='/login/')
+@require_POST
+def excluir_setor(request, setor_id):
+    if not usuario_tem_acesso_administracao(request.user):
+        return render(request, 'core/sem_permissao.html', status=403)
+
+    setor = get_object_or_404(Setor, id=setor_id)
+    vinculos = _quantidade_vinculos(setor)
+    if vinculos:
+        messages.error(
+            request,
+            f'Não foi possível excluir {setor.nome}: existem {vinculos} vínculo(s) com usuários ou módulos. Desative o setor para preservar o histórico.',
+        )
+    else:
+        nome = setor.nome
+        setor.delete()
+        messages.success(request, f'Setor "{nome}" excluído com sucesso.')
+    return redirect('administracao_unidades_setores')
 
 
 @login_required(login_url='/login/')
