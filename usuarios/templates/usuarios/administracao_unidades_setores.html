@@ -254,8 +254,13 @@
 
     .admin-table {
       width: 100%;
+      min-width: 0 !important;
       border-collapse: collapse;
       table-layout: fixed;
+    }
+
+    .table-wrap > table.admin-table {
+      min-width: 0 !important;
     }
 
     .admin-table th,
@@ -354,7 +359,7 @@
 
     .admin-table th:nth-child(3),
     .admin-table td:nth-child(3) {
-      width: 158px;
+      width: 146px;
       text-align: right;
     }
 

@@ -72,6 +72,14 @@ class AdministracaoUnidadesSetoresTests(TestCase):
         self.assertEqual(self.unidade.nome, 'Hospital Atualizado')
         self.assertEqual(self.setor.nome, 'Setor Atualizado')
 
+    def test_listagem_exibe_acoes_de_editar_e_excluir(self):
+        resposta = self.client.get(reverse('administracao_unidades_setores'))
+        self.assertEqual(resposta.status_code, 200)
+        self.assertContains(resposta, reverse('editar_unidade', args=[self.unidade.pk]))
+        self.assertContains(resposta, reverse('excluir_unidade', args=[self.unidade.pk]))
+        self.assertContains(resposta, reverse('editar_setor', args=[self.setor.pk]))
+        self.assertContains(resposta, reverse('excluir_setor', args=[self.setor.pk]))
+
     def test_exclui_unidade_e_setor_sem_vinculos(self):
         unidade = Unidade.objects.create(nome='Unidade Temporária', sigla='UTEMP')
         setor = Setor.objects.create(nome='Setor Temporário')
